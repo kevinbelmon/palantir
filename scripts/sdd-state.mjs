@@ -40,6 +40,32 @@ const versionFramework = () => {
 };
 
 const estado = leerEstado(DATA_ROOT, { framework: versionFramework() });
+
+/**
+ * Ruta bajo la que este codebase publica su estado: `<PRY-nnn>/<repo>.json`.
+ *
+ * Carpeta por proyecto y archivo por codebase, porque un proyecto puede tener
+ * varios (contracts/paths.md §0: "un producto, N codebases").
+ *
+ * Se niega si falta cualquiera de los dos. Un archivo anónimo en un repo
+ * compartido con el estado de varios clientes no se puede atribuir, no se puede
+ * limpiar y no se puede actualizar sin adivinar a quién pisa. Mejor no publicar.
+ */
+if (has("publish-path")) {
+  const { proyecto_id: pry, repo } = estado.source;
+  const falta = [!pry && "meta.proyecto_id", !repo && "meta.repo"].filter(Boolean);
+  if (falta.length) {
+    console.error(`FAIL  no se puede publicar: falta ${falta.join(" y ")} en el registro.`);
+    console.error(`      Se completan en specs/_registry/features.yaml, bloque meta.`);
+    console.error(`      El proyecto_id lo escribe /sdd-generate cuando llega un brief de Discovery.`);
+    process.exit(1);
+  }
+  // El nombre del repo puede venir como `org/nombre`: solo interesa la hoja, y
+  // se sanea porque termina siendo un nombre de archivo.
+  const hoja = String(repo).split("/").pop().replace(/[^A-Za-z0-9._-]/g, "-");
+  process.stdout.write(`${pry}/${hoja}.json\n`);
+  process.exit(0);
+}
 // Lo que se escribe es la versión publicable: sin rutas de archivo, porque este
 // documento sale del repo. Ver paraPublicar() en lib/estado.mjs.
 const json = JSON.stringify(paraPublicar(estado), null, 2) + "\n";

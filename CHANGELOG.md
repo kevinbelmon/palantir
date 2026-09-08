@@ -41,6 +41,19 @@ deja de funcionar.
   en un brief, y **se niega a pisarlo** si ya hay otro distinto: dos proyectos de Discovery
   cayendo en el mismo árbol es una decisión humana.
 
+- **`--publish-path` en `sdd-state.mjs`** y un job `estado` en `sdd-audit.yml` que sube el
+  documento a un repo central, bajo `estado/<PRY-nnn>/<codebase>.json` — carpeta por proyecto,
+  archivo por codebase, porque un proyecto puede tener varios.
+
+  El script calcula la ruta y **se niega si al registro le falta `meta.proyecto_id` o `meta.repo`**:
+  un archivo anónimo en un repo compartido entre clientes no se puede atribuir ni limpiar.
+
+  Tres decisiones del job: corre con `always()` **aunque el auditor falle** —si solo publicara en
+  verde, el tablero mostraría nada más que los proyectos sanos—; **nunca falla el build**, porque
+  publicar es observabilidad y no un gate; y se saltea sola donde no está configurada la variable
+  `SDD_ESTADO_REPO`, así el mismo archivo sirve en todos los repos. Solo commitea si cambió algo que
+  no sea la marca de tiempo, y reintenta con rebase si otro repo publicó primero.
+
 ### Cambia
 
 - `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;
