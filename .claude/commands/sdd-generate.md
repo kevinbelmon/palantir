@@ -31,7 +31,14 @@ Agregá (o actualizá) la entrada de esta feature en `specs/_registry/features.y
 - **Si la feature vino de Discovery**, agregá también `discovery_id`, `epic`, `release` y `size`
   del frontmatter del brief. Es lo que permite recorrer la cadena completa desde el objetivo de
   negocio hasta el commit. Si no vino de Discovery, omitilos o dejalos en `null`.
-Si `specs/_registry/features.yaml` no existe, creálo con esta feature como primera entrada.
+- **`meta.proyecto_id` va una sola vez, en el bloque `meta` del registro, no en la entrada.**
+  Si el brief trae `proyecto_id` y `meta.proyecto_id` está en `null`, escribilo. Si ya tiene un
+  valor **distinto**, no lo pises: pará y avisá — significa que a este `DATA_ROOT` le están
+  llegando features de dos proyectos de Discovery, y eso es una decisión humana, no un merge.
+  Todas las features del repo pertenecen al mismo proyecto; por eso el campo describe al árbol
+  y no a la feature.
+Si `specs/_registry/features.yaml` no existe, creálo con esta feature como primera entrada,
+copiando el bloque `meta` de `specs/_registry/features.template.yaml`.
 
 **Chequeo de colisiones (obligatorio en equipo):**
 Al registrar `touches`, intersectalos con los `touches` de toda otra feature `OPEN`

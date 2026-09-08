@@ -100,7 +100,7 @@ chequear("avisa que falta la dependencia", r.out.includes("falta instalar"), tru
 chequear("verify pasa", estado(d), "PASS");
 chequear("preserva los scripts del repo", json(d + "/package.json").scripts.dev, "tsx watch src/index.ts");
 chequear("preserva las deps del repo", json(d + "/package.json").dependencies.fastify, "^4.26.0");
-chequear("aporta las claves del framework", Object.keys(json(d + "/package.json").scripts).length, 10);
+chequear("aporta las claves del framework", Object.keys(json(d + "/package.json").scripts).length, 11);
 chequear("preserva el CLAUDE.md del repo", cuenta(d + "/CLAUDE.md", "Fly\\.io"), 1);
 chequear("injerta el bloque una sola vez", cuenta(d + "/CLAUDE.md", "SDD:FRAMEWORK BEGIN"), 1);
 chequear("materializa el gate de versión", existsSync(d + "/.github/workflows/sdd-version.yml"), true);

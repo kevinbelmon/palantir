@@ -2,10 +2,10 @@
  * gen-kanban.mjs — Genera kanban.html a partir de features.yaml + sprints/*.yaml + tasks.md
  * Uso: node scripts/gen-kanban.mjs
  */
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'fs';
-import { join, dirname, resolve } from 'path';
+import { writeFileSync } from 'fs';
+import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
-import { parse } from 'yaml';
+import { leerEstado } from './lib/estado.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -22,58 +22,39 @@ const ROOT    = rootIdx !== -1 ? resolve(process.cwd(), argv[rootIdx + 1]) : pro
 const outFile = outIdx  !== -1 ? argv[outIdx + 1] : 'kanban.html';
 const outPath = resolve(process.cwd(), outFile);
 
-function readYaml(filePath) {
-  return parse(readFileSync(filePath, 'utf8'));
-}
-
-// ── Features ────────────────────────────────────────────────────────────────
+// ── Estado ───────────────────────────────────────────────────────────────────
+// La lectura vive en lib/estado.mjs, no acá. El mismo objeto lo consume
+// sdd-state.mjs para publicar: con dos lectores, el tablero y el documento
+// terminan mostrando números distintos del mismo repo.
+//
 // Un repo recién instalado todavía no tiene registro: es el estado normal, no un
-// error. El auditor lo trata así (sdd-audit.mjs: "modelo sin correr, nada que
-// auditar") y acá tiene que ser igual — reventar con un stack trace de ENOENT el
-// día uno de cada instalación no le dice nada a nadie.
-const featuresPath = join(ROOT, 'specs/_registry/features.yaml');
-if (!existsSync(featuresPath)) {
+// error. El auditor lo trata así ("modelo sin correr, nada que auditar") y acá
+// tiene que ser igual — reventar con un ENOENT el día uno de cada instalación no
+// le dice nada a nadie.
+const estado = leerEstado(ROOT);
+
+if (!estado.source.registro) {
   console.log(`kanban · root: ${ROOT}`);
-  console.log(`\nNada que dibujar: no existe specs/_registry/features.yaml.`);
+  console.log(`
+Nada que dibujar: no existe specs/_registry/features.yaml.`);
   console.log(`El registro lo crea /sdd-generate al dar de alta la primera feature.`);
-  console.log(`\nPara ver el tablero con datos de ejemplo:  pnpm kanban:demo`);
+  console.log(`
+Para ver el tablero con datos de ejemplo:  pnpm kanban:demo`);
   process.exit(0);
 }
-const { features: rawFeatures = [] } = readYaml(featuresPath);
 
-// ── Sprints ──────────────────────────────────────────────────────────────────
-const sprintsDir = join(ROOT, 'specs/_registry/sprints');
-const sprints = existsSync(sprintsDir)
-  ? readdirSync(sprintsDir)
-      .filter(f => f.endsWith('.yaml') && !f.startsWith('_'))
-      .map(f => readYaml(join(sprintsDir, f)))
-  : [];
-
-// ── Enrich features ──────────────────────────────────────────────────────────
-const features = rawFeatures.map(feature => {
-  const base = join(ROOT, 'specs', feature.id);
-
-  // Count tasks from tasks.md (rows matching | T\d+)
-  let taskCount = 0;
-  const tasksPath = join(base, 'tasks.md');
-  if (existsSync(tasksPath)) {
-    const matches = readFileSync(tasksPath, 'utf8').match(/^\| T\d+/gm);
-    taskCount = matches?.length ?? 0;
-  }
-
-  // Last command from feature.status.md
-  let lastCommand = null;
-  const statusPath = join(base, 'feature.status.md');
-  if (existsSync(statusPath)) {
-    const match = readFileSync(statusPath, 'utf8').match(/last_command:\s*(.+)/);
-    lastCommand = match?.[1]?.trim() ?? null;
-  }
-
-  return { ...feature, taskCount, lastCommand };
-});
+// El HTML de abajo usa los nombres de campo con los que nació. Se traducen acá
+// en vez de tocar la plantilla entera: el tablero no cambia, solo su fuente.
+const features = estado.features.map(f => ({
+  ...f,
+  taskCount:   f.tareas.total,
+  tasksDone:   f.tareas.hechas,
+  lastCommand: f.last_command,
+}));
+const sprints = estado.sprints.map(s => ({ ...s, sprint: s.id }));
 
 // ── Build & write ─────────────────────────────────────────────────────────────
-const DATA = { features, sprints, generatedAt: new Date().toISOString() };
+const DATA = { features, sprints, generatedAt: estado.generated };
 writeFileSync(outPath, buildHTML(DATA), 'utf8');
 console.log(`✅  ${outFile} generado → ${outPath}`);
 

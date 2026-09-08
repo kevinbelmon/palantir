@@ -8,6 +8,52 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.8.0 — 2026-09-08
+
+**MINOR.** El estado del repo pasa a ser un documento que se puede publicar. Nada de lo anterior
+deja de funcionar.
+
+### Agrega
+
+- **`scripts/lib/estado.mjs`** — un solo lector de "en qué estado está este proyecto". Recorre el
+  registro, `tasks.md`, `feature.status.md` y los bloques de `metrics/`, y devuelve un objeto con
+  features, sprints, avance por tarea y las cuatro fases.
+
+  Usa **los mismos patrones de parseo que `sdd-audit.mjs`**. No es prolijidad: el tablero contaba
+  las tasks con un patrón distinto al del auditor, así que mostraba `0 tareas` en toda feature real
+  —contaba filas de tabla `| T01 |`, que es el formato del fixture `demo/`, mientras
+  `/sdd-implement` escribe checkboxes `- [ ] T001`—. Con un lector único no pueden volver a
+  discrepar.
+
+  Lo que **no** lee, y no es casual: `spec.md`, `plan.md`, `constitution.md`, `DECISIONS.md` ni el
+  grafo. El objeto está pensado para publicarse fuera del repo, así que las rutas de esos archivos
+  no están en el código.
+
+- **`scripts/sdd-state.mjs`** (`pnpm sdd:state`) — escribe ese objeto como JSON en
+  `metrics/estado.json`. Es un proyector: no valida, no bloquea, no sale a la red. Acepta `--root`
+  con la misma convención que el auditor, más `--out` y `--stdout`.
+
+  `paraPublicar()` reduce `touches` de la lista de rutas a un número antes de escribir. El tablero
+  local dibuja los archivos; el documento que sale del repo no describe la arquitectura del cliente.
+
+- **Bloque `meta` en `specs/_registry/features.template.yaml`** con `repo` y `proyecto_id`. Describe
+  al `DATA_ROOT`, no a una feature. `/sdd-generate` escribe `proyecto_id` la primera vez que lo ve
+  en un brief, y **se niega a pisarlo** si ya hay otro distinto: dos proyectos de Discovery
+  cayendo en el mismo árbol es una decisión humana.
+
+### Cambia
+
+- `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;
+  el conteo de tareas ahora es el correcto.
+
+### Nota
+
+Lo que el lector no puede contar lo dice, no lo pone en cero: una feature con `tasks.md` en formato
+de tabla reporta `formato: "tabla"` y `hechas: null`, y el resumen lleva `features_sin_contar`. Un
+`0 de 8` se lee como "nada hecho" cuando en realidad es "no se sabe".
+
+---
+
 ## 1.7.0 — 2026-08-27
 
 **MINOR.** Documenta el mecanismo de distribución como contrato.
