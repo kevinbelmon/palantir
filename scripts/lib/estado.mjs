@@ -29,10 +29,17 @@ export const SCHEMA_VERSION = 1;
 export const SIN_DATO = "SIN_DATO";
 
 /**
- * Task canónica: `- [ ] T001` / `- [x] T001`.
- * Idéntico a taskCounts() de sdd-audit.mjs. Es lo que escribe /sdd-implement.
+ * Task canónica: `- [ ] T001` / `- [x] **T001**`.
+ *
+ * El identificador puede venir en negrita. Quien escribe este archivo es un
+ * agente redactando markdown, y resaltar el ID en una lista de tareas es lo
+ * natural: la primera corrida greenfield real produjo `- [ ] **T001** · …` sin
+ * que nadie se lo pidiera. Un patrón que exige una forma byte-exacta de un
+ * productor no determinista cuenta cero y nadie se entera.
+ *
+ * Idéntico a taskCounts() de sdd-audit.mjs: los dos tienen que contar igual.
  */
-const RE_TASK = /^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*T\d{3}/;
+const RE_TASK = /^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*\*{0,2}T\d{3}/;
 
 /**
  * Formato de tabla `| T01 | … | ✅ |`, el del fixture demo/. No es el canónico

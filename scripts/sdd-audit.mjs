@@ -102,13 +102,21 @@ function blockField(body, field) {
   return m ? m[1].trim() : null;
 }
 
-/** Cuenta tasks canónicas `- [ ] TNNN` / `- [x] TNNN` de una feature */
+/**
+ * Cuenta tasks canónicas `- [ ] TNNN` / `- [x] **TNNN**` de una feature.
+ *
+ * El ID puede venir en negrita: lo escribe un agente redactando markdown, y
+ * resaltarlo en una lista de tareas es lo natural. La primera corrida greenfield
+ * real produjo `- [ ] **T001** · …`, y con el patrón estricto el gate de
+ * /sdd-implement fallaba con "declara 7/7 pero tasks.md tiene 0 tasks canónicas"
+ * sobre una feature perfectamente bien generada.
+ */
 function taskCounts(id) {
   const p = `specs/${id}/tasks.md`;
   if (!exists(p)) return null;
   let total = 0, done = 0;
   for (const line of read(p).split(/\r?\n/)) {
-    const m = line.match(/^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*T\d{3}/);
+    const m = line.match(/^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*\*{0,2}T\d{3}/);
     if (m) {
       total++;
       if (m[1].toLowerCase() === "x") done++;

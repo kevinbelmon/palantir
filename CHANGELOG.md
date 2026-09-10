@@ -54,6 +54,22 @@ deja de funcionar.
   `SDD_ESTADO_REPO`, así el mismo archivo sirve en todos los repos. Solo commitea si cambió algo que
   no sea la marca de tiempo, y reintenta con rebase si otro repo publicó primero.
 
+### Corrige
+
+- **El contador de tasks no reconocía el identificador en negrita.** `taskCounts()` del auditor
+  —y por copia, el lector nuevo— exigía `- [ ] T001` exacto. La primera corrida greenfield real
+  del modelo produjo `- [ ] **T001** · …`, sin que nadie se lo pidiera: quien escribe ese archivo
+  es un agente redactando markdown, y resaltar el ID en una lista de tareas es lo natural.
+
+  El efecto no era cosmético. Con siete tareas bien generadas, el gate de `/sdd-implement` fallaba
+  con *"declara 7/7 pero tasks.md tiene 0 tasks canónicas"* y no dejaba cerrar la feature. Ahora
+  el patrón acepta `\*{0,2}` alrededor del identificador.
+
+  Un patrón que exige una forma byte-exacta de un productor no determinista cuenta cero y nadie se
+  entera. Queda pendiente el CHECK 6, que tiene el problema inverso —no falla, no dice nada— porque
+  busca la referencia `US-N` en la misma línea de la tarea y el formato real la pone al cierre del
+  bloque, tres líneas más abajo.
+
 ### Cambia
 
 - `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;
