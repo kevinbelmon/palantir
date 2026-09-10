@@ -70,6 +70,19 @@ deja de funcionar.
   busca la referencia `US-N` en la misma línea de la tarea y el formato real la pone al cierre del
   bloque, tres líneas más abajo.
 
+- **El CHECK 6 no verificaba la trazabilidad `US-N`: no decía nada.** Dos defectos encadenados.
+  Su patrón pedía `- **T001**` y el formato real trae `- [ ] **T001**`, así que no reconocía
+  ninguna tarea; sin tareas no hay ni WARN ni PASS, y el check desaparecía del reporte.
+
+  Y arreglar solo el patrón lo habría empeorado: buscaba el `US-N` en la **línea** del encabezado,
+  cuando la referencia cierra el bloque tres líneas más abajo. Habría pasado de mudo a marcar las
+  7 tareas como sin trazabilidad, sobre un archivo que la tiene completa.
+
+  Ahora acumula el bloque de cada tarea —desde su encabezado hasta el próximo— y busca el `US-N`
+  ahí, con la misma forma que ya usa `metricsBlocks()`. Verificado en los dos sentidos contra el
+  `tasks.md` de la corrida real: PASS con la trazabilidad completa, y WARN por las dos tareas
+  exactas a las que se les quitó la referencia.
+
 ### Cambia
 
 - `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;

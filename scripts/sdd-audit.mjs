@@ -405,18 +405,34 @@ for (const f of features) {
     }
   }
 
-  // tasks.md: cada línea de tarea (T\d+) debe tener referencia US-N o "US: —"
+  // tasks.md: cada tarea debe declarar su referencia US-N, o "US: —" si no aplica.
+  //
+  // Se verifica por BLOQUE, no por línea. Una tarea real ocupa varias líneas y
+  // cierra con la referencia:
+  //
+  //     - [ ] **T002** · Ante una combinación inválida, la pantalla muestra un
+  //           aviso único que no revela el motivo.
+  //           Crea: `src/AvisoIntento.tsx`. · US: US-1
+  //
+  // Buscar el US en la línea del encabezado da falso negativo en todas las
+  // tareas de un archivo que sí tiene la trazabilidad completa. Es la misma
+  // forma que metricsBlocks(): un bloque termina donde empieza el próximo.
   const tasksFile = `${dir}/tasks.md`;
   if (exists(tasksFile)) {
-    const lines = read(tasksFile).split(/\r?\n/);
-    const taskLines = lines.filter((l) => /^\s*[-*]\s+\*{0,2}T\d+/.test(l));
-    const missingUS = taskLines.filter((l) => !/US[-:]\s*[\d—–-]/.test(l));
-    if (missingUS.length) {
+    const bloques = [];
+    for (const linea of read(tasksFile).split(/\r?\n/)) {
+      // El encabezado acepta checkbox opcional y el ID en negrita, igual que
+      // taskCounts(): lo escribe un agente redactando markdown.
+      if (/^[ \t]*[-*][ \t]*(\[[ xX]\][ \t]*)?\*{0,2}T\d{3}/.test(linea)) bloques.push([linea]);
+      else if (bloques.length) bloques[bloques.length - 1].push(linea);
+    }
+    const sinUS = bloques.filter((b) => !/US[-:]\s*[\d—–-]/.test(b.join("\n")));
+    if (sinUS.length) {
       warn(
         "schema",
-        `${f.id}: ${missingUS.length} tarea(s) en tasks.md sin referencia US-N — regenerá con /sdd-generate`
+        `${f.id}: ${sinUS.length} tarea(s) en tasks.md sin referencia US-N — regenerá con /sdd-generate`
       );
-    } else if (taskLines.length > 0) {
+    } else if (bloques.length > 0) {
       pass("schema", `${f.id}: tasks.md tiene trazabilidad US-N en todas las tareas`);
     }
   }
