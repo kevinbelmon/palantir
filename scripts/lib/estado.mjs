@@ -183,6 +183,38 @@ function leerFases(root, id, tasks) {
   return fases;
 }
 
+// ---------- salud ----------
+
+/**
+ * Veredicto del auditor, si dejó uno escrito (`sdd-audit --json`).
+ *
+ * Leerlo no es validar: el veredicto ya lo dio el auditor y acá solo se
+ * transporta. Sin esto, en un tablero que junta varios codebases uno con FAIL
+ * se ve igual de sano que uno en verde, y nadie tiene forma de notarlo.
+ *
+ * `null` cuando el auditor nunca corrió con `--json` en este árbol. Es distinto
+ * de "pasó": un repo sin veredicto no es un repo sano, es uno sin medir, y el
+ * tablero tiene que poder mostrar esa diferencia.
+ */
+function leerAudit(root) {
+  const txt = leerTexto(root, "metrics/audit-result.json");
+  if (txt === null) return null;
+  try {
+    const a = JSON.parse(txt);
+    return {
+      fail: a.fail ?? null,
+      warn: a.warn ?? null,
+      ok: a.ok ?? null,
+      // La fecha va incluida a propósito: un veredicto viejo sobre un repo que
+      // siguió cambiando no dice lo mismo que uno recién corrido, y quien lea
+      // el tablero tiene que poder distinguirlo.
+      generated: a.generated ?? null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ---------- sprints ----------
 
 /**
@@ -303,6 +335,7 @@ export function leerEstado(root, { framework = null } = {}) {
         features_sin_contar: features.length - contables.length,
       },
     },
+    audit: leerAudit(root),
     sprints: leerSprints(root),
     features,
   };
@@ -323,7 +356,15 @@ export function leerEstado(root, { framework = null } = {}) {
 export function paraPublicar(estado) {
   return {
     ...estado,
-    features: estado.features.map((f) => ({ ...f, touches: f.touches.length })),
+    features: estado.features.map(({ touches, ...f }) => ({
+      ...f,
+      // Se renombra al publicar. `touches` es el vocabulario del registro, donde
+      // significa "rutas que la feature declara que va a crear o modificar". En
+      // un tablero, al lado de "tareas 0/7", ese nombre se lee como archivos ya
+      // tocados: parece una feature con siete archivos en juego cuando puede no
+      // existir ninguno todavía. El número es el mismo; el nombre no engaña.
+      archivos_declarados: touches.length,
+    })),
   };
 }
 
@@ -340,6 +381,14 @@ export function avisos(estado) {
     out.push("falta meta.repo en el registro — el documento sale sin identidad de codebase");
   if (!estado.source.proyecto_id)
     out.push("falta meta.proyecto_id en el registro — no se puede agrupar por proyecto");
+
+  if (!estado.audit)
+    out.push(
+      "sin veredicto del auditor — corré `node scripts/sdd-audit.mjs --json` para que el " +
+        "documento pueda decir si este repo pasa sus propios checks"
+    );
+  else if (estado.audit.fail > 0)
+    out.push(`el auditor reporta ${estado.audit.fail} FAIL en este repo`);
 
   const tabla = estado.features.filter((f) => f.tareas.formato === "tabla");
   if (tabla.length)

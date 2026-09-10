@@ -15,7 +15,7 @@
  * es `--root` si se pasa, y `process.cwd()` si no. Ver contracts/paths.md §1.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
@@ -162,6 +162,37 @@ function report() {
       failures.length ? "❌ AUDIT FALLIDO" : "✅ AUDIT PASA"
     }\n`
   );
+  // Con --json, además deja el veredicto legible por máquina en
+  // metrics/audit-result.json. Simetría con el discovery-model, que ya lo hace.
+  //
+  // Existe porque sdd-state necesita poder decir si el repo pasa su propio
+  // auditor: sin esto, en un tablero central un repo con 7 FAIL se ve igual de
+  // sano que uno en verde. Escribirlo acá mantiene a sdd-state como proyector
+  // —lee un archivo, no corre nada— y al auditor como única fuente del veredicto.
+  if (argv.includes("--json")) {
+    const out = join(DATA_ROOT, "metrics", "audit-result.json");
+    try {
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, JSON.stringify({
+        schema_version: 1,
+        generated: new Date().toISOString(),
+        framework: fw,
+        root: DATA_ROOT,
+        fail: failures.length,
+        warn: warnings.length,
+        ok: passes.length,
+        hallazgos: [
+          ...failures.map((f) => ({ nivel: "FAIL", check: f.check, msg: f.msg })),
+          ...warnings.map((w) => ({ nivel: "WARN", check: w.check, msg: w.msg })),
+        ],
+      }, null, 2) + "\n", "utf8");
+      console.log(`      ${out}\n`);
+    } catch (err) {
+      // No poder escribir el reporte no cambia el veredicto del auditor.
+      console.error(`WARN  no se pudo escribir ${out}: ${err.message}\n`);
+    }
+  }
+
   process.exit(failures.length ? 1 : 0);
 }
 

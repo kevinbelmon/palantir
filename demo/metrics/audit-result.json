@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "generated": "2026-09-10T15:44:22.293Z",
+  "framework": "1.8.0",
+  "root": "C:\\Users\\PatricioMillán\\Desktop\\sdd-model\\demo",
+  "fail": 9,
+  "warn": 2,
+  "ok": 4,
+  "hallazgos": [
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "003-user-permissions: figura en el registro pero no existe specs/003-user-permissions/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "004-reports-export: figura en el registro pero no existe specs/004-reports-export/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "006-analytics-dashboard: figura en el registro pero no existe specs/006-analytics-dashboard/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "007-api-rate-limiting: figura en el registro pero no existe specs/007-api-rate-limiting/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "008-subdomain-routing: figura en el registro pero no existe specs/008-subdomain-routing/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "009-audit-logs: figura en el registro pero no existe specs/009-audit-logs/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "registro↔specs",
+      "msg": "010-email-templates: figura en el registro pero no existe specs/010-email-templates/"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "gates",
+      "msg": "007-api-rate-limiting: CLOSED sin archivo de métricas (metrics/007-api-rate-limiting-metrics.md)"
+    },
+    {
+      "nivel": "FAIL",
+      "check": "gates",
+      "msg": "010-email-templates: CLOSED sin archivo de métricas (metrics/010-email-templates-metrics.md)"
+    },
+    {
+      "nivel": "WARN",
+      "check": "gates",
+      "msg": "005-tenant-isolation-fix: fix cerrado sin metrics/005-tenant-isolation-fix-metrics.md"
+    },
+    {
+      "nivel": "WARN",
+      "check": "grafo",
+      "msg": "No existe graph/domain.yaml — sin routing de contexto. Corré /sdd-scan."
+    }
+  ]
+}

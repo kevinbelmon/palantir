@@ -83,6 +83,19 @@ deja de funcionar.
   `tasks.md` de la corrida real: PASS con la trazabilidad completa, y WARN por las dos tareas
   exactas a las que se les quitó la referencia.
 
+- **`sdd-audit --json`** deja el veredicto en `metrics/audit-result.json`, y el documento de
+  estado lo transporta en un campo `audit`. Simetría con el discovery-model, que ya lo escribía.
+
+  Sin esto, en un tablero que junta varios codebases **un repo con 7 FAIL se ve igual de sano que
+  uno en verde**, y nadie tiene forma de notarlo. Leer el veredicto no rompe la definición de
+  proyector: el auditor sigue siendo la única fuente, `sdd-state` lo lee de un archivo y no corre
+  nada. Sin veredicto el campo va `null` — que no es lo mismo que pasar: es un repo sin medir.
+
+- **`touches` se publica como `archivos_declarados`.** El nombre venía del registro, donde
+  significa "rutas que la feature dice que va a crear". En un tablero, al lado de `tareas 0/7`,
+  se lee como archivos ya tocados: parece una feature con siete archivos en juego cuando puede no
+  existir ninguno. El número es el mismo. Adentro del modelo el campo sigue llamándose `touches`.
+
 ### Cambia
 
 - `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;
