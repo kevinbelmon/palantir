@@ -8,6 +8,29 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.12.0 — 2026-09-14
+
+**MINOR.** El esfuerzo viaja desglosado, porque el total solo engana.
+
+### Agrega
+
+- **`desglose` en `features[].esfuerzo` y `desglose_proyecto` en `resumen.esfuerzo`** — los cuatro
+  componentes que devuelve la API: `input`, `output`, `cache_creation` y `cache_read`.
+
+  Hasta ahora viajaba solo el total, y el total es la peor sintesis posible de esos cuatro
+  numeros. En una sesion larga `cache_read` —el contexto releido en cada request— pasa del 95%:
+  en el repo de prueba, 116.897.179 de 119.809.409. Ese componente cuenta la misma conversacion
+  cientos de veces, una por cada llamada, y se factura a una fraccion del precio de entrada.
+
+  El efecto practico es que el documento reportaba "119 millones de tokens" cuando lo realmente
+  generado eran 351.576 de salida. Un tablero que lea el total muestra un orden de magnitud que
+  no corresponde al trabajo hecho.
+
+  No se agrega una metrica derivada: viajan los cuatro componentes y el consumidor decide. Para
+  un solo numero, `output + cache_creation` es mucho mejor proxy del trabajo real que el total.
+
+---
+
 ## 1.11.0 — 2026-09-14
 
 **MINOR.** El consumo de tokens se atribuye por feature, con un campo opcional.

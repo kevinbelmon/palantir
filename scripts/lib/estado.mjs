@@ -331,8 +331,14 @@ function leerEsfuerzo(root, id, medido) {
 
   // Lo medido gana sobre lo narrado. El reporte lo escribe el agente de memoria;
   // `medido` viene de ccusage atribuido por session_ids, que es observacion.
+  // El desglose viaja porque el total engana: en una sesion larga `cache_read`
+  // —el contexto releido en cada request— pasa del 95% y se factura a una
+  // fraccion del precio de entrada. Sumar los cuatro en un solo numero mezcla
+  // magnitudes con economias distintas, y el resultado queda dominado por la mas
+  // barata. `output` + `cache_creation` es mucho mejor proxy del trabajo real.
   return {
     tokens: medido ? medido.tokens : (total ?? SIN_DATO),
+    desglose: medido?.desglose ?? SIN_DATO,
     metodo: medido ? "ccusage" : (total === null ? SIN_DATO : metodo),
     ciclos: ciclos ?? SIN_DATO,
     ciclos_origen: "autorreporte",
@@ -359,6 +365,7 @@ function leerTokensProyecto(root) {
       metodo: t.source ?? "ccusage",
       alcance: t.alcance ?? "proyecto",
       medido: t.generated ?? null,
+      desglose: t.tokens ?? null,
       porFeature: t.features ?? {},
     };
   } catch {
@@ -398,6 +405,7 @@ function agregarEsfuerzo(features, proyecto) {
     // La suma por feature no incluye lo que no se pudo atribuir. Sin el total del
     // proyecto al lado, un tablero mostraria menos consumo del real.
     total_proyecto: proyecto?.tokens ?? SIN_DATO,
+    desglose_proyecto: proyecto?.desglose ?? SIN_DATO,
     features_medidas: medidas.length,
     features_totales: features.length,
   };

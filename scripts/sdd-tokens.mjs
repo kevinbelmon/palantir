@@ -126,8 +126,16 @@ function atribuir(root, sesiones) {
       continue;
     }
     const id = duenos[0];
-    features[id] ??= { tokens: 0, sessions: [] };
+    features[id] ??= {
+      tokens: 0,
+      desglose: { input: 0, output: 0, cache_creation: 0, cache_read: 0 },
+      sessions: [],
+    };
     features[id].tokens += Number(s.totalTokens) || 0;
+    features[id].desglose.input += Number(s.inputTokens) || 0;
+    features[id].desglose.output += Number(s.outputTokens) || 0;
+    features[id].desglose.cache_creation += Number(s.cacheCreationTokens) || 0;
+    features[id].desglose.cache_read += Number(s.cacheReadTokens) || 0;
     features[id].sessions.push(s.sessionId);
   }
   return { features, sinAtribuir };
