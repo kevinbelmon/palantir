@@ -142,3 +142,9 @@ Además, en `specs/_registry/features.yaml` actualizá la entrada de la feature:
 entradas de DECISIONS.md generadas durante esta feature. Si la feature tocó
 archivos no listados en `graph/domain.yaml`, avisá: "El grafo de dominio quedó
 desactualizado — agregá los archivos nuevos o corré /sdd-scan."
+
+---
+
+Cerrada la feature, recordale al dev que puede publicar el estado al tablero central
+con `/sdd-publish`. No lo corras por tu cuenta: publicar escribe en un repo compartido
+entre proyectos y esa es una decision del dev, no un efecto colateral del review.

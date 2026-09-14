@@ -1,6 +1,6 @@
 # SDD Model — Contexto del proyecto
 
-<!-- SDD:FRAMEWORK BEGIN v1.12.0 -->
+<!-- SDD:FRAMEWORK BEGIN v1.13.0 -->
 <!-- Todo lo que está entre estos marcadores es capa A (framework): se distribuye igual a
      todos los repos y NO se edita en destino. Ver contracts/framework.md.
      Las reglas propias de este repo van después del marcador de cierre, al final del archivo.
@@ -44,6 +44,8 @@ QA funcional E2E contra la app corriendo (ProGuide) → evidencia
 checklist.md (lo completa el humano)
     ↓  /sdd-review
 verificación final: lógica + evidencia E2E + UI
+    ↓  cuando quieras que el tablero lo vea
+/sdd-publish → publica metrics/estado.json al repo central
     ↓  cada sprint
 /sdd-health → auditoría de artefactos + drift de existing-arch
 
@@ -83,6 +85,7 @@ Cargá el `.md` del comando solo cuando el trigger aparezca en la conversación 
 | checklist, criterios manuales, UX | `/sdd-checklist` | Implementación cerrada |
 | review, gate final, UI vs spec | `/sdd-review` | Listo para gate final |
 | health, drift, auditoría, sprint | `/sdd-health` | Cierre de sprint o sospechás drift |
+| publicar, exportar estado, central, tablero | `/sdd-publish` | Querés que el tablero refleje el estado de ahora |
 | metrics, tokens, retrabajo | `/sdd-metrics` | Querés ver costo de esta feature |
 | metrics-summary, proyecto, agregado | `/sdd-metrics-summary` | Querés ver costo del proyecto completo |
 | handoff, continuar, próxima sesión, snapshot | `/sdd-handoff` | Cerrás sesión o pasás a otro agente |
