@@ -8,6 +8,57 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.9.0 — 2026-09-14
+
+**MINOR.** El estado se publica al central con un comando, y el documento transporta esfuerzo.
+Nada de lo anterior deja de funcionar.
+
+### Agrega
+
+- **`scripts/sdd-publish.mjs`** y el script `sdd:publish` — genera el estado y lo publica en el
+  repo central de un tiro: corre el auditor con `--json`, corre `sdd-state`, calcula la ruta,
+  clona el central, commitea solo si cambio algo real y pushea con reintento por rebase.
+
+  Acepta el central como `org/repo`, URL, remoto SSH o ruta local. Sin `--token` usa la
+  credencial de git de la maquina, que es lo correcto para una persona publicando su proyecto:
+  no hay que crear un PAT ni un `.env`. `--token` queda para el CI, donde no hay credencial
+  ambiente.
+
+  **El workflow ahora llama a este script** en vez de repetir la logica en bash. Dos copias de
+  la misma logica se separan y el tablero termina mostrando algo distinto de lo que el repo dice.
+
+- **Esfuerzo en el documento publicado** — `features[].esfuerzo` y `resumen.esfuerzo`, leidos del
+  bloque `### Reporte de Esfuerzo SDD` de `metrics/`.
+
+  Tres cautelas que definen la forma. **El metodo viaja con el numero**: la Variante A son tokens
+  reales de ccusage y la B es `bytes / 4`, una estimacion de lo leido; con metodos mezclados el
+  agregado reporta `MIXTO` y **no totaliza**, porque sumarlos daria un numero que no significa
+  nada. **`ciclos` declara `ciclos_origen: autorreporte`**: los tokens son observados, los ciclos
+  los escribe el agente sobre si mismo, y en un tablero quedarian indistinguibles. **`SIN_DATO`,
+  nunca `0`**: un cero ahi afirmaria que costo cero tokens.
+
+  No se publica plata, solo tokens — igual que `/sdd-metrics`, que usa `--no-cost` a proposito.
+
+### Cambia
+
+- **`schema_version` del estado publicado pasa a `2`.** Se debia desde el rename
+  `touches` -> `archivos_declarados`, que salio como cambio incompatible anunciado como
+  compatible: un consumidor que leyera `touches` recibia `undefined` en silencio. Ahora cambia
+  con motivo y con aviso.
+
+### Corrige
+
+- **El reporte de esfuerzo nunca se encontraba.** `bloques()` busca encabezados de nivel 2 y el
+  reporte se escribe con `###`. La lectura ahora lo localiza aparte y corta en el proximo
+  encabezado de cualquier nivel. `sdd-audit.mjs` tiene una copia de esa funcion pero no lee el
+  reporte, asi que ahi el punto ciego es latente.
+
+- **El total de tokens no se parseaba en tablas de dos columnas.** ccusage se reporta en dos y la
+  variante estimada en tres; se tomaba la tercera celda a ciegas. Ahora se toma la ultima celda
+  numerica de la fila TOTAL, sin contar columnas.
+
+---
+
 ## 1.8.0 — 2026-09-08
 
 **MINOR.** El estado del repo pasa a ser un documento que se puede publicar. Nada de lo anterior
@@ -55,6 +106,23 @@ deja de funcionar.
   no sea la marca de tiempo, y reintenta con rebase si otro repo publicó primero.
 
 ### Corrige
+
+- **El campo `audit` no llegaba al documento publicado por CI.** `audit` y `estado` son jobs
+  separados del workflow, cada uno con su propio `actions/checkout` y sin artifacts entre medio.
+  El `--json` del job `audit` dejaba `metrics/audit-result.json` en un runner que se descarta, y
+  el job `estado` arrancaba de un checkout limpio donde ese archivo no existe: `leerAudit`
+  devolvia `null` y el documento salia sin veredicto. La feature funcionaba solo si alguien habia
+  corrido el auditor a mano en su maquina, y entonces publicaba un veredicto viejo como si fuera
+  actual. En el repo de prueba el documento decia `fail: 7` con 12 FAIL reales.
+
+  El auditor ahora corre **dentro del job `estado`**, sobre el mismo checkout que produce el
+  documento y segundos antes. El desfasaje deja de ser algo que hay que recordar y pasa a ser
+  imposible por construccion: no hay ventana para que el veredicto envejezca ni caller que se lo
+  pueda olvidar, porque esta adosado a su unico consumidor.
+
+  Va con `|| true` a proposito. El auditor sale 1 cuando hay FAIL, y con `set -e` eso abortaba el
+  step, lo marcaba fallido y salteaba la publicacion, dejando invisible justo al repo que el
+  tablero necesita ver. Es la misma razon por la que el job corre con `always()`.
 
 - **El contador de tasks no reconocía el identificador en negrita.** `taskCounts()` del auditor
   —y por copia, el lector nuevo— exigía `- [ ] T001` exacto. La primera corrida greenfield real

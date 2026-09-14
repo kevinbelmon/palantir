@@ -23,7 +23,7 @@ import { join } from "node:path";
 import YAML from "yaml";
 
 /** Versión del formato del objeto. Sube si cambia la forma, no el contenido. */
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /** No se pudo determinar. Distinto de "no pasó". */
 export const SIN_DATO = "SIN_DATO";
@@ -274,6 +274,94 @@ function leerSprints(root) {
  * devuelve un estado válido con cero features. Eso permite distinguir "sin
  * actividad" de "no reporta", que en un tablero son cosas muy distintas.
  */
+// ---------- esfuerzo ----------
+
+/**
+ * Esfuerzo de una feature, leido del bloque `### Reporte de Esfuerzo SDD`.
+ *
+ * Dos cautelas que definen la forma de esto:
+ *
+ * 1. **Solo se transporta lo medido.** De los seis DX_MET, unicamente el token
+ *    budget de la Variante A es observado: sale del bloque `usage` que devuelve
+ *    Anthropic, leido por ccusage. Los ciclos de autocorreccion y las
+ *    interacciones los escribe el agente sobre si mismo, de memoria, y publicar
+ *    un recuerdo al lado de una medicion los vuelve indistinguibles. Por eso
+ *    `ciclos` viaja con su origen declarado y nunca se suma a nivel proyecto.
+ *
+ * 2. **El metodo viaja con el numero.** La Variante A son tokens reales; la B es
+ *    `bytes / 4`, una estimacion de lo leido que ni siquiera mide lo mismo. Dos
+ *    features medidas distinto no se pueden sumar, asi que el agregado declara su
+ *    metodo y se niega a mezclar: si hay mas de uno, reporta MIXTO y no totaliza.
+ */
+function leerEsfuerzo(root, id) {
+  const txt = leerTexto(root, `metrics/${id}-metrics.md`);
+  const vacio = { tokens: SIN_DATO, metodo: SIN_DATO, ciclos: SIN_DATO, ciclos_origen: "autorreporte" };
+  if (txt === null) return vacio;
+
+  // El reporte es un encabezado de nivel 3, no de 2: `bloques()` busca `## ` y no
+  // lo encuentra. Se localiza aparte y se corta en el proximo encabezado de
+  // cualquier nivel, que es lo que lo cierra en el archivo real.
+  const encabezados = [...txt.matchAll(/^#{2,3}[ 	]+.*$/gim)];
+  const idx = encabezados.map((m, i) => [m, i]).filter(([m]) => /Reporte de Esfuerzo SDD/i.test(m[0])).pop();
+  if (!idx) return vacio;
+  const [m, i] = idx;
+  const desde = m.index + m[0].length;
+  const hasta = encabezados[i + 1] ? encabezados[i + 1].index : txt.length;
+  const cuerpo = txt.slice(desde, hasta);
+
+  // ccusage escribe `source: ccusage`; la variante B no lo declara.
+  const fuente = campo(cuerpo, "source");
+  const metodo = fuente && /ccusage/i.test(fuente) ? "ccusage" : /bytes\s*÷\s*4|bytes\s*\/\s*4|Variante B/i.test(cuerpo) ? "estimado" : SIN_DATO;
+
+  // El total puede venir como `TOTAL: n`, como `totalTokens: n`, o como la fila
+  // TOTAL de una tabla. El ancho de esa tabla no esta fijado: ccusage se reporta
+  // en dos columnas y la variante estimada en tres, asi que no se cuenta
+  // columnas — se toma la ultima celda numerica de la fila.
+  const filaTotal = cuerpo.match(/^[ 	]*\|.*\*{0,2}TOTAL\*{0,2}.*$/im)?.[0] ?? null;
+  const ultimaCelda = filaTotal
+    ? (filaTotal.split("|").map((c) => c.trim()).filter((c) => /^[\d.,]+$/.test(c)).pop() ?? null)
+    : null;
+
+  const total =
+    entero(campo(cuerpo, "TOTAL")) ??
+    entero(campo(cuerpo, "totalTokens")) ??
+    entero(ultimaCelda);
+
+  const ciclos = entero(cuerpo.match(/DX_MET_001[^:]*:\s*\**\s*(\d+)/i)?.[1] ?? null);
+
+  return {
+    tokens: total ?? SIN_DATO,
+    metodo: total === null ? SIN_DATO : metodo,
+    ciclos: ciclos ?? SIN_DATO,
+    ciclos_origen: "autorreporte",
+  };
+}
+
+/**
+ * Agregado de esfuerzo del proyecto.
+ *
+ * Suma solo features medidas con el MISMO metodo. Con metodos mezclados el total
+ * seria la suma de tokens reales y de una estimacion de bytes leidos: dos cosas
+ * distintas bajo un mismo numero. En ese caso se reporta MIXTO sin total, que es
+ * la version honesta de "no se puede responder con lo que hay".
+ */
+function agregarEsfuerzo(features) {
+  const medidas = features.filter((f) => typeof f.esfuerzo.tokens === "number");
+  if (!medidas.length) {
+    return { tokens: SIN_DATO, metodo: SIN_DATO, features_medidas: 0, features_totales: features.length };
+  }
+  const metodos = [...new Set(medidas.map((f) => f.esfuerzo.metodo))];
+  if (metodos.length > 1) {
+    return { tokens: SIN_DATO, metodo: "MIXTO", features_medidas: medidas.length, features_totales: features.length };
+  }
+  return {
+    tokens: medidas.reduce((a, f) => a + f.esfuerzo.tokens, 0),
+    metodo: metodos[0],
+    features_medidas: medidas.length,
+    features_totales: features.length,
+  };
+}
+
 export function leerEstado(root, { framework = null } = {}) {
   const reg = leerYaml(root, "specs/_registry/features.yaml", null);
   const hayRegistro = reg !== null;
@@ -299,6 +387,7 @@ export function leerEstado(root, { framework = null } = {}) {
       size: f.size ?? null,
       tareas: tasks,
       fases: leerFases(root, f.id, tasks),
+      esfuerzo: leerEsfuerzo(root, f.id),
       last_command: lastCommand,
       // Lista completa: el tablero local la dibuja. `paraPublicar` la reduce a
       // un número antes de que el objeto salga del repo.
@@ -334,6 +423,7 @@ export function leerEstado(root, { framework = null } = {}) {
         hechas: suma((f) => f.tareas.hechas),
         features_sin_contar: features.length - contables.length,
       },
+      esfuerzo: agregarEsfuerzo(features),
     },
     audit: leerAudit(root),
     sprints: leerSprints(root),

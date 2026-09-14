@@ -117,61 +117,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Generar el estado
-        id: gen
+      - name: Generar y publicar el estado
         continue-on-error: true
         shell: bash
-        run: |
-          set -euo pipefail
-          node scripts/sdd-state.mjs
-          # La ruta la calcula el script, que se niega si al registro le falta
-          # identidad. Sin proyecto_id un archivo anónimo en el repo central no se
-          # puede atribuir ni limpiar: mejor no publicar.
-          echo "ruta=$(node scripts/sdd-state.mjs --publish-path)" >> "$GITHUB_OUTPUT"
-
-      - name: Publicar
-        if: steps.gen.outcome == 'success'
-        shell: bash
         env:
-          CENTRAL: ${{ vars.SDD_ESTADO_REPO }}
-          TOKEN: ${{ secrets.SDD_ESTADO_TOKEN }}
-          RUTA: ${{ steps.gen.outputs.ruta }}
+          SDD_ESTADO_REPO: ${{ vars.SDD_ESTADO_REPO }}
+          SDD_ESTADO_TOKEN: ${{ secrets.SDD_ESTADO_TOKEN }}
         run: |
           set -euo pipefail
-          if [ -z "${TOKEN:-}" ]; then
+          if [ -z "${SDD_ESTADO_TOKEN:-}" ]; then
             echo "::notice::SDD_ESTADO_TOKEN no configurado — no se publica"
             exit 0
           fi
-
-          git clone --depth 1 "https://x-access-token:${TOKEN}@github.com/${CENTRAL}.git" central
-          destino="central/estado/${RUTA}"
-          mkdir -p "$(dirname "$destino")"
-
-          # Solo se commitea si cambió algo que no sea la marca de tiempo. Sin
-          # esto cada corrida de CI dejaría un commit, y en un año el repo central
-          # tendría decenas de miles por nada.
-          if [ -f "$destino" ] && node -e '
-            const fs = require("fs");
-            const sin = (p) => { const o = JSON.parse(fs.readFileSync(p, "utf8")); delete o.generated; return JSON.stringify(o); };
-            process.exit(sin(process.argv[1]) === sin(process.argv[2]) ? 0 : 1);
-          ' "$destino" metrics/estado.json; then
-            echo "::notice::el estado no cambió — no se commitea"
-            exit 0
-          fi
-
-          cp metrics/estado.json "$destino"
-          cd central
-          git config user.name  "sdd-estado"
-          git config user.email "sdd-estado@users.noreply.github.com"
-          git add "estado/${RUTA}"
-          git commit -m "estado: ${RUTA} desde ${GITHUB_REPOSITORY}@${GITHUB_SHA:0:7}"
-
-          # Varios repos pueden estar publicando a la vez. Como cada uno escribe
-          # su propio archivo no hay conflicto de contenido, solo de índice, y el
-          # rebase lo resuelve.
-          for intento in 1 2 3; do
-            if git push; then exit 0; fi
-            echo "::notice::push rechazado, reintento $intento"
-            git pull --rebase --autostash
-          done
-          echo "::warning::no se pudo publicar el estado después de 3 intentos"
+          # Toda la logica vive en el script: auditar, generar, clonar, comparar,
+          # commitear y pushear. El CI no la repite en bash porque dos copias de la
+          # misma logica se separan y el tablero termina mostrando otra cosa.
+          node scripts/sdd-publish.mjs --root .

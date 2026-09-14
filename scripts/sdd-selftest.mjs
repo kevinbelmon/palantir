@@ -100,7 +100,18 @@ chequear("avisa que falta la dependencia", r.out.includes("falta instalar"), tru
 chequear("verify pasa", estado(d), "PASS");
 chequear("preserva los scripts del repo", json(d + "/package.json").scripts.dev, "tsx watch src/index.ts");
 chequear("preserva las deps del repo", json(d + "/package.json").dependencies.fastify, "^4.26.0");
-chequear("aporta las claves del framework", Object.keys(json(d + "/package.json").scripts).length, 11);
+// Se verifica QUE claves llegaron, no cuantas: un conteo se rompe cada vez que el
+// framework suma un comando —y entonces la suite obliga a editarla en vez de
+// verificar algo—, y ademas pasa igual si llega una clave equivocada.
+const clavesFramework = parseFrameworkFiles(leer(join(SRC, "contracts", "framework-files.txt")))
+  .filter((e) => e.type === "MERGE" && e.path === "package.json" && e.key.startsWith("scripts."))
+  .map((e) => e.key.slice("scripts.".length));
+const instalados = Object.keys(json(d + "/package.json").scripts);
+chequear(
+  "aporta las claves del framework",
+  clavesFramework.filter((k) => !instalados.includes(k)).join(", ") || "todas",
+  "todas",
+);
 chequear("preserva el CLAUDE.md del repo", cuenta(d + "/CLAUDE.md", "Fly\\.io"), 1);
 chequear("injerta el bloque una sola vez", cuenta(d + "/CLAUDE.md", "SDD:FRAMEWORK BEGIN"), 1);
 chequear("materializa el gate de versión", existsSync(d + "/.github/workflows/sdd-version.yml"), true);
