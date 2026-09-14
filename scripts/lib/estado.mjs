@@ -82,13 +82,13 @@ function bloques(contenido, tipo) {
 }
 
 /** El último bloque de un tipo, que es el que vale. */
-function ultimoBloque(contenido, tipo) {
+export function ultimoBloque(contenido, tipo) {
   const all = bloques(contenido, tipo);
   return all.length ? all[all.length - 1] : null;
 }
 
 /** Valor de `- campo: valor` dentro del cuerpo de un bloque. */
-function campo(cuerpo, nombre) {
+export function campo(cuerpo, nombre) {
   const m = cuerpo.match(
     new RegExp(`^[ \\t]*[-*]?[ \\t]*${nombre}[ \\t]*:[ \\t]*(.+)$`, "im")
   );
@@ -293,7 +293,7 @@ function leerSprints(root) {
  *    features medidas distinto no se pueden sumar, asi que el agregado declara su
  *    metodo y se niega a mezclar: si hay mas de uno, reporta MIXTO y no totaliza.
  */
-function leerEsfuerzo(root, id) {
+function leerEsfuerzo(root, id, medido) {
   const txt = leerTexto(root, `metrics/${id}-metrics.md`);
   const vacio = { tokens: SIN_DATO, metodo: SIN_DATO, ciclos: SIN_DATO, ciclos_origen: "autorreporte" };
   if (txt === null) return vacio;
@@ -329,9 +329,11 @@ function leerEsfuerzo(root, id) {
 
   const ciclos = entero(cuerpo.match(/DX_MET_001[^:]*:\s*\**\s*(\d+)/i)?.[1] ?? null);
 
+  // Lo medido gana sobre lo narrado. El reporte lo escribe el agente de memoria;
+  // `medido` viene de ccusage atribuido por session_ids, que es observacion.
   return {
-    tokens: total ?? SIN_DATO,
-    metodo: total === null ? SIN_DATO : metodo,
+    tokens: medido ? medido.tokens : (total ?? SIN_DATO),
+    metodo: medido ? "ccusage" : (total === null ? SIN_DATO : metodo),
     ciclos: ciclos ?? SIN_DATO,
     ciclos_origen: "autorreporte",
   };
@@ -352,7 +354,13 @@ function leerTokensProyecto(root) {
     const t = JSON.parse(txt);
     const total = Number(t?.tokens?.total);
     if (!Number.isFinite(total)) return null;
-    return { tokens: total, metodo: t.source ?? "ccusage", alcance: t.alcance ?? "proyecto", medido: t.generated ?? null };
+    return {
+      tokens: total,
+      metodo: t.source ?? "ccusage",
+      alcance: t.alcance ?? "proyecto",
+      medido: t.generated ?? null,
+      porFeature: t.features ?? {},
+    };
   } catch {
     return null;
   }
@@ -374,7 +382,8 @@ function agregarEsfuerzo(features, proyecto) {
   // consumidor sepa que no es una suma de features.
   if (!medidas.length) {
     if (proyecto) {
-      return { ...proyecto, features_medidas: 0, features_totales: features.length };
+      const { porFeature, ...p } = proyecto;
+      return { ...p, features_medidas: 0, features_totales: features.length };
     }
     return { tokens: SIN_DATO, metodo: SIN_DATO, alcance: SIN_DATO, features_medidas: 0, features_totales: features.length };
   }
@@ -386,6 +395,9 @@ function agregarEsfuerzo(features, proyecto) {
     tokens: medidas.reduce((a, f) => a + f.esfuerzo.tokens, 0),
     metodo: metodos[0],
     alcance: "features",
+    // La suma por feature no incluye lo que no se pudo atribuir. Sin el total del
+    // proyecto al lado, un tablero mostraria menos consumo del real.
+    total_proyecto: proyecto?.tokens ?? SIN_DATO,
     features_medidas: medidas.length,
     features_totales: features.length,
   };
@@ -395,6 +407,8 @@ export function leerEstado(root, { framework = null } = {}) {
   const reg = leerYaml(root, "specs/_registry/features.yaml", null);
   const hayRegistro = reg !== null;
   const crudas = (reg?.features ?? []).filter(Boolean);
+
+  const tokensProyecto = leerTokensProyecto(root);
 
   const features = crudas.map((f) => {
     const tasks = contarTasks(root, f.id);
@@ -416,7 +430,7 @@ export function leerEstado(root, { framework = null } = {}) {
       size: f.size ?? null,
       tareas: tasks,
       fases: leerFases(root, f.id, tasks),
-      esfuerzo: leerEsfuerzo(root, f.id),
+      esfuerzo: leerEsfuerzo(root, f.id, tokensProyecto?.porFeature?.[f.id] ?? null),
       last_command: lastCommand,
       // Lista completa: el tablero local la dibuja. `paraPublicar` la reduce a
       // un número antes de que el objeto salga del repo.
@@ -452,7 +466,7 @@ export function leerEstado(root, { framework = null } = {}) {
         hechas: suma((f) => f.tareas.hechas),
         features_sin_contar: features.length - contables.length,
       },
-      esfuerzo: agregarEsfuerzo(features, leerTokensProyecto(root)),
+      esfuerzo: agregarEsfuerzo(features, tokensProyecto),
     },
     audit: leerAudit(root),
     sprints: leerSprints(root),

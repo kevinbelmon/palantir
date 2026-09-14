@@ -8,6 +8,49 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.11.0 — 2026-09-14
+
+**MINOR.** El consumo de tokens se atribuye por feature, con un campo opcional.
+
+### Agrega
+
+- **`session_ids` en el bloque `## Implement`** — campo opcional que estampa `/sdd-implement` al
+  cerrar. Es el unico dato que ningun script puede derivar: solo el agente que implemento sabe en
+  que sesion lo hizo. Con el, `sdd-tokens` cruza esos ids contra ccusage y el reparto deja de ser
+  inferencia para ser aritmetica.
+
+  El bloque existente sigue siendo valido sin el campo: su ausencia deja el consumo en el total
+  del proyecto, que es correcto. La regla que acompana al contrato es explicita — si no se sabe,
+  se omite; inventarlo atribuye tokens ajenos.
+
+  **Una sesion declarada por mas de una feature no se imputa a ninguna.** Pasa cuando se
+  trabajaron varias features en la misma sesion, y repartirla —en partes iguales, por cantidad de
+  tareas, por lo que sea— seria inventar. Queda en `sin_atribuir`, de modo que
+  `suma(features) + sin_atribuir == total_proyecto` siempre cierra y las cifras por feature se
+  pueden sumar sin contar dos veces.
+
+- **`resumen.esfuerzo.total_proyecto`** — la suma por feature no incluye lo no atribuido, asi que
+  sin este campo al lado un tablero mostraria menos consumo del real.
+
+### Cambia
+
+- **Lo medido le gana a lo narrado en `features[].esfuerzo`.** Si hay atribucion de ccusage, los
+  tokens de la feature salen de ahi; si no, caen al reporte que escribe el agente. Antes el bloque
+  publicaba solo `ciclos` —autorreportado— y dejaba vacio el unico campo observado, que es el
+  orden inverso al deseable.
+
+- `ultimoBloque` y `campo` pasan a exportarse desde `lib/estado.mjs`. `sdd-tokens` los necesita y
+  duplicar el parseo de bloques ya costo dos bugs.
+
+### Corrige
+
+- **El aviso de `sdd-tokens` mentia.** Decia que sin `metrics/sessions.jsonl` no habia forma de
+  atribuir por feature, incluso cuando la atribucion ya habia ocurrido: los ids ahora salen del
+  bloque `## Implement`, no del hook. Ahora informa cuantas features se atribuyeron y cuantas
+  sesiones quedaron afuera.
+
+---
+
 ## 1.10.0 — 2026-09-14
 
 **MINOR.** El consumo de tokens se mide en el pipeline, sin agente.

@@ -23,8 +23,9 @@
  */
 
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { campo, ultimoBloque } from "./lib/estado.mjs";
 
 const argv = process.argv.slice(2);
 const flag = (n) => {
@@ -84,7 +85,57 @@ if (!propias.length) {
   aviso(`ccusage no tiene sesiones para ${DATA_ROOT}.`);
 }
 
-const sumar = (campo) => propias.reduce((a, s) => a + (Number(s[campo]) || 0), 0);
+/**
+ * Reparte las sesiones entre features segun lo que declara cada bloque
+ * `## Implement`.
+ *
+ * El campo `session_ids` lo estampa /sdd-implement al cerrar: es el unico dato
+ * que ningun script puede derivar, porque solo el agente que implemento sabe en
+ * que sesion lo hizo. Con eso el reparto deja de ser inferencia y pasa a ser
+ * aritmetica.
+ *
+ * Una sesion reclamada por MAS de una feature no se le imputa a ninguna. Pasa
+ * cuando se trabajaron varias features en la misma sesion, y repartirla —en
+ * partes iguales, por cantidad de tareas, por lo que sea— seria inventar. Se
+ * reporta aparte, para que el total del proyecto siga cerrando y las cifras por
+ * feature se puedan sumar sin contar dos veces.
+ */
+function atribuir(root, sesiones) {
+  const dir = join(root, "metrics");
+  if (!existsSync(dir)) return { features: {}, sinAtribuir: sesiones };
+
+  // El id de cada feature sale del nombre de su archivo de metricas.
+  const reclamos = new Map(); // sessionId -> [featureId]
+  for (const archivo of readdirSync(dir).filter((f) => f.endsWith("-metrics.md"))) {
+    const id = archivo.replace(/-metrics\.md$/, "");
+    const bloque = ultimoBloque(readFileSync(join(dir, archivo), "utf8"), "Implement");
+    if (!bloque) continue;
+    const crudo = campo(bloque.body ?? bloque, "session_ids");
+    if (!crudo) continue;
+    for (const sid of crudo.replace(/[[\]]/g, "").split(",").map((x) => x.trim()).filter(Boolean)) {
+      reclamos.set(sid, [...(reclamos.get(sid) ?? []), id]);
+    }
+  }
+
+  const features = {};
+  const sinAtribuir = [];
+  for (const s of sesiones) {
+    const duenos = reclamos.get(s.sessionId) ?? [];
+    if (duenos.length !== 1) {
+      sinAtribuir.push(s);
+      continue;
+    }
+    const id = duenos[0];
+    features[id] ??= { tokens: 0, sessions: [] };
+    features[id].tokens += Number(s.totalTokens) || 0;
+    features[id].sessions.push(s.sessionId);
+  }
+  return { features, sinAtribuir };
+}
+
+const sumar = (k) => propias.reduce((a, s) => a + (Number(s[k]) || 0), 0);
+
+const reparto = atribuir(DATA_ROOT, propias);
 
 const salida = {
   schema_version: 1,
@@ -94,6 +145,13 @@ const salida = {
   // features: no son la misma magnitud y no se pueden comparar entre si.
   alcance: "proyecto",
   sessions: propias.map((s) => s.sessionId),
+  features: reparto.features,
+  // Lo que no se pudo imputar a una sola feature. El total del proyecto lo
+  // incluye; la suma por feature, no. Sin este campo no cerrarian las cuentas.
+  sin_atribuir: {
+    tokens: reparto.sinAtribuir.reduce((a, s) => a + (Number(s.totalTokens) || 0), 0),
+    sessions: reparto.sinAtribuir.map((s) => s.sessionId),
+  },
   tokens: {
     input: sumar("inputTokens"),
     output: sumar("outputTokens"),
@@ -116,7 +174,11 @@ const miles = (n) => n.toLocaleString("es-AR");
 console.log(`sdd-tokens · root: ${DATA_ROOT}`);
 console.log(`\nPASS  ${propias.length} sesion(es) · ${miles(salida.tokens.total)} tokens`);
 console.log(`      ${destino}`);
-if (!existsSync(join(DATA_ROOT, "metrics", "sessions.jsonl"))) {
-  console.log(`\nWARN  sin metrics/sessions.jsonl — el total es del proyecto, no por feature.`);
-  console.log(`      El hook de sesion lo escribe; sin el no hay como atribuir sesiones a features.`);
+const atribuidas = Object.keys(reparto.features).length;
+if (atribuidas) console.log(`      ${atribuidas} feature(s) con consumo atribuido`);
+if (reparto.sinAtribuir.length) {
+  console.log(`
+WARN  ${reparto.sinAtribuir.length} sesion(es) sin atribuir: ${miles(salida.sin_atribuir.tokens)} tokens.`);
+  console.log(`      Siguen en el total del proyecto. Una sesion se atribuye cuando UNA sola`);
+  console.log(`      feature la declara en session_ids de su bloque ## Implement.`);
 }

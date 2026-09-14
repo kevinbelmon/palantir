@@ -100,9 +100,19 @@ Cuando **todas** las tasks de `tasks.md` estén en `- [x]`:
 - lint: [PASS o N/A]
 - build: [PASS o N/A]
 - gate_override: [true si el humano forzó el gate de Validate; false en caso contrario]
+- session_ids: [ids de las sesiones en las que se implementó esta feature]
 ```
 
 Reglas del bloque:
+
+- `session_ids` es el único dato que ningún script puede derivar: solo vos sabés en qué sesión
+  implementaste. Con él, `sdd-tokens` atribuye el consumo real de ccusage a esta feature en vez
+  de dejarlo en el total del proyecto. Tomalos de `metrics/sessions.jsonl` (los escribe el hook)
+  o de la sesión activa; si la implementación abarcó varias —resume, compact, cortes en distintos
+  días— listalas todas. Si no lo sabés, omitilo: el campo es opcional y su ausencia deja el
+  esfuerzo en el total del proyecto, que es correcto. Inventarlo atribuye tokens ajenos.
+  Una sesión declarada por más de una feature no se imputa a ninguna, porque repartirla sería
+  inventar; queda en `sin_atribuir` y el total del proyecto la sigue incluyendo.
 
 - `tasks_completadas` debe ser `m/m` con `m` = total de tasks canónicas de `tasks.md`.
   Si es `n/m` con `n < m`, la implementación está parcial y el bloque NO se escribe.
