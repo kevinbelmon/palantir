@@ -8,6 +8,32 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.13.0 — 2026-09-14
+
+**MINOR.** Publicar el estado se vuelve descubrible para el agente.
+
+### Agrega
+
+- **`/sdd-publish`** — la capacidad existia desde 1.9.0 pero nada la anunciaba: `CLAUDE.md` no
+  mencionaba publicar, estado ni central, y no habia comando. Un dev que pedia "exporta el estado"
+  dependia de que el agente adivinara — y el propio `CLAUDE.md` lo entrena a buscar en una tabla de
+  triggers donde publicar no figuraba.
+
+  El comando lleva lo que hoy solo sabia quien leyera el script: el gate de identidad, que el
+  auditor en rojo no frena la publicacion, y que un "repository not found" sobre un central privado
+  es falta de permiso y no un repo inexistente — con la instruccion de no inventar otro nombre ni
+  sugerir crearlo.
+
+  **Reparto por costo de contexto:** a `CLAUDE.md` —que se carga en cada sesion— van 219 bytes
+  (una fila de trigger y una linea en el ciclo, ~54 tokens). Los ~482 tokens del comando se pagan
+  solo cuando alguien publica. Es la misma divulgacion progresiva que el propio `CLAUDE.md` pide.
+
+- **Recordatorio en `/sdd-review`** — cerrada la feature, sugiere publicar. Explicitamente **no**
+  publica solo: escribe en un repo compartido entre proyectos y esa es una decision del dev, no un
+  efecto colateral del gate de cierre.
+
+---
+
 ## 1.12.0 — 2026-09-14
 
 **MINOR.** El esfuerzo viaja desglosado, porque el total solo engana.

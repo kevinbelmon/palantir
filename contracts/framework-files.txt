@@ -35,6 +35,7 @@ EXACT  .claude/commands/sdd-jira-sync.md
 EXACT  .claude/commands/sdd-log.md
 EXACT  .claude/commands/sdd-metrics-summary.md
 EXACT  .claude/commands/sdd-metrics.md
+EXACT  .claude/commands/sdd-publish.md
 EXACT  .claude/commands/sdd-refine.md
 EXACT  .claude/commands/sdd-review.md
 EXACT  .claude/commands/sdd-scan.md

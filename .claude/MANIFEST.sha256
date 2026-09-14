@@ -1,11 +1,11 @@
 # .claude/MANIFEST.sha256 — generado por scripts/sdd-manifest.mjs. No editar a mano.
 # SHA-256 sobre contenido normalizado (CRLF→LF, sin BOM).
 # EXACT: archivo completo · BLOCK: solo el bloque SDD:FRAMEWORK · MERGE: el valor de la clave.
-# framework_version: 1.12.0
-# entries: 77
+# framework_version: 1.13.0
+# entries: 78
 
-EXACT  c92df6bdde330be219d62f48ec6490b01889436f2f59027aab200e74de619168  .claude/VERSION
-EXACT  c92df6bdde330be219d62f48ec6490b01889436f2f59027aab200e74de619168  .claude/skills/VERSION
+EXACT  b4a9545a385e9701482be56a0efee678d467d9c586ec476f2c5986cfaa24e96c  .claude/VERSION
+EXACT  b4a9545a385e9701482be56a0efee678d467d9c586ec476f2c5986cfaa24e96c  .claude/skills/VERSION
 EXACT  ec233dfebfe41f90198bd63b08e4cb681ded50e22d4ce9fa02680c306cd8a4d6  .claude/commands/sdd-checklist.md
 EXACT  21bc80a1dea676b2f4a5322f647f8b7f7569b4d0bc2e58a25fc8b31dfede9047  .claude/commands/sdd-compact-guide.md
 EXACT  0f44ebdbb5f81aa415af73406fd7fe347eea90d8566019e5af43335256e79a81  .claude/commands/sdd-context-budget.md
@@ -22,8 +22,9 @@ EXACT  f3575dc3adc3c6ef9ad7c1f37f9ddd045bd141878d0ff39a9e37c42d226a8292  .claude
 EXACT  5f6bb9f8b001e8b7ddadee0a2fd8c9c4843df4074c921dedccb9698d267efc8e  .claude/commands/sdd-log.md
 EXACT  8d8388d22ff7d68283718e81bf6822b54e3afba381dcdcb5e8e5c4f43265b07a  .claude/commands/sdd-metrics-summary.md
 EXACT  7df3841149ee356357ab24b2e752585735bb7b6b23751bb9eccfae35f475444e  .claude/commands/sdd-metrics.md
+EXACT  a96e13c643ce056f3e58e7f0dec2ec40fb917e39c92ae6f4ab436a1b6f58b43d  .claude/commands/sdd-publish.md
 EXACT  578a916dad0a87d9b494d29679869d797480ee36429c98cd98dfb9a595868029  .claude/commands/sdd-refine.md
-EXACT  618c6a0482c03c99a3ceb499e3fbbb0d0beb11a74f7d717ffa78f3ccf2b6e2e6  .claude/commands/sdd-review.md
+EXACT  ce62220085db6b18ca247f838c7ca2b62eccf112accd256cac2a547f3f75ff92  .claude/commands/sdd-review.md
 EXACT  546245c37d5859377e285532b173197128ad2a73dd677576dba79aea68d54588  .claude/commands/sdd-scan.md
 EXACT  abd95d1173d142b7c1c983df51d080bef053f3386add8f24231bd9479aae6a65  .claude/commands/sdd-setup.md
 EXACT  740e25d459216552b953d75a5cce529724c12192740788769115e8a23fd83c3a  .claude/commands/sdd-task.md
@@ -53,8 +54,8 @@ EXACT  f420aa79d599f81f9727001c4c56cd017cd82ec487386190d5b899511945106a  scripts
 EXACT  6dc11ad5201c7d42aeef115bcfb37fd7fde6f3ba12b6f1be4b503f034e96f2ca  contracts/paths.md
 EXACT  4b7bb7433a511f3090af657832234d51a84494f90b8d720892c78aae6a737274  contracts/distribucion.md
 EXACT  00853445611c00cb6dcb15a62214a8ddcf74955f661bd0bf9d2f62612ced8bf9  contracts/framework.md
-EXACT  0cb060b42c59b23af6c4b7f835594deedc24857706c98d94daab99be4d569d4b  contracts/framework-files.txt
-EXACT  d0840b1f7dfb0bbb8f06a56e12cdf930f9b7256db3fa4031dac6331093d7f42f  CHANGELOG.md
+EXACT  3b36cdc12298feb585730d8d2b91bcb877ee7511ab63fbb4ddeea36cb1fc97e6  contracts/framework-files.txt
+EXACT  20cd915ad23fa528a9e0b64b5f852184e14fbadd25f1a5b600d1b40b2c6886df  CHANGELOG.md
 EXACT  c4ab591f505ac0906c1865922dc41451a0218ea9467bb5e8fc0915598290f64a  specs/_registry/features.template.yaml
 EXACT  05ed82ba9090b3c3826efee2553c907ab398cf3d1884ed84072e90c293d8e921  specs/_registry/sprints/_template.yaml
 EXACT  694255ad3a9e074971dafd69f8addcdd686284dcb72d0e911c64126935b52d9e  graph/domain.template.yaml
@@ -62,7 +63,7 @@ EXACT  326c5c55d3b653a80c65c17930371342e9a220f08a8c39110ee5ed08d14a5c61  drafts/
 EXACT  51fc3100b60ec838118ae6ea85f896892eb3e587d979972a3a27768be38374da  metrics/README.md
 EXACT  563ec0578c453ae0efb607bbbbc73676607c1b4529d39753178fa38d0f6f4808  .github/workflows/sdd-audit.yml
 EXACT  663e8caa458004dd0e68c1477a6335c02ac925fff264b64fbbbf57b57943d58f  .github/workflows/sdd-version.yml
-BLOCK  a99634d57bb9691c73e93066f558bbcab7c364f5e4289c18503a89917c6cdf2b  CLAUDE.md
+BLOCK  28f5f145a4ce62b846cd224cdaa458ac134c3bd0a3437d83805029aca309ace6  CLAUDE.md
 MERGE  7801d17c8b386d3afada2709f1aa22f10601e3d8f0951dd6c78de61a15fb48df  package.json  scripts.audit:sdd
 MERGE  37022b9991706488f1af4c854a9785ab4fa9086c8da64d96175dc4c3d55eae8c  package.json  scripts.kanban
 MERGE  7c49dd932468faf119f022cbfc51e36248d8be511aa3d692c1fa57af8c04cb9d  package.json  scripts.kanban:demo
