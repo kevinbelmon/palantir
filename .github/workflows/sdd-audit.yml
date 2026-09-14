@@ -84,3 +84,52 @@ jobs:
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── Publicación del estado ───────────────────────────────────────────────────
+  # Sube metrics/estado.json al repo central para el tablero de proyectos.
+  #
+  # Tres decisiones que no son obvias:
+  #
+  # 1. Corre con `always()`, después del auditor y sin depender de que pase. Si
+  #    solo publicara cuando todo está verde, el tablero mostraría únicamente los
+  #    proyectos sanos — que es exactamente lo contrario de para qué sirve.
+  #
+  # 2. No falla nunca el build. Publicar es observabilidad, no un gate: que un
+  #    repo no pueda reportar no es motivo para bloquear un merge.
+  #
+  # 3. Se saltea sola donde no está configurada. La variable SDD_ESTADO_REPO se
+  #    define a nivel de organización o de repo; sin ella el job no hace nada, así
+  #    que este archivo puede ser idéntico en todos los repos (capa A) y aun así
+  #    solo publicar donde corresponde.
+  #
+  # Credenciales: SDD_ESTADO_TOKEN necesita permiso de escritura sobre el repo
+  # central y nada más. Un PAT personal repartido en N repos son N lugares para
+  # rotar y una filtración escribe en el central: conviene una GitHub App con
+  # permiso acotado, que es una identidad sola y revocable de un lado.
+  estado:
+    needs: audit
+    if: ${{ always() && github.event_name == 'push' && vars.SDD_ESTADO_REPO != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generar y publicar el estado
+        continue-on-error: true
+        shell: bash
+        env:
+          SDD_ESTADO_REPO: ${{ vars.SDD_ESTADO_REPO }}
+          SDD_ESTADO_TOKEN: ${{ secrets.SDD_ESTADO_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SDD_ESTADO_TOKEN:-}" ]; then
+            echo "::notice::SDD_ESTADO_TOKEN no configurado — no se publica"
+            exit 0
+          fi
+          # Toda la logica vive en el script: auditar, generar, clonar, comparar,
+          # commitear y pushear. El CI no la repite en bash porque dos copias de la
+          # misma logica se separan y el tablero termina mostrando otra cosa.
+          node scripts/sdd-publish.mjs --root .

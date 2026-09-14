@@ -15,7 +15,7 @@
  * es `--root` si se pasa, y `process.cwd()` si no. Ver contracts/paths.md §1.
  */
 
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
@@ -102,13 +102,21 @@ function blockField(body, field) {
   return m ? m[1].trim() : null;
 }
 
-/** Cuenta tasks canónicas `- [ ] TNNN` / `- [x] TNNN` de una feature */
+/**
+ * Cuenta tasks canónicas `- [ ] TNNN` / `- [x] **TNNN**` de una feature.
+ *
+ * El ID puede venir en negrita: lo escribe un agente redactando markdown, y
+ * resaltarlo en una lista de tareas es lo natural. La primera corrida greenfield
+ * real produjo `- [ ] **T001** · …`, y con el patrón estricto el gate de
+ * /sdd-implement fallaba con "declara 7/7 pero tasks.md tiene 0 tasks canónicas"
+ * sobre una feature perfectamente bien generada.
+ */
 function taskCounts(id) {
   const p = `specs/${id}/tasks.md`;
   if (!exists(p)) return null;
   let total = 0, done = 0;
   for (const line of read(p).split(/\r?\n/)) {
-    const m = line.match(/^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*T\d{3}/);
+    const m = line.match(/^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*\*{0,2}T\d{3}/);
     if (m) {
       total++;
       if (m[1].toLowerCase() === "x") done++;
@@ -154,6 +162,37 @@ function report() {
       failures.length ? "❌ AUDIT FALLIDO" : "✅ AUDIT PASA"
     }\n`
   );
+  // Con --json, además deja el veredicto legible por máquina en
+  // metrics/audit-result.json. Simetría con el discovery-model, que ya lo hace.
+  //
+  // Existe porque sdd-state necesita poder decir si el repo pasa su propio
+  // auditor: sin esto, en un tablero central un repo con 7 FAIL se ve igual de
+  // sano que uno en verde. Escribirlo acá mantiene a sdd-state como proyector
+  // —lee un archivo, no corre nada— y al auditor como única fuente del veredicto.
+  if (argv.includes("--json")) {
+    const out = join(DATA_ROOT, "metrics", "audit-result.json");
+    try {
+      mkdirSync(dirname(out), { recursive: true });
+      writeFileSync(out, JSON.stringify({
+        schema_version: 1,
+        generated: new Date().toISOString(),
+        framework: fw,
+        root: DATA_ROOT,
+        fail: failures.length,
+        warn: warnings.length,
+        ok: passes.length,
+        hallazgos: [
+          ...failures.map((f) => ({ nivel: "FAIL", check: f.check, msg: f.msg })),
+          ...warnings.map((w) => ({ nivel: "WARN", check: w.check, msg: w.msg })),
+        ],
+      }, null, 2) + "\n", "utf8");
+      console.log(`      ${out}\n`);
+    } catch (err) {
+      // No poder escribir el reporte no cambia el veredicto del auditor.
+      console.error(`WARN  no se pudo escribir ${out}: ${err.message}\n`);
+    }
+  }
+
   process.exit(failures.length ? 1 : 0);
 }
 
@@ -397,18 +436,34 @@ for (const f of features) {
     }
   }
 
-  // tasks.md: cada línea de tarea (T\d+) debe tener referencia US-N o "US: —"
+  // tasks.md: cada tarea debe declarar su referencia US-N, o "US: —" si no aplica.
+  //
+  // Se verifica por BLOQUE, no por línea. Una tarea real ocupa varias líneas y
+  // cierra con la referencia:
+  //
+  //     - [ ] **T002** · Ante una combinación inválida, la pantalla muestra un
+  //           aviso único que no revela el motivo.
+  //           Crea: `src/AvisoIntento.tsx`. · US: US-1
+  //
+  // Buscar el US en la línea del encabezado da falso negativo en todas las
+  // tareas de un archivo que sí tiene la trazabilidad completa. Es la misma
+  // forma que metricsBlocks(): un bloque termina donde empieza el próximo.
   const tasksFile = `${dir}/tasks.md`;
   if (exists(tasksFile)) {
-    const lines = read(tasksFile).split(/\r?\n/);
-    const taskLines = lines.filter((l) => /^\s*[-*]\s+\*{0,2}T\d+/.test(l));
-    const missingUS = taskLines.filter((l) => !/US[-:]\s*[\d—–-]/.test(l));
-    if (missingUS.length) {
+    const bloques = [];
+    for (const linea of read(tasksFile).split(/\r?\n/)) {
+      // El encabezado acepta checkbox opcional y el ID en negrita, igual que
+      // taskCounts(): lo escribe un agente redactando markdown.
+      if (/^[ \t]*[-*][ \t]*(\[[ xX]\][ \t]*)?\*{0,2}T\d{3}/.test(linea)) bloques.push([linea]);
+      else if (bloques.length) bloques[bloques.length - 1].push(linea);
+    }
+    const sinUS = bloques.filter((b) => !/US[-:]\s*[\d—–-]/.test(b.join("\n")));
+    if (sinUS.length) {
       warn(
         "schema",
-        `${f.id}: ${missingUS.length} tarea(s) en tasks.md sin referencia US-N — regenerá con /sdd-generate`
+        `${f.id}: ${sinUS.length} tarea(s) en tasks.md sin referencia US-N — regenerá con /sdd-generate`
       );
-    } else if (taskLines.length > 0) {
+    } else if (bloques.length > 0) {
       pass("schema", `${f.id}: tasks.md tiene trazabilidad US-N en todas las tareas`);
     }
   }

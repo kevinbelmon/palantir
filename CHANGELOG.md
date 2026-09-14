@@ -8,6 +8,175 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.9.0 — 2026-09-14
+
+**MINOR.** El estado se publica al central con un comando, y el documento transporta esfuerzo.
+Nada de lo anterior deja de funcionar.
+
+### Agrega
+
+- **`scripts/sdd-publish.mjs`** y el script `sdd:publish` — genera el estado y lo publica en el
+  repo central de un tiro: corre el auditor con `--json`, corre `sdd-state`, calcula la ruta,
+  clona el central, commitea solo si cambio algo real y pushea con reintento por rebase.
+
+  Acepta el central como `org/repo`, URL, remoto SSH o ruta local. Sin `--token` usa la
+  credencial de git de la maquina, que es lo correcto para una persona publicando su proyecto:
+  no hay que crear un PAT ni un `.env`. `--token` queda para el CI, donde no hay credencial
+  ambiente.
+
+  **El workflow ahora llama a este script** en vez de repetir la logica en bash. Dos copias de
+  la misma logica se separan y el tablero termina mostrando algo distinto de lo que el repo dice.
+
+- **Esfuerzo en el documento publicado** — `features[].esfuerzo` y `resumen.esfuerzo`, leidos del
+  bloque `### Reporte de Esfuerzo SDD` de `metrics/`.
+
+  Tres cautelas que definen la forma. **El metodo viaja con el numero**: la Variante A son tokens
+  reales de ccusage y la B es `bytes / 4`, una estimacion de lo leido; con metodos mezclados el
+  agregado reporta `MIXTO` y **no totaliza**, porque sumarlos daria un numero que no significa
+  nada. **`ciclos` declara `ciclos_origen: autorreporte`**: los tokens son observados, los ciclos
+  los escribe el agente sobre si mismo, y en un tablero quedarian indistinguibles. **`SIN_DATO`,
+  nunca `0`**: un cero ahi afirmaria que costo cero tokens.
+
+  No se publica plata, solo tokens — igual que `/sdd-metrics`, que usa `--no-cost` a proposito.
+
+### Cambia
+
+- **`schema_version` del estado publicado pasa a `2`.** Se debia desde el rename
+  `touches` -> `archivos_declarados`, que salio como cambio incompatible anunciado como
+  compatible: un consumidor que leyera `touches` recibia `undefined` en silencio. Ahora cambia
+  con motivo y con aviso.
+
+### Corrige
+
+- **El reporte de esfuerzo nunca se encontraba.** `bloques()` busca encabezados de nivel 2 y el
+  reporte se escribe con `###`. La lectura ahora lo localiza aparte y corta en el proximo
+  encabezado de cualquier nivel. `sdd-audit.mjs` tiene una copia de esa funcion pero no lee el
+  reporte, asi que ahi el punto ciego es latente.
+
+- **El total de tokens no se parseaba en tablas de dos columnas.** ccusage se reporta en dos y la
+  variante estimada en tres; se tomaba la tercera celda a ciegas. Ahora se toma la ultima celda
+  numerica de la fila TOTAL, sin contar columnas.
+
+---
+
+## 1.8.0 — 2026-09-08
+
+**MINOR.** El estado del repo pasa a ser un documento que se puede publicar. Nada de lo anterior
+deja de funcionar.
+
+### Agrega
+
+- **`scripts/lib/estado.mjs`** — un solo lector de "en qué estado está este proyecto". Recorre el
+  registro, `tasks.md`, `feature.status.md` y los bloques de `metrics/`, y devuelve un objeto con
+  features, sprints, avance por tarea y las cuatro fases.
+
+  Usa **los mismos patrones de parseo que `sdd-audit.mjs`**. No es prolijidad: el tablero contaba
+  las tasks con un patrón distinto al del auditor, así que mostraba `0 tareas` en toda feature real
+  —contaba filas de tabla `| T01 |`, que es el formato del fixture `demo/`, mientras
+  `/sdd-implement` escribe checkboxes `- [ ] T001`—. Con un lector único no pueden volver a
+  discrepar.
+
+  Lo que **no** lee, y no es casual: `spec.md`, `plan.md`, `constitution.md`, `DECISIONS.md` ni el
+  grafo. El objeto está pensado para publicarse fuera del repo, así que las rutas de esos archivos
+  no están en el código.
+
+- **`scripts/sdd-state.mjs`** (`pnpm sdd:state`) — escribe ese objeto como JSON en
+  `metrics/estado.json`. Es un proyector: no valida, no bloquea, no sale a la red. Acepta `--root`
+  con la misma convención que el auditor, más `--out` y `--stdout`.
+
+  `paraPublicar()` reduce `touches` de la lista de rutas a un número antes de escribir. El tablero
+  local dibuja los archivos; el documento que sale del repo no describe la arquitectura del cliente.
+
+- **Bloque `meta` en `specs/_registry/features.template.yaml`** con `repo` y `proyecto_id`. Describe
+  al `DATA_ROOT`, no a una feature. `/sdd-generate` escribe `proyecto_id` la primera vez que lo ve
+  en un brief, y **se niega a pisarlo** si ya hay otro distinto: dos proyectos de Discovery
+  cayendo en el mismo árbol es una decisión humana.
+
+- **`--publish-path` en `sdd-state.mjs`** y un job `estado` en `sdd-audit.yml` que sube el
+  documento a un repo central, bajo `estado/<PRY-nnn>/<codebase>.json` — carpeta por proyecto,
+  archivo por codebase, porque un proyecto puede tener varios.
+
+  El script calcula la ruta y **se niega si al registro le falta `meta.proyecto_id` o `meta.repo`**:
+  un archivo anónimo en un repo compartido entre clientes no se puede atribuir ni limpiar.
+
+  Tres decisiones del job: corre con `always()` **aunque el auditor falle** —si solo publicara en
+  verde, el tablero mostraría nada más que los proyectos sanos—; **nunca falla el build**, porque
+  publicar es observabilidad y no un gate; y se saltea sola donde no está configurada la variable
+  `SDD_ESTADO_REPO`, así el mismo archivo sirve en todos los repos. Solo commitea si cambió algo que
+  no sea la marca de tiempo, y reintenta con rebase si otro repo publicó primero.
+
+### Corrige
+
+- **El campo `audit` no llegaba al documento publicado por CI.** `audit` y `estado` son jobs
+  separados del workflow, cada uno con su propio `actions/checkout` y sin artifacts entre medio.
+  El `--json` del job `audit` dejaba `metrics/audit-result.json` en un runner que se descarta, y
+  el job `estado` arrancaba de un checkout limpio donde ese archivo no existe: `leerAudit`
+  devolvia `null` y el documento salia sin veredicto. La feature funcionaba solo si alguien habia
+  corrido el auditor a mano en su maquina, y entonces publicaba un veredicto viejo como si fuera
+  actual. En el repo de prueba el documento decia `fail: 7` con 12 FAIL reales.
+
+  El auditor ahora corre **dentro del job `estado`**, sobre el mismo checkout que produce el
+  documento y segundos antes. El desfasaje deja de ser algo que hay que recordar y pasa a ser
+  imposible por construccion: no hay ventana para que el veredicto envejezca ni caller que se lo
+  pueda olvidar, porque esta adosado a su unico consumidor.
+
+  Va con `|| true` a proposito. El auditor sale 1 cuando hay FAIL, y con `set -e` eso abortaba el
+  step, lo marcaba fallido y salteaba la publicacion, dejando invisible justo al repo que el
+  tablero necesita ver. Es la misma razon por la que el job corre con `always()`.
+
+- **El contador de tasks no reconocía el identificador en negrita.** `taskCounts()` del auditor
+  —y por copia, el lector nuevo— exigía `- [ ] T001` exacto. La primera corrida greenfield real
+  del modelo produjo `- [ ] **T001** · …`, sin que nadie se lo pidiera: quien escribe ese archivo
+  es un agente redactando markdown, y resaltar el ID en una lista de tareas es lo natural.
+
+  El efecto no era cosmético. Con siete tareas bien generadas, el gate de `/sdd-implement` fallaba
+  con *"declara 7/7 pero tasks.md tiene 0 tasks canónicas"* y no dejaba cerrar la feature. Ahora
+  el patrón acepta `\*{0,2}` alrededor del identificador.
+
+  Un patrón que exige una forma byte-exacta de un productor no determinista cuenta cero y nadie se
+  entera. Queda pendiente el CHECK 6, que tiene el problema inverso —no falla, no dice nada— porque
+  busca la referencia `US-N` en la misma línea de la tarea y el formato real la pone al cierre del
+  bloque, tres líneas más abajo.
+
+- **El CHECK 6 no verificaba la trazabilidad `US-N`: no decía nada.** Dos defectos encadenados.
+  Su patrón pedía `- **T001**` y el formato real trae `- [ ] **T001**`, así que no reconocía
+  ninguna tarea; sin tareas no hay ni WARN ni PASS, y el check desaparecía del reporte.
+
+  Y arreglar solo el patrón lo habría empeorado: buscaba el `US-N` en la **línea** del encabezado,
+  cuando la referencia cierra el bloque tres líneas más abajo. Habría pasado de mudo a marcar las
+  7 tareas como sin trazabilidad, sobre un archivo que la tiene completa.
+
+  Ahora acumula el bloque de cada tarea —desde su encabezado hasta el próximo— y busca el `US-N`
+  ahí, con la misma forma que ya usa `metricsBlocks()`. Verificado en los dos sentidos contra el
+  `tasks.md` de la corrida real: PASS con la trazabilidad completa, y WARN por las dos tareas
+  exactas a las que se les quitó la referencia.
+
+- **`sdd-audit --json`** deja el veredicto en `metrics/audit-result.json`, y el documento de
+  estado lo transporta en un campo `audit`. Simetría con el discovery-model, que ya lo escribía.
+
+  Sin esto, en un tablero que junta varios codebases **un repo con 7 FAIL se ve igual de sano que
+  uno en verde**, y nadie tiene forma de notarlo. Leer el veredicto no rompe la definición de
+  proyector: el auditor sigue siendo la única fuente, `sdd-state` lo lee de un archivo y no corre
+  nada. Sin veredicto el campo va `null` — que no es lo mismo que pasar: es un repo sin medir.
+
+- **`touches` se publica como `archivos_declarados`.** El nombre venía del registro, donde
+  significa "rutas que la feature dice que va a crear". En un tablero, al lado de `tareas 0/7`,
+  se lee como archivos ya tocados: parece una feature con siete archivos en juego cuando puede no
+  existir ninguno. El número es el mismo. Adentro del modelo el campo sigue llamándose `touches`.
+
+### Cambia
+
+- `gen-kanban.mjs` consume `lib/estado.mjs` en vez de leer por su cuenta. El tablero se ve igual;
+  el conteo de tareas ahora es el correcto.
+
+### Nota
+
+Lo que el lector no puede contar lo dice, no lo pone en cero: una feature con `tasks.md` en formato
+de tabla reporta `formato: "tabla"` y `hechas: null`, y el resumen lleva `features_sin_contar`. Un
+`0 de 8` se lee como "nada hecho" cuando en realidad es "no se sabe".
+
+---
+
 ## 1.7.0 — 2026-08-27
 
 **MINOR.** Documenta el mecanismo de distribución como contrato.

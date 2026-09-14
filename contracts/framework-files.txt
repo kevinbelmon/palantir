@@ -65,6 +65,9 @@ EXACT  scripts/sdd-manifest.mjs
 EXACT  scripts/sdd-install.mjs
 EXACT  scripts/sdd-verify.mjs
 EXACT  scripts/lib/framework.mjs
+EXACT  scripts/lib/estado.mjs
+EXACT  scripts/sdd-state.mjs
+EXACT  scripts/sdd-publish.mjs
 
 # ── Contratos ──────────────────────────────────────────────────────────────────
 EXACT  contracts/paths.md
@@ -94,6 +97,8 @@ MERGE  package.json  scripts.kanban:serve:demo
 MERGE  package.json  scripts.skills:sync
 MERGE  package.json  scripts.skills:sync:dry
 MERGE  package.json  scripts.sdd:verify
+MERGE  package.json  scripts.sdd:state
+MERGE  package.json  scripts.sdd:publish
 MERGE  package.json  devDependencies.yaml
 
 # ── Fixture de demo (opcional en repos de codigo; requerido en el repo del modelo) ──

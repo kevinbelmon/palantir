@@ -1,0 +1,13 @@
+# Registro maestro de este repo.
+#
+# El repo del modelo no corre el ciclo SDD sobre sí mismo: no tiene features.
+# Este archivo existe solo para que el repo tenga identidad y pueda publicar su
+# estado al tablero central — el bloque `meta` es lo único que lleva.
+#
+# El esquema completo de una entrada está en features.template.yaml.
+
+meta:
+  repo: sdd-model-v1.1
+  proyecto_id: PRY-000
+
+features: []

@@ -24,5 +24,21 @@
 #     size: M                     # talle estimado en Discovery (XS..L; XL no cruza)
 #   Los completa /sdd-generate a partir del frontmatter de drafts/brief.md.
 #   Una feature que no vino de Discovery los deja en null y todo funciona igual.
+#
+# El bloque `meta` describe al DATA_ROOT entero, no a una feature:
+#   repo         identidad autodeclarada de este codebase. NO se deduce del
+#                nombre del repositorio, de la carpeta ni del stack — la declara
+#                el equipo (contracts/paths.md §0).
+#   proyecto_id  el PRY-nnn del discovery-model. Lo escribe /sdd-generate la
+#                primera vez que lo ve en el frontmatter de un brief. Todas las
+#                features del repo pertenecen al mismo proyecto, por eso va acá
+#                y no en cada entrada.
+# Los dos son opcionales: en null, el modelo funciona igual. Sin ellos, el
+# documento de estado (`node scripts/sdd-state.mjs`) sale sin identidad y no se
+# puede agrupar por proyecto en un tablero central.
+
+meta:
+  repo: null
+  proyecto_id: null
 
 features: []
