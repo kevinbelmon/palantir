@@ -129,6 +129,12 @@ console.log(`             central: ${CENTRAL}`);
 // El auditor sale 1 cuando hay FAIL y eso NO puede frenar la publicación: un repo
 // en rojo es justo el que el tablero necesita ver.
 correrScript("sdd-audit.mjs", ["--json"], { tolerarFallo: true });
+
+// Mide el consumo real con ccusage y lo deja en metrics/tokens.json, que
+// sdd-state transporta. Tolera fallo a proposito: no poder medir el esfuerzo no
+// es motivo para que el proyecto deje de reportar su estado.
+correrScript("sdd-tokens.mjs", [], { tolerarFallo: true });
+
 correrScript("sdd-state.mjs");
 
 // El script se niega si al registro le falta identidad: un archivo anónimo en un

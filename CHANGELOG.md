@@ -8,6 +8,43 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.10.0 — 2026-09-14
+
+**MINOR.** El consumo de tokens se mide en el pipeline, sin agente.
+
+### Agrega
+
+- **`scripts/sdd-tokens.mjs`** — corre ccusage, filtra las sesiones de este arbol y deja el
+  consumo en `metrics/tokens.json`, que `sdd-state` transporta al documento. `sdd-publish` lo
+  invoca antes de generar el estado.
+
+  Existe porque `/sdd-metrics` es un comando de agente: un `.md` que necesita un modelo para
+  ejecutarse, y un pipeline determinista no puede correrlo. De sus seis metricas una sola es
+  medible por maquina —el token budget— y es la que este script extrae. Las otras cinco son el
+  agente describiendo su propia sesion; no hay de donde sacarlas sin agente.
+
+  **El alcance es de proyecto y se declara en el campo `alcance`.** ccusage reporta por sesion, y
+  atribuir sesiones a features necesita el mapeo que escribe el hook en `metrics/sessions.jsonl`.
+  Sin ese archivo, repartir el total entre features seria inventar. Se descarto correlacionar por
+  ventana de tiempo: en una sesion se trabaja en varias features.
+
+  Filtra por el slug derivado de la ruta, no por nombre de carpeta: ccusage reemplaza todo lo que
+  no sea alfanumerico por guiones, y dos repos homonimos en carpetas distintas se atribuirian
+  sesiones ajenas. No usa el bloque `totals` del JSON, que agrega todas las sesiones de la maquina.
+
+  **No rompe el pipeline.** Sin ccusage, sin red o sin sesiones registradas, avisa y sale 0: el
+  estado se publica igual con el esfuerzo en `SIN_DATO`. Medir es deseable; impedir que un
+  proyecto reporte porque no se pudo medir, no.
+
+### Corrige
+
+- **En Windows no se podia invocar ccusage.** `npx` es un `.cmd` y desde la correccion de
+  CVE-2024-27980 Node se niega a spawnearlo sin shell: devolvia EINVAL. `shell: true` tampoco
+  sirve —concatena los argumentos en vez de escaparlos y Node lo marca deprecado—, asi que se
+  invoca `npx-cli.js` con el propio ejecutable de Node, sin interprete de por medio.
+
+---
+
 ## 1.9.0 — 2026-09-14
 
 **MINOR.** El estado se publica al central con un comando, y el documento transporta esfuerzo.

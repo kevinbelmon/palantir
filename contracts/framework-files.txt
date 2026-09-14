@@ -68,6 +68,7 @@ EXACT  scripts/lib/framework.mjs
 EXACT  scripts/lib/estado.mjs
 EXACT  scripts/sdd-state.mjs
 EXACT  scripts/sdd-publish.mjs
+EXACT  scripts/sdd-tokens.mjs
 
 # ── Contratos ──────────────────────────────────────────────────────────────────
 EXACT  contracts/paths.md

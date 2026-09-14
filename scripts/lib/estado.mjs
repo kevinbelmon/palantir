@@ -338,6 +338,27 @@ function leerEsfuerzo(root, id) {
 }
 
 /**
+ * Consumo de tokens del proyecto, medido por `sdd-tokens` con ccusage.
+ *
+ * Es un total de PROYECTO: ccusage reporta por sesion y atribuir sesiones a
+ * features necesita el mapeo del hook (`metrics/sessions.jsonl`). Se transporta
+ * con su `alcance` declarado para que nadie lo compare contra una suma por
+ * feature, que es otra magnitud.
+ */
+function leerTokensProyecto(root) {
+  const txt = leerTexto(root, "metrics/tokens.json");
+  if (txt === null) return null;
+  try {
+    const t = JSON.parse(txt);
+    const total = Number(t?.tokens?.total);
+    if (!Number.isFinite(total)) return null;
+    return { tokens: total, metodo: t.source ?? "ccusage", alcance: t.alcance ?? "proyecto", medido: t.generated ?? null };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Agregado de esfuerzo del proyecto.
  *
  * Suma solo features medidas con el MISMO metodo. Con metodos mezclados el total
@@ -345,18 +366,26 @@ function leerEsfuerzo(root, id) {
  * distintas bajo un mismo numero. En ese caso se reporta MIXTO sin total, que es
  * la version honesta de "no se puede responder con lo que hay".
  */
-function agregarEsfuerzo(features) {
+function agregarEsfuerzo(features, proyecto) {
   const medidas = features.filter((f) => typeof f.esfuerzo.tokens === "number");
+
+  // Sin mediciones por feature se usa el total del proyecto, que es lo que hoy
+  // puede medirse sin el hook de sesiones. Viaja con `alcance` para que el
+  // consumidor sepa que no es una suma de features.
   if (!medidas.length) {
-    return { tokens: SIN_DATO, metodo: SIN_DATO, features_medidas: 0, features_totales: features.length };
+    if (proyecto) {
+      return { ...proyecto, features_medidas: 0, features_totales: features.length };
+    }
+    return { tokens: SIN_DATO, metodo: SIN_DATO, alcance: SIN_DATO, features_medidas: 0, features_totales: features.length };
   }
   const metodos = [...new Set(medidas.map((f) => f.esfuerzo.metodo))];
   if (metodos.length > 1) {
-    return { tokens: SIN_DATO, metodo: "MIXTO", features_medidas: medidas.length, features_totales: features.length };
+    return { tokens: SIN_DATO, metodo: "MIXTO", alcance: "features", features_medidas: medidas.length, features_totales: features.length };
   }
   return {
     tokens: medidas.reduce((a, f) => a + f.esfuerzo.tokens, 0),
     metodo: metodos[0],
+    alcance: "features",
     features_medidas: medidas.length,
     features_totales: features.length,
   };
@@ -423,7 +452,7 @@ export function leerEstado(root, { framework = null } = {}) {
         hechas: suma((f) => f.tareas.hechas),
         features_sin_contar: features.length - contables.length,
       },
-      esfuerzo: agregarEsfuerzo(features),
+      esfuerzo: agregarEsfuerzo(features, leerTokensProyecto(root)),
     },
     audit: leerAudit(root),
     sprints: leerSprints(root),
