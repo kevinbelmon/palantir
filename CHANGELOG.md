@@ -8,6 +8,33 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.14.0 — 2026-09-21
+
+**MINOR.** El estado puede publicarse a un endpoint HTTP, no solo a un repo git.
+Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es identico.
+
+### Agrega
+
+- **`scripts/lib/transporte-http.mjs`** — espejo de `transporte-git.mjs`, mismo contrato de
+  retorno y otro mecanismo. El destino existia desde 1.9.0 pero era siempre un repositorio: para
+  llegar a una base de datos o a la API de una plataforma habia que copiar el archivo a mano, y
+  un paso manual en el medio es exactamente lo que hace que un tablero muestre algo distinto de
+  lo que el repo dice.
+
+  Cero dependencias: `fetch` viene en Node.
+
+- **`--endpoint` (o `SDD_ESTADO_ENDPOINT`) en `/sdd-publish`.** Se declara aparte de `--central`
+  a proposito. `https://host/org/repo.git` es una URL de clonado y `https://host/estado` es un
+  endpoint; distinguirlas por heuristica funciona hasta el dia que alguien monte el endpoint bajo
+  una ruta que parezca un repo, y ese dia falla en silencio. Con las dos variables separadas, el
+  destino lo declara quien publica.
+
+  Tres respuestas se interpretan, no se propagan crudas: **409** y **304** son `sin-cambios` —el
+  destino ya tiene algo igual o mas nuevo, y reintentarlo seria un bucle—; **sin red** es error
+  pero el mensaje dice que el estado quedo en `metrics/estado.json` y se puede reenviar. Publicar
+  sigue siendo observabilidad, no un gate.
+
+---
 ## 1.13.0 — 2026-09-14
 
 **MINOR.** Publicar el estado se vuelve descubrible para el agente.
