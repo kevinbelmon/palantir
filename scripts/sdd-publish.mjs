@@ -50,7 +50,9 @@ const CENTRAL = flag("central") ?? process.env.SDD_ESTADO_REPO ?? "";
 // Endpoint HTTP. Se declara aparte del repo git a proposito: una URL no dice
 // por si sola si es de clonado o de API, y adivinarlo falla en silencio.
 const ENDPOINT = flag("endpoint") ?? process.env.SDD_ESTADO_ENDPOINT ?? "";
-const TOKEN = flag("token") ?? process.env.SDD_ESTADO_TOKEN ?? "";
+// Solo del ambiente: un token por linea de comandos queda en el historial del
+// shell y en la lista de procesos de la maquina. En CI sale de un secret.
+const TOKEN = process.env.SDD_ESTADO_TOKEN ?? "";
 // Rama del destino. Sin esto se publica en la de por defecto, que suele estar
 // protegida: GitLab rechaza el push con "pre-receive hook declined".
 const RAMA = flag("rama") ?? process.env.SDD_ESTADO_RAMA ?? "";

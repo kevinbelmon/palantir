@@ -34,6 +34,20 @@ Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es id
   pero el mensaje dice que el estado quedo en `metrics/estado.json` y se puede reenviar. Publicar
   sigue siendo observabilidad, no un gate.
 
+- **Freno al token en texto plano.** Sobre `http://` el bearer viaja en claro. El transporte se
+  niega a mandarlo a un host que no sea localhost, salvo que se declare `SDD_ESTADO_INSEGURO=1`.
+
+  No fija el destino ni lo restringe: la URL sigue siendo libre —una base en la nube, otro Docker
+  en la red— y esa libertad es el punto, porque el destino va a cambiar. Lo unico que cambia es
+  que mandar una credencial en claro pasa a ser un acto deliberado, escrito una vez y visible
+  para cualquiera que lea la configuracion, en vez de un descuido que nadie nota.
+
+### Cambia
+
+- **`--token` deja de aceptarse por linea de comandos.** Sale solo de `SDD_ESTADO_TOKEN`. Un token
+  en la linea de comandos queda en el historial del shell y en la lista de procesos de la maquina.
+  El workflow de CI ya lo pasaba por el ambiente, asi que no cambia nada de lo que este corriendo.
+
 ---
 ## 1.13.0 — 2026-09-14
 

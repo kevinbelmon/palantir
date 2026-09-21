@@ -24,6 +24,29 @@ import { readFileSync } from "node:fs";
 const ocultar = (t) => (t ? `${t.slice(0, 4)}…(${t.length})` : "sin token");
 
 /**
+ * Sobre `http://` el bearer viaja en texto plano. Contra localhost da igual
+ * —no sale de la maquina—; contra cualquier otro host lo ve la red entera.
+ *
+ * No fija el destino: la URL sigue siendo libre —una base en la nube, otro
+ * Docker en la LAN, lo que venga—. Solo exige que mandar una credencial en
+ * claro sea deliberado, con una variable que se escribe una vez y queda a la
+ * vista de quien lea la config.
+ */
+const LOCAL = /^(localhost|127(\.\d+){3}|\[::1\]|0\.0\.0\.0)$/i;
+
+function riesgoDeTextoPlano(destino, token) {
+  if (!token) return null;
+  let u;
+  try { u = new URL(destino); } catch { return null; }
+  if (u.protocol !== "http:" || LOCAL.test(u.hostname)) return null;
+  if (process.env.SDD_ESTADO_INSEGURO === "1") return null;
+  return [
+    `el destino es http:// y el token viajaria en texto plano hasta ${u.hostname}.`,
+    "Usa https://, o si la red es de confianza declaralo con SDD_ESTADO_INSEGURO=1.",
+  ];
+}
+
+/**
  * @param {object}   o
  * @param {string}   o.destino    URL del endpoint.
  * @param {string}   o.archivo    Ruta local del JSON a publicar.
@@ -43,6 +66,9 @@ export async function publicar({
   timeoutMs = 15000,
 }) {
   if (!destino) return { estado: "error", detalle: ["falta el endpoint de destino."] };
+
+  const expuesto = riesgoDeTextoPlano(destino, token);
+  if (expuesto) return { estado: "error", detalle: expuesto };
 
   let cuerpo;
   try {
