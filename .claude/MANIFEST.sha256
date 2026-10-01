@@ -12,7 +12,7 @@ EXACT  0f44ebdbb5f81aa415af73406fd7fe347eea90d8566019e5af43335256e79a81  .claude
 EXACT  de299e2f9b11d8b6eb00b559a917a9ed9e64910d6cced2dcb55589da5e5411ff  .claude/commands/sdd-e2e.md
 EXACT  d2520d2a005a6a4385d3aaf4cafada5604680af22f85db9b55e74d1c4e6cd84d  .claude/commands/sdd-explain.md
 EXACT  095b902a1421b5c05f3b291b0184ec127c51f8b12c9e44b509ac5bf5ee1b9084  .claude/commands/sdd-fix.md
-EXACT  c00651cea589ae31455ed923377f9b9e6c4fb399b10a7505dad52ffab245ed41  .claude/commands/sdd-generate.md
+EXACT  628dd5549c362c8ac0b39d08a4ca7d2982a6de9d6dd5d28f68a40883bdc1831b  .claude/commands/sdd-generate.md
 EXACT  c3aea41baca5db7d59022d6969b7b06079468815e49eaaf3cffa77a0f3762e1d  .claude/commands/sdd-handoff.md
 EXACT  e9b2fe78841e5e4493faef7fb6881ffab1a07c5fc8f640761094fcfd7e2e860d  .claude/commands/sdd-health.md
 EXACT  77a95cd98e4cded040d4a506e8ffa6744e1df57283ab960a3a4bef05ade7ce36  .claude/commands/sdd-implement.md
@@ -23,13 +23,13 @@ EXACT  5f6bb9f8b001e8b7ddadee0a2fd8c9c4843df4074c921dedccb9698d267efc8e  .claude
 EXACT  8d8388d22ff7d68283718e81bf6822b54e3afba381dcdcb5e8e5c4f43265b07a  .claude/commands/sdd-metrics-summary.md
 EXACT  7df3841149ee356357ab24b2e752585735bb7b6b23751bb9eccfae35f475444e  .claude/commands/sdd-metrics.md
 EXACT  a96e13c643ce056f3e58e7f0dec2ec40fb917e39c92ae6f4ab436a1b6f58b43d  .claude/commands/sdd-publish.md
-EXACT  578a916dad0a87d9b494d29679869d797480ee36429c98cd98dfb9a595868029  .claude/commands/sdd-refine.md
-EXACT  ce62220085db6b18ca247f838c7ca2b62eccf112accd256cac2a547f3f75ff92  .claude/commands/sdd-review.md
+EXACT  6f74a8dbede2bcc187f12ececdeda9ee1d7efd36d1655a1379015bcb25b322a6  .claude/commands/sdd-refine.md
+EXACT  0a49d1a2649ae2e12454c483d29d5cef9e5b4a7b34c21c8c6237d09bbd693864  .claude/commands/sdd-review.md
 EXACT  546245c37d5859377e285532b173197128ad2a73dd677576dba79aea68d54588  .claude/commands/sdd-scan.md
 EXACT  abd95d1173d142b7c1c983df51d080bef053f3386add8f24231bd9479aae6a65  .claude/commands/sdd-setup.md
 EXACT  740e25d459216552b953d75a5cce529724c12192740788769115e8a23fd83c3a  .claude/commands/sdd-task.md
 EXACT  2c77191f8e42dee67cf2e94c0c2e8e2f83afef5e5557800695f8517fe96924b9  .claude/commands/sdd-test.md
-EXACT  2fec19d22462c048e6b8c87f3a24f0299e1ea59919172dcd5ff2f29557c834e1  .claude/commands/sdd-validate.md
+EXACT  7a07aa91a62238c2f70c208eb0f5f90fa59726b19be118c6006b2d589183d428  .claude/commands/sdd-validate.md
 EXACT  a4eb212243c2b2e15ee87723de27d9bac9d9e7cc7895d11498a560aa0a7a6e78  .claude/skills/coding-standards/SKILL.md
 EXACT  f38da052206b4a9a16a3faa7b6bd1835a6c26d7a04a891f0d1b3e862275e0c40  .claude/skills/coding-standards/references/deterministic-audit.md
 EXACT  24c84bf1ba110f4d7ef7099fb92513a199deaca4a32ecfc564468a8209ef095d  .claude/skills/coding-standards/references/e2e-qa.md
@@ -37,7 +37,7 @@ EXACT  0e311cad82d5a1009726f49e44cc8c6b6ddafc3e21d097a8469b834e60b3b7e3  .claude
 EXACT  4c909df61d131f29e6b11c3efb4c2c552c9cabdb6783e6ffafa51175c7441769  .claude/skills/coding-standards/references/sdd-lifecycle.md
 EXACT  7a6875f52ee6489877653ab72bf7e6743fda72d89fddcc620a808059bb0deb61  .claude/skills/coding-standards/references/team-governance.md
 EXACT  144ce42547017814499046d1bb063a9bc060230fb60207daa070057eb3e4dc97  .claude/hooks/sdd-session-capture.mjs
-EXACT  551ec216cdc5b0f1c4b53c554475d54abcc9553b3f34aa376b8a7baf0abf7990  scripts/sdd-audit.mjs
+EXACT  d704e6554db83781d3521d0b1012b9a49a8421422302f8e5620319e935af5165  scripts/sdd-audit.mjs
 EXACT  91b5970e0a677c50d33a77f3f5ce42b48d023800c1f675b27dce24d1215d0f52  scripts/gen-kanban.mjs
 EXACT  65d5b9cc8d724a4a96462e1dda710867037230678b1d826517344516d22967b6  scripts/kanban-server.mjs
 EXACT  5c31c443d834c244fa78fc70fb108fe7e3d4a50c64fb0ddfd980ffb0fa2afa1a  scripts/sync-skills.mjs
@@ -58,15 +58,15 @@ EXACT  6dc11ad5201c7d42aeef115bcfb37fd7fde6f3ba12b6f1be4b503f034e96f2ca  contrac
 EXACT  4b7bb7433a511f3090af657832234d51a84494f90b8d720892c78aae6a737274  contracts/distribucion.md
 EXACT  00853445611c00cb6dcb15a62214a8ddcf74955f661bd0bf9d2f62612ced8bf9  contracts/framework.md
 EXACT  ea983ec9f313b25b4c0afabff8cddf69416681097e77f1f70fb05a5caba544d2  contracts/framework-files.txt
-EXACT  0a95b62ea12222d4b9a793edcb91114d5076847a01f9cba66b48817cff79c87d  CHANGELOG.md
+EXACT  22b8ff904a806bef4fc824e887debfdf15c3049c176c5f8f46fe1694749b1258  CHANGELOG.md
 EXACT  c4ab591f505ac0906c1865922dc41451a0218ea9467bb5e8fc0915598290f64a  specs/_registry/features.template.yaml
 EXACT  05ed82ba9090b3c3826efee2553c907ab398cf3d1884ed84072e90c293d8e921  specs/_registry/sprints/_template.yaml
-EXACT  694255ad3a9e074971dafd69f8addcdd686284dcb72d0e911c64126935b52d9e  graph/domain.template.yaml
+EXACT  6b4b1cf558cbcb99faaa7a4350dca38d701b08de7834464a61e3adac314c92b3  graph/domain.template.yaml
 EXACT  326c5c55d3b653a80c65c17930371342e9a220f08a8c39110ee5ed08d14a5c61  drafts/README.md
 EXACT  51fc3100b60ec838118ae6ea85f896892eb3e587d979972a3a27768be38374da  metrics/README.md
 EXACT  563ec0578c453ae0efb607bbbbc73676607c1b4529d39753178fa38d0f6f4808  .github/workflows/sdd-audit.yml
 EXACT  663e8caa458004dd0e68c1477a6335c02ac925fff264b64fbbbf57b57943d58f  .github/workflows/sdd-version.yml
-BLOCK  93730377f02cfcf412e5abce8183839effbeff5df2fbf1a7c610abd2faf18655  CLAUDE.md
+BLOCK  dfc8a0a64dcf7c753e600feac60e937e9585181d97a1613f40c87f82b877504c  CLAUDE.md
 MERGE  7801d17c8b386d3afada2709f1aa22f10601e3d8f0951dd6c78de61a15fb48df  package.json  scripts.audit:sdd
 MERGE  37022b9991706488f1af4c854a9785ab4fa9086c8da64d96175dc4c3d55eae8c  package.json  scripts.kanban
 MERGE  7c49dd932468faf119f022cbfc51e36248d8be511aa3d692c1fa57af8c04cb9d  package.json  scripts.kanban:demo

@@ -385,13 +385,31 @@ if (!exists(GRAPH)) {
         graphOk = false;
       }
     }
+
+    // `planned` son rutas que una feature declaro que va a crear y todavia no
+    // existen. Exigirlas como `files` da rojo garantizado: entre /sdd-generate
+    // y /sdd-implement no hay nada en disco. Lo que si es un defecto es que
+    // sobrevivan al cierre — una feature CLOSED que nunca creo lo que prometio.
+    const abiertas = (d.features ?? []).filter((id) =>
+      features.some((f) => f.id === id && f.status !== "CLOSED")
+    );
+    for (const p of collectStrings(d.planned ?? {})) {
+      if (exists(p)) {
+        warn("grafo", `dominio "${name}": ${p} ya existe pero sigue en planned — movelo a files`);
+      } else if (!abiertas.length) {
+        fail("grafo", `dominio "${name}": ${p} quedo en planned y ninguna feature abierta lo va a crear`);
+        graphOk = false;
+      }
+    }
+
     for (const featId of d.features ?? []) {
       if (!features.some((f) => f.id === featId)) {
         warn("grafo", `dominio "${name}": referencia feature ${featId} que no está en el registro`);
       }
     }
   }
-  if (graphOk && Object.keys(domains).length) pass("grafo", "Todos los archivos del grafo existen");
+  if (graphOk && Object.keys(domains).length)
+    pass("grafo", "Grafo consistente: lo de `files` existe, lo de `planned` tiene quien lo cree");
 }
 
 // ---------- CHECK 5: sprints ----------

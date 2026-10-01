@@ -123,21 +123,58 @@ Paso 1 — Analizá los borradores e identificá el estado de cada categoría:
 - CLARO: está definido sin ambigüedad en los borradores
 - AMBIGUO: hay algo pero genera dudas o puede interpretarse de más de una manera
 - FALTANTE: no está mencionado en ningún borrador
+- BLOQUEADO: **nadie puede contestarlo hoy.** No es que esté mal dicho ni que falte
+  decirlo: la respuesta no existe todavía. Hace falta medir algo, ver algo funcionando,
+  o preguntarle a alguien que no está en esta conversación
 
 Paso 2 — Mostrá al usuario un resumen del análisis con este formato:
   ✅ CLARO: [categorías claras y por qué]
   ⚠️ AMBIGUO: [categorías ambiguas y qué genera duda]
   ❌ FALTANTE: [categorías que no están en los borradores]
+  🚫 BLOQUEADO: [categorías sin respuesta posible hoy, y qué la destrabaría]
 
 Paso 3 — Por cada categoría AMBIGUA o FALTANTE, hacé UNA pregunta concreta y esperá la respuesta antes de pasar a la siguiente. No hagas todas las preguntas juntas.
 
-Paso 4 — Con cada respuesta, verificá si la categoría quedó CLARA. Si la respuesta sigue siendo ambigua, reformulá la pregunta y volvé a preguntar. No avances si algo no quedó claro.
+Paso 4 — Con cada respuesta, verificá si la categoría quedó CLARA. Si la respuesta sigue siendo ambigua, reformulá la pregunta **con un ejemplo concreto** y volvé a preguntar. No avances si algo no quedó claro.
 
-Paso 5 — Cuando todas las categorías estén en estado CLARO, informale al usuario:
+**Cuándo una categoría pasa a BLOQUEADO.** Si ya reformulaste con un ejemplo concreto y la
+respuesta sigue sin aparecer, hacé una sola pregunta más: *¿es que no lo sabemos, o es que
+no se puede saber todavía?* Si es lo segundo, no insistas — insistir ahí es lo que empuja
+a inventar. Marcala BLOQUEADO y anotá qué la destrabaría: una medición, algo funcionando
+que se pueda mirar, o una persona concreta a la que haya que preguntarle.
+
+**Nunca rellenes un BLOQUEADO con una suposición silenciosa.** Es el peor desenlace
+posible: entra a `input.md` indistinguible de una decisión tomada, viaja a `spec.md`, y
+cuando se descubre que era falsa el retrabajo no tiene causa identificable.
+
+Paso 4b — **Resolver cada BLOQUEADO.** El grilling no se cierra con un bloqueo colgando.
+Mostrale las tres salidas al humano y que elija una. Casi siempre es (a) o (b):
+
+  **(a) Sale del alcance de v1.** Lo que depende de esa respuesta no se construye ahora: va
+  a `OUT OF SCOPE` con la razón, y el resto de la feature avanza entero. Es la salida por
+  defecto cuando lo bloqueado es una parte y no el todo.
+
+  **(b) Se decide igual, como suposición declarada.** Se elige una respuesta sabiendo que
+  no está verificada. Queda en `input.md` con qué se asumió y qué se rompe si resulta
+  falsa, y **se registra con `/sdd-log`** antes de seguir. Mismo patrón que el override de
+  gate: no frena nada, pero queda visible.
+
+  **(c) No hay feature sin esa respuesta.** El caso raro: sin eso no se sabe qué construir.
+  **Pará acá y no generes `input.md`.** Decí qué falta, qué lo destrabaría y a quién hay
+  que pedirle qué. Si la feature ya está en `specs/_registry/features.yaml`, poné su
+  `status` en `BLOCKED` — es el estado que el registro ya define y el tablero ya dibuja.
+
+Paso 5 — Cuando todas las categorías estén CLARO —o BLOQUEADO con salida (a) o (b) ya
+elegida—, informale al usuario:
   "Tengo todo lo necesario para generar input.md. ¿Confirmás que puedo proceder?"
   Esperá la confirmación antes de escribir el archivo.
 
 Paso 6 — Generá input.md consolidando borradores + respuestas del usuario.
+
+Si hubo algún BLOQUEADO, agregá a `input.md` una sección `## SUPUESTOS Y BLOQUEOS` con una
+línea por cada uno: qué no se pudo decidir, qué salida se eligió (a o b) y qué lo
+destrabaría. Sin esa sección, `/sdd-validate` va a reportar como gap algo que fue una
+decisión consciente, y nadie va a poder distinguir una cosa de la otra.
 Mostrá el contenido al usuario antes de guardarlo y pedí confirmación final.
 
 ## Reglas estrictas
@@ -160,5 +197,7 @@ Cuando input.md quede confirmado y guardado, agregá al archivo `metrics/[featur
 - rondas_de_preguntas: [número de turnos de grilling hasta llegar a CLARO en todas las categorías]
 - categorias_faltantes: [número de categorías que estaban FALTANTE al inicio]
 - categorias_ambiguas: [número de categorías que estaban AMBIGUO al inicio]
+- categorias_bloqueadas: [número de categorías que llegaron a BLOQUEADO — 0 si no hubo]
+- bloqueos_resueltos: [a:N b:N c:N — cómo se resolvió cada uno; "—" si no hubo]
 - alertas_seguridad: [número de alertas del check de seguridad de drafts — 0 si no hubo]
 ```

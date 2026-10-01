@@ -48,6 +48,56 @@ Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es id
   en la linea de comandos queda en el historial del shell y en la lista de procesos de la maquina.
   El workflow de CI ya lo pasaba por el ambiente, asi que no cambia nada de lo que este corriendo.
 
+### Agrega
+
+- **Cuarto estado en `/sdd-refine`: `BLOQUEADO`.** Los tres que habia —CLARO, AMBIGUO,
+  FALTANTE— asumen que la respuesta existe en la sala: AMBIGUO es "lo dijiste mal", FALTANTE es
+  "no lo dijiste". Ninguno dice "nadie puede saberlo todavia". Y como la regla de cierre es dura
+  ("no avances si algo no quedo claro"), cuando la pregunta no tenia respuesta posible la unica
+  jugada era adivinar — y la adivinanza entraba a `input.md` indistinguible de una decision.
+
+  Ahora se marca y se resuelve por una de tres salidas, que el humano elige: **(a)** sale del
+  alcance de v1 y va a `OUT OF SCOPE`, **(b)** se asume con la suposicion declarada y registrada
+  con `/sdd-log`, o **(c)** —el caso raro— sin esa respuesta no hay feature y el comando para.
+
+  Marcar un bloqueo **no frena la feature**: en (a) y (b) el resto avanza entero. Lo que cambia
+  es que la suposicion queda escrita en vez de disolverse en el texto.
+
+- **`## SUPUESTOS Y BLOQUEOS` en `input.md`.** Lo escribe `/sdd-refine` cuando hubo bloqueos.
+  `/sdd-generate` lo propaga: lo de (a) a `## Fuera de scope (v1)` de `spec.md`, lo de (b) a
+  `constitution.md` como supuesto explicito — es una restriccion bajo la que se diseno todo lo
+  demas, y si desaparece ahi nadie vuelve a saber que estaba.
+
+- **`/sdd-validate` deja de contar los supuestos declarados como gaps.** Van en su propia
+  seccion del reporte y en `supuestos_declarados`, no en `gaps_encontrados`. Mezclarlos destruia
+  la senal: un numero alto dejaba de significar "la spec no cubre el brief" y pasaba a significar
+  "no sabiamos algo y lo dijimos". Lo que si sigue siendo gap es una suposicion que `spec.md`
+  contradice o que ningun artefacto refleja.
+
+- **Metricas nuevas del refine:** `categorias_bloqueadas` y `bloqueos_resueltos` (a:N b:N c:N).
+  `rondas_de_preguntas: 0` seguia diciendo "el handoff salio bien" aunque hubiera tres preguntas
+  sin respuesta posible; ahora las dos cosas se distinguen.
+
+  El mismo estado existe en `/dsc-refine` del discovery-model, con las siete categorias.
+
+### Corrige
+
+- **`graph/domain.yaml` separa `files` de `planned`.** Dos reglas del modelo se contradecian:
+  `/sdd-generate` mandaba volcar los `touches` a `files`, y el CHECK 4 exige que todo lo de
+  `files` exista. En greenfield eso es rojo garantizado entre `/sdd-generate` e `/sdd-implement`,
+  y en brownfield pasa igual con cada archivo nuevo que crea una feature. No era un caso borde:
+  pasaba siempre.
+
+  Ahora `files` es lo que existe —lo unico que el routing puede leer— y `planned` lo que una
+  feature abierta va a crear. `/sdd-review` mueve a `files`, al cerrar, lo que ya exista.
+
+  El CHECK 4 no se debilita: gana un caso que antes no podia ver. Una ruta en `planned` que no
+  existe y no tiene ninguna feature abierta que la cree es **FAIL** —una feature declaro un
+  archivo y nunca lo construyo—, y una que ya existe pero sigue en `planned` es WARN.
+
+  Compatible hacia atras: un grafo sin `planned` se comporta igual que antes. Las rutas futuras
+  que hoy esten en `files` siguen dando FAIL hasta que se creen o se muevan.
+
 ---
 ## 1.13.0 — 2026-09-14
 
