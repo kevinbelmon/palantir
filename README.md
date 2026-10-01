@@ -10,6 +10,30 @@ SDD propone reemplazar workflows basados en prompts aislados por un sistema con 
 
 ---
 
+## Instalar
+
+```bash
+npx github:pmillanmc/sdd-model-v1.1 init
+```
+
+Y para subir de versión:
+
+```bash
+npx github:pmillanmc/sdd-model-v1.1 update
+```
+
+Antes de cualquiera de los dos, `--dry-run` muestra qué tocaría sin escribir nada.
+
+Pineá una versión con `#vX.Y.Z` al final (`...sdd-model-v1.1#v1.13.0 init`). Sin pin traés
+`main`, que puede estar adelante del último release.
+
+Después de instalar, `/sdd-setup` configura el entorno y los MCPs.
+
+El repo del modelo es **privado**: hace falta acceso de lectura. Detalle completo, paquete y
+actualizaciones en [Instalar el modelo en un proyecto](#instalar-el-modelo-en-un-proyecto).
+
+---
+
 ## El ciclo
 
 ### Fase 0 — Discovery (solo brownfield) `🤖 IA | gate 👤 humano`
@@ -456,9 +480,9 @@ después se puede probar que la instalación está íntegra.
 
 Repo canónico: **`pmillanmc/sdd-model-v1.1`**. Es el que publica los releases.
 
-#### Un comando, sin token
+#### Un comando
 
-El repo del modelo es público, así que esto anda desde cualquier repo sin configurar nada:
+El camino normal, y el que usa el equipo:
 
 ```bash
 npx github:pmillanmc/sdd-model-v1.1 init
@@ -466,12 +490,17 @@ npx github:pmillanmc/sdd-model-v1.1 init
 
 `sdd init` materializa el framework, corre el gestor de paquetes que use tu repo, verifica la
 integridad contra el manifiesto y audita. Cuatro pasos en una corrida. Pineá una versión con
-`#v1.6.0` al final si querés una en particular.
+`#v1.13.0` al final si querés una en particular, y probá con `--dry-run` antes si es la primera vez.
+
+**El repo del modelo es privado.** Por debajo esto es un `git clone`, así que usa la credencial
+de git de tu máquina: si tenés acceso de lectura al repo, funciona sin configurar nada más. Si
+no lo tenés, GitHub responde `Repository not found` —404 en vez de 403, para no revelar que el
+repo existe— y hay que pedir acceso.
 
 #### Vía paquete, si vas a actualizar seguido
 
-GitHub Packages pide autenticación aunque el paquete sea público: cada máquina y cada CI
-necesitan un token con `read:packages`.
+El paquete se publica con `--access restricted`: cada máquina y cada CI necesitan un token
+con `read:packages`.
 
 ```bash
 # .npmrc del proyecto — el token va por variable de entorno, nunca al repo
