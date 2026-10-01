@@ -1,5 +1,12 @@
 Leé input.md.
 
+**Supuestos y bloqueos que vienen del refine:** si `input.md` trae una sección
+`## SUPUESTOS Y BLOQUEOS`, propagala — son cosas que no se pudieron decidir y se resolvieron a
+conciencia, no olvidos. Lo de salida **(a)** va a `## Fuera de scope (v1)` de `spec.md` con su
+razón. Lo de salida **(b)** va a `constitution.md` como supuesto explícito, con qué se asumió y
+qué se rompe si resulta falso: es una restricción bajo la que se diseñó todo lo demás, y si
+desaparece acá nadie vuelve a saber que estaba.
+
 **Gate de prerequisitos (no negociable):**
 - `input.md` debe existir y estar confirmado (generado por /sdd-refine o el skill equivalente).
 - Si no existe: "Falta input.md — corré /sdd-refine primero." y PARÁ.
@@ -54,11 +61,19 @@ antes de continuar. Registrá la resolución con /sdd-log.
 Actualizá (o creá) `graph/domain.yaml` con la información de esta feature:
 - Si el archivo no existe, creálo copiando la estructura de `graph/domain.template.yaml` (sin los comentarios de ejemplo) y completá `meta.updated` con la fecha de hoy y `meta.generated_by: sdd-generate`.
 - Identificá el dominio de esta feature (el campo `domain` ya determinado para el registro).
-- Si el dominio ya existe en el grafo, agregá el `feature_id` al array `features` y los `touches` a los arrays de `files` correspondientes (mapeá por tipo: types, services, components, tests, según la extensión o carpeta del archivo).
+- **Los `touches` se reparten en dos claves segun existan o no en disco.** `files` es lo que
+  existe —es lo unico que el routing puede leer— y `planned` es lo que esta feature va a crear.
+  Mezclarlos rompe las dos cosas: el routing manda a leer archivos inexistentes, y el CHECK 4
+  del auditor da rojo garantizado entre este comando y `/sdd-implement`.
+  Verificá cada ruta antes de ubicarla; no lo deduzcas del nombre.
+- Si el dominio ya existe en el grafo, agregá el `feature_id` al array `features` y repartí los
+  `touches` entre `files` y `planned` (mapeá por tipo: types, services, components, tests, según
+  la extensión o carpeta del archivo).
 - Si el dominio NO existe, creá una entrada nueva con:
   - `description`: inferida del nombre del dominio
   - `features`: [[feature_id]]
-  - `files`: mapeá los `touches` a las claves semánticas correctas
+  - `files`: los `touches` que ya existen, en las claves semánticas correctas
+  - `planned`: los `touches` que esta feature va a crear, con las mismas claves
   - `depends_on`: [] (el humano puede completarlo después)
 Esto garantiza el routing de contexto en proyectos greenfield desde la primera feature.
 

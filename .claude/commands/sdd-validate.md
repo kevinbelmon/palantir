@@ -13,6 +13,16 @@ En modo brownfield, validá ADEMÁS:
 6. ¿`tasks.md` distingue entre archivos a crear y archivos existentes a modificar?
 Cualquier contradicción frente a `existing-arch.md` es un ❌ y debe registrarse vía /sdd-log si el humano decide ignorarla.
 
+**Suposiciones declaradas (si `input.md` trae `## SUPUESTOS Y BLOQUEOS`):** esos puntos
+**no son gaps**. Son decisiones conscientes de `/sdd-refine` sobre algo que no se podía
+contestar — ya sea que haya salido del alcance (a) o que se haya asumido una respuesta (b).
+Reportálos en su propia sección y **no los cuentes en `gaps_encontrados`**. Mezclarlos
+destruye la señal de la métrica: un número alto deja de significar "la spec no cubre el
+brief" y pasa a significar "no sabíamos algo y lo dijimos", que es lo contrario de un defecto.
+
+Lo que **sí** es un gap, y hay que reportarlo como ❌: una suposición de tipo (b) que
+`spec.md` contradice, o que ningún artefacto refleja.
+
 Al terminar, generá un reporte con este formato:
 
 ## Validación de artefactos
@@ -25,6 +35,10 @@ Al terminar, generá un reporte con este formato:
 
 ### ❌ Sin cobertura
 - [puntos del brief que no aparecen en ningún artefacto]
+
+### 🚫 Supuestos declarados (no son gaps)
+- [lo que `input.md` declaró en `## SUPUESTOS Y BLOQUEOS`, con su salida (a) o (b) y qué lo
+  destrabaría. Si no hay sección, omítila entera]
 
 ### Recomendación
 [qué ajustar en los artefactos antes de implementar, si hay gaps]
@@ -42,7 +56,8 @@ Al terminar el reporte de validación, agregá al archivo `metrics/[feature_id]-
 ```
 ## Validate — [timestamp]
 - command_origin: sdd-validate
-- gaps_encontrados: [número de ❌ + número de ⚠️]
+- gaps_encontrados: [número de ❌ + número de ⚠️ — NO incluye los supuestos declarados]
+- supuestos_declarados: [número de ítems de `## SUPUESTOS Y BLOQUEOS` — 0 si no hay]
 - cobertura_inicial: [% cubiertos sobre total de puntos del brief]
 - iteration_number: [mismo criterio que sdd-metrics Paso 0]
 ```

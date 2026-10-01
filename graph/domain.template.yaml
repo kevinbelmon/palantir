@@ -17,8 +17,16 @@ domains: {}
 #     storage: localStorage | api | db
 #     features: [001-login]          # ids de specs/_registry/features.yaml
 #     depends_on: []                 # otros dominios
-#     files:                         # rutas exactas — la clave del ahorro de tokens
+#     files:                         # lo que EXISTE — el routing lee solo esto
 #       types: [src/types/auth.ts]
 #       services: [src/services/token.ts]
 #       components: [src/components/auth/]
 #       tests: [src/services/token.test.ts]
+#     planned:                       # lo que una feature abierta VA a crear
+#       services: [src/services/refresh.ts]
+#
+# `files` y `planned` tienen las mismas claves y significados opuestos en el tiempo.
+# La separacion existe porque el routing solo puede leer lo que esta en disco, y
+# porque el auditor exige que todo lo de `files` exista: una ruta futura ahi da
+# rojo desde /sdd-generate hasta /sdd-implement, en cada feature, siempre.
+# /sdd-review mueve a `files` lo de `planned` que ya exista al cerrar.

@@ -143,6 +143,13 @@ entradas de DECISIONS.md generadas durante esta feature. Si la feature tocó
 archivos no listados en `graph/domain.yaml`, avisá: "El grafo de dominio quedó
 desactualizado — agregá los archivos nuevos o corré /sdd-scan."
 
+**Cierre del grafo (obligatorio al cerrar):** en cada dominio que liste esta feature, mové de
+`planned` a `files` toda ruta que ya exista en disco. Esa es la transición que hace visible el
+trabajo al routing: mientras siga en `planned`, nadie la lee. Lo que quede en `planned` sin
+existir y sin otra feature abierta que lo cree, el CHECK 4 lo marca FAIL — es una feature que
+declaró un archivo y nunca lo construyó. Se resuelve antes de cerrar: o se crea, o se saca del
+grafo porque ya no va.
+
 ---
 
 Cerrada la feature, recordale al dev que puede publicar el estado al tablero central

@@ -103,6 +103,12 @@ Cargá el `.md` del comando solo cuando el trigger aparezca en la conversación 
 - No inventés arquitectura que no esté en `plan.md`
 - Si existe `existing-arch.md`, sus restricciones son no negociables salvo decisión registrada en `DECISIONS.md`
 - Si algo del brief es ambiguo, preguntá antes de implementar
+- **Si algo no se puede decidir todavía, decilo — no lo supongas.** `/sdd-refine` tiene un
+  cuarto estado, `BLOQUEADO`, para lo que nadie puede contestar hoy (hace falta medir, ver algo
+  funcionando, o preguntarle a alguien que no está). Se resuelve por una de tres salidas:
+  sale del alcance de v1, se asume con la suposición declarada y registrada, o —el caso raro—
+  no hay feature sin esa respuesta y se para. Una suposición silenciosa entra a `input.md`
+  indistinguible de una decisión y produce retrabajo sin causa identificable
 - **No muevas ni renombres carpetas del modelo.** El layout es interfaz — ver
   "El layout es interfaz" más abajo y `contracts/paths.md`
 - **No edites archivos de capa A en destino** (comandos, skills, hooks,
@@ -261,6 +267,10 @@ Reglas de frontera:
   servicios, componentes y rutas exactas de archivos. Lo genera `/sdd-scan`
   sobre **este** codebase. Es capa C: un grafo traído de otro repo enruta a
   archivos inexistentes y rompe el routing en silencio.
+  **`files` es lo que existe; `planned`, lo que una feature abierta va a crear.**
+  El routing lee solo `files`, y el auditor exige que todo lo de ahí exista: una
+  ruta futura en `files` da FAIL desde `/sdd-generate` hasta `/sdd-implement`, en
+  cada feature. `/sdd-review` mueve a `files` lo de `planned` que ya exista.
 - **Regla de routing (ahorro de tokens)**: ante cualquier tarea, consultá
   PRIMERO `graph/domain.yaml` para identificar el dominio afectado y leé
   SOLO los archivos listados en `files`. No escanees el codebase completo
