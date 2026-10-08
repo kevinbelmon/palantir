@@ -8,45 +8,11 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
-## 1.14.0 — 2026-09-21
+## 1.15.0 — 2026-10-01
 
-**MINOR.** El estado puede publicarse a un endpoint HTTP, no solo a un repo git.
-Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es identico.
-
-### Agrega
-
-- **`scripts/lib/transporte-http.mjs`** — espejo de `transporte-git.mjs`, mismo contrato de
-  retorno y otro mecanismo. El destino existia desde 1.9.0 pero era siempre un repositorio: para
-  llegar a una base de datos o a la API de una plataforma habia que copiar el archivo a mano, y
-  un paso manual en el medio es exactamente lo que hace que un tablero muestre algo distinto de
-  lo que el repo dice.
-
-  Cero dependencias: `fetch` viene en Node.
-
-- **`--endpoint` (o `SDD_ESTADO_ENDPOINT`) en `/sdd-publish`.** Se declara aparte de `--central`
-  a proposito. `https://host/org/repo.git` es una URL de clonado y `https://host/estado` es un
-  endpoint; distinguirlas por heuristica funciona hasta el dia que alguien monte el endpoint bajo
-  una ruta que parezca un repo, y ese dia falla en silencio. Con las dos variables separadas, el
-  destino lo declara quien publica.
-
-  Tres respuestas se interpretan, no se propagan crudas: **409** y **304** son `sin-cambios` —el
-  destino ya tiene algo igual o mas nuevo, y reintentarlo seria un bucle—; **sin red** es error
-  pero el mensaje dice que el estado quedo en `metrics/estado.json` y se puede reenviar. Publicar
-  sigue siendo observabilidad, no un gate.
-
-- **Freno al token en texto plano.** Sobre `http://` el bearer viaja en claro. El transporte se
-  niega a mandarlo a un host que no sea localhost, salvo que se declare `SDD_ESTADO_INSEGURO=1`.
-
-  No fija el destino ni lo restringe: la URL sigue siendo libre —una base en la nube, otro Docker
-  en la red— y esa libertad es el punto, porque el destino va a cambiar. Lo unico que cambia es
-  que mandar una credencial en claro pasa a ser un acto deliberado, escrito una vez y visible
-  para cualquiera que lea la configuracion, en vez de un descuido que nadie nota.
-
-### Cambia
-
-- **`--token` deja de aceptarse por linea de comandos.** Sale solo de `SDD_ESTADO_TOKEN`. Un token
-  en la linea de comandos queda en el historial del shell y en la lista de procesos de la maquina.
-  El workflow de CI ya lo pasaba por el ambiente, asi que no cambia nada de lo que este corriendo.
+**MINOR.** Dos defectos que obligaban a adivinar, y los dos pasaban siempre.
+Nada de lo anterior deja de funcionar: un grafo sin `planned` y un refine sin bloqueos se
+comportan exactamente igual que antes.
 
 ### Agrega
 
@@ -97,6 +63,49 @@ Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es id
 
   Compatible hacia atras: un grafo sin `planned` se comporta igual que antes. Las rutas futuras
   que hoy esten en `files` siguen dando FAIL hasta que se creen o se muevan.
+
+---
+
+---
+## 1.14.0 — 2026-09-21
+
+**MINOR.** El estado puede publicarse a un endpoint HTTP, no solo a un repo git.
+Nada de lo anterior deja de funcionar: sin `--endpoint`, el comportamiento es identico.
+
+### Agrega
+
+- **`scripts/lib/transporte-http.mjs`** — espejo de `transporte-git.mjs`, mismo contrato de
+  retorno y otro mecanismo. El destino existia desde 1.9.0 pero era siempre un repositorio: para
+  llegar a una base de datos o a la API de una plataforma habia que copiar el archivo a mano, y
+  un paso manual en el medio es exactamente lo que hace que un tablero muestre algo distinto de
+  lo que el repo dice.
+
+  Cero dependencias: `fetch` viene en Node.
+
+- **`--endpoint` (o `SDD_ESTADO_ENDPOINT`) en `/sdd-publish`.** Se declara aparte de `--central`
+  a proposito. `https://host/org/repo.git` es una URL de clonado y `https://host/estado` es un
+  endpoint; distinguirlas por heuristica funciona hasta el dia que alguien monte el endpoint bajo
+  una ruta que parezca un repo, y ese dia falla en silencio. Con las dos variables separadas, el
+  destino lo declara quien publica.
+
+  Tres respuestas se interpretan, no se propagan crudas: **409** y **304** son `sin-cambios` —el
+  destino ya tiene algo igual o mas nuevo, y reintentarlo seria un bucle—; **sin red** es error
+  pero el mensaje dice que el estado quedo en `metrics/estado.json` y se puede reenviar. Publicar
+  sigue siendo observabilidad, no un gate.
+
+- **Freno al token en texto plano.** Sobre `http://` el bearer viaja en claro. El transporte se
+  niega a mandarlo a un host que no sea localhost, salvo que se declare `SDD_ESTADO_INSEGURO=1`.
+
+  No fija el destino ni lo restringe: la URL sigue siendo libre —una base en la nube, otro Docker
+  en la red— y esa libertad es el punto, porque el destino va a cambiar. Lo unico que cambia es
+  que mandar una credencial en claro pasa a ser un acto deliberado, escrito una vez y visible
+  para cualquiera que lea la configuracion, en vez de un descuido que nadie nota.
+
+### Cambia
+
+- **`--token` deja de aceptarse por linea de comandos.** Sale solo de `SDD_ESTADO_TOKEN`. Un token
+  en la linea de comandos queda en el historial del shell y en la lista de procesos de la maquina.
+  El workflow de CI ya lo pasaba por el ambiente, asi que no cambia nada de lo que este corriendo.
 
 ---
 ## 1.13.0 — 2026-09-14
