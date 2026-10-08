@@ -19,6 +19,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSy
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import YAML from "yaml";
+import { parseTasks } from "./lib/tasks.mjs";
 
 // ---------- roots (contracts/paths.md §1) ----------
 // DATA_ROOT      el codebase auditado: donde viven specs/, metrics/, graph/.
@@ -104,25 +105,13 @@ function blockField(body, field) {
 
 /**
  * Cuenta tasks canónicas `- [ ] TNNN` / `- [x] **TNNN**` de una feature.
- *
- * El ID puede venir en negrita: lo escribe un agente redactando markdown, y
- * resaltarlo en una lista de tareas es lo natural. La primera corrida greenfield
- * real produjo `- [ ] **T001** · …`, y con el patrón estricto el gate de
- * /sdd-implement fallaba con "declara 7/7 pero tasks.md tiene 0 tasks canónicas"
- * sobre una feature perfectamente bien generada.
+ * El parseo vive en lib/tasks.mjs, compartido con lib/estado.mjs para que el
+ * progreso del tablero y el del auditor no puedan contar distinto.
  */
 function taskCounts(id) {
   const p = `specs/${id}/tasks.md`;
   if (!exists(p)) return null;
-  let total = 0, done = 0;
-  for (const line of read(p).split(/\r?\n/)) {
-    const m = line.match(/^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*\*{0,2}T\d{3}/);
-    if (m) {
-      total++;
-      if (m[1].toLowerCase() === "x") done++;
-    }
-  }
-  return { total, done };
+  return parseTasks(read(p)).checkbox; // { total, done }
 }
 
 /** Junta todas las strings hoja de un objeto/array anidado */
@@ -468,20 +457,15 @@ for (const f of features) {
   // forma que metricsBlocks(): un bloque termina donde empieza el próximo.
   const tasksFile = `${dir}/tasks.md`;
   if (exists(tasksFile)) {
-    const bloques = [];
-    for (const linea of read(tasksFile).split(/\r?\n/)) {
-      // El encabezado acepta checkbox opcional y el ID en negrita, igual que
-      // taskCounts(): lo escribe un agente redactando markdown.
-      if (/^[ \t]*[-*][ \t]*(\[[ xX]\][ \t]*)?\*{0,2}T\d{3}/.test(linea)) bloques.push([linea]);
-      else if (bloques.length) bloques[bloques.length - 1].push(linea);
-    }
-    const sinUS = bloques.filter((b) => !/US[-:]\s*[\d—–-]/.test(b.join("\n")));
+    // El parser único detecta la trazabilidad US-N por bloque (encabezado +
+    // líneas siguientes), igual que antes, pero sin una regex propia acá.
+    const { headers, sinUS } = parseTasks(read(tasksFile));
     if (sinUS.length) {
       warn(
         "schema",
         `${f.id}: ${sinUS.length} tarea(s) en tasks.md sin referencia US-N — regenerá con /sdd-generate`
       );
-    } else if (bloques.length > 0) {
+    } else if (headers.length > 0) {
       pass("schema", `${f.id}: tasks.md tiene trazabilidad US-N en todas las tareas`);
     }
   }

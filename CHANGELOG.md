@@ -8,6 +8,36 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.16.0 — 2026-10-08
+
+**MINOR.** Un solo parser de tasks.md, compartido. Comportamiento idéntico —la salida del
+auditor, del tablero y de sdd-state no cambia en ningún caso—, verificado contra el fixture
+demo y con tests nuevos.
+
+### Agrega
+
+- **`scripts/lib/tasks.mjs`** — la única definición del parseo de `tasks.md`. Antes el mismo
+  parseo vivía copiado en tres lugares, con el riesgo escrito en los propios comentarios
+  ("Idéntico a taskCounts()... los dos tienen que contar igual"): el conteo de progreso del
+  auditor (`taskCounts`), el check de trazabilidad US-N (CHECK 6) y el conteo del tablero
+  (`lib/estado.mjs`). Copias que coincidían a mano y divergían al próximo cambio: de esa
+  divergencia salieron el bug de la negrita (`- [ ] **T001**` contaba cero) y el doble defecto
+  de CHECK 6. Ahora los tres consumidores leen el mismo módulo.
+
+- **`scripts/lib/tasks.test.mjs`** — primer test unitario del framework (node --test, cero
+  deps). Cubre negrita, tabla, el placeholder `US: —`, US-N en líneas de continuación, y la
+  decisión de conservar `T\d{3}` exacto. Como la suite de distribución, no se materializa en
+  consumidores y en CI se saltea donde el archivo no existe. Script: `pnpm test`.
+
+### Cambia
+
+- **`sdd-audit.mjs` y `lib/estado.mjs` consumen el parser único** en vez de sus regex propias.
+  Sin efecto observable: es la misma cuenta desde un solo lugar. Primer paso del roadmap del
+  "kernel SDD" (unificar el núcleo del modelo en un módulo con frontera pública); el resto
+  queda para después de la auditoría ISO porque reescribe el auditor, que es la evidencia que
+  esa auditoría mira.
+
+---
 ## 1.15.0 — 2026-10-01
 
 **MINOR.** Dos defectos que obligaban a adivinar, y los dos pasaban siempre.

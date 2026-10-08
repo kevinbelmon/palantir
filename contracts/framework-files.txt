@@ -67,6 +67,7 @@ EXACT  scripts/sdd-install.mjs
 EXACT  scripts/sdd-verify.mjs
 EXACT  scripts/lib/framework.mjs
 EXACT  scripts/lib/estado.mjs
+EXACT  scripts/lib/tasks.mjs
 EXACT  scripts/lib/transporte-git.mjs
 EXACT  scripts/lib/transporte-http.mjs
 EXACT  scripts/lib/specs-publicables.mjs
