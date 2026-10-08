@@ -21,6 +21,7 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import YAML from "yaml";
+import { parseTasks } from "./tasks.mjs";
 
 /** Versión del formato del objeto. Sube si cambia la forma, no el contenido. */
 export const SCHEMA_VERSION = 2;
@@ -28,25 +29,8 @@ export const SCHEMA_VERSION = 2;
 /** No se pudo determinar. Distinto de "no pasó". */
 export const SIN_DATO = "SIN_DATO";
 
-/**
- * Task canónica: `- [ ] T001` / `- [x] **T001**`.
- *
- * El identificador puede venir en negrita. Quien escribe este archivo es un
- * agente redactando markdown, y resaltar el ID en una lista de tareas es lo
- * natural: la primera corrida greenfield real produjo `- [ ] **T001** · …` sin
- * que nadie se lo pidiera. Un patrón que exige una forma byte-exacta de un
- * productor no determinista cuenta cero y nadie se entera.
- *
- * Idéntico a taskCounts() de sdd-audit.mjs: los dos tienen que contar igual.
- */
-const RE_TASK = /^[ \t]*[-*][ \t]*\[([ xX])\][ \t]*\*{0,2}T\d{3}/;
-
-/**
- * Formato de tabla `| T01 | … | ✅ |`, el del fixture demo/. No es el canónico
- * y el auditor no lo cuenta. Se detecta solo para poder decir que está, en vez
- * de reportar cero tasks y que parezca una feature sin trabajo.
- */
-const RE_TASK_TABLA = /^[ \t]*\|[ \t]*T\d+[ \t]*\|/;
+// El parseo de tasks.md vive en lib/tasks.mjs — una sola definición que comparten
+// este archivo y el auditor, para que no vuelvan a divergir.
 
 // ---------- lectura ----------
 
@@ -116,27 +100,11 @@ function contarTasks(root, id) {
   const txt = leerTexto(root, `specs/${id}/tasks.md`);
   if (txt === null) return { total: 0, hechas: 0, formato: "sin-archivo" };
 
-  let total = 0;
-  let hechas = 0;
-  let filasTabla = 0;
-
-  for (const linea of txt.split(/\r?\n/)) {
-    const m = linea.match(RE_TASK);
-    if (m) {
-      total++;
-      if (m[1].toLowerCase() === "x") hechas++;
-      continue;
-    }
-    if (RE_TASK_TABLA.test(linea)) filasTabla++;
-  }
-
-  if (total > 0) return { total, hechas, formato: "canonico" };
-  if (filasTabla > 0) {
-    // Se reporta el total pero no cuántas están hechas: el formato de tabla usa
-    // emojis de estado que no son contrato de nada. Inventar un número acá sería
-    // peor que decir que no se sabe.
-    return { total: filasTabla, hechas: null, formato: "tabla" };
-  }
+  const { format, checkbox, tableRows } = parseTasks(txt);
+  if (format === "canonico") return { total: checkbox.total, hechas: checkbox.done, formato: "canonico" };
+  // El formato de tabla reporta el total pero no cuántas están hechas: usa emojis
+  // de estado que no son contrato de nada. Inventar un número sería peor que null.
+  if (format === "tabla") return { total: tableRows, hechas: null, formato: "tabla" };
   return { total: 0, hechas: 0, formato: "ninguno" };
 }
 
