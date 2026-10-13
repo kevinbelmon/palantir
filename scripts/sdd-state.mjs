@@ -97,6 +97,7 @@ console.log(
 );
 console.log(
   `\nPASS  ${r.features} feature(s) · OPEN ${r.open} · CLOSED ${r.closed} · BLOCKED ${r.blocked}` +
+    (r.closed_sin_verificar ? ` · CLOSED sin verificar ${r.closed_sin_verificar}` : "") +
     ` · tareas ${r.tareas.hechas}/${r.tareas.total}`
 );
 console.log(`      ${salida}`);
