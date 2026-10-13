@@ -24,7 +24,7 @@ import YAML from "yaml";
 import { parseTasks } from "./tasks.mjs";
 
 /** Versión del formato del objeto. Sube si cambia la forma, no el contenido. */
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /** No se pudo determinar. Distinto de "no pasó". */
 export const SIN_DATO = "SIN_DATO";
@@ -388,24 +388,46 @@ export function leerEstado(root, { framework = null } = {}) {
 
   const features = crudas.map((f) => {
     const tasks = contarTasks(root, f.id);
-    const status = leerTexto(root, `specs/${f.id}/feature.status.md`);
-    const lastCommand = status?.match(/last_command:\s*(.+)/)?.[1]?.trim() ?? null;
+    const statusTxt = leerTexto(root, `specs/${f.id}/feature.status.md`);
+    const lastCommand = statusTxt?.match(/last_command:\s*(.+)/)?.[1]?.trim() ?? null;
+
+    const fases = leerFases(root, f.id, tasks);
+    const declarado = f.status ?? SIN_DATO;
+    // Un cierre vale SOLO con evidencia: el bloque `## Review: APROBADO` que
+    // escribe /sdd-review —el mismo criterio que usa el gate de cierre del
+    // auditor (sdd-audit CHECK 3)—. Sin esa prueba, un `status: CLOSED` del
+    // registro es una autodeclaración y NO se publica como cerrado: cae a su
+    // fase real para que ningún tablero lo cuente como hecho. Publicar el claim
+    // crudo dejaría salir una feature "terminada" que nunca se implementó.
+    const cierreSinEvidencia = declarado === "CLOSED" && fases.review !== "APROBADO";
+    const statusPublicado = cierreSinEvidencia ? "OPEN" : declarado;
 
     return {
       id: f.id,
       type: f.type ?? "feature",
-      status: f.status ?? SIN_DATO,
+      // Derivado de la evidencia, no copiado del registro. Es la única fuente
+      // de "hecho": si dice CLOSED, hay `## Review: APROBADO` que lo respalda.
+      status: statusPublicado,
+      // Lo que el registro declara, intacto, solo para trazar el intento.
+      // Nunca es fuente de "hecho".
+      status_declarado: declarado,
+      cierre_sin_evidencia: cierreSinEvidencia,
+      cierre_motivo: cierreSinEvidencia
+        ? "declarada CLOSED sin `## Review: APROBADO` en métricas — cierre no verificado"
+        : null,
       domain: f.domain ?? null,
       owner: f.owner ?? null,
       sprint: f.sprint ?? null,
       created: f.created ?? null,
-      closed: f.closed ?? null,
+      // La fecha de cierre tampoco viaja si el cierre no está verificado: una
+      // feature republicada como OPEN no puede exhibir un "Cerrado: <fecha>".
+      closed: cierreSinEvidencia ? null : (f.closed ?? null),
       discovery_id: f.discovery_id ?? null,
       epic: f.epic ?? null,
       release: f.release ?? null,
       size: f.size ?? null,
       tareas: tasks,
-      fases: leerFases(root, f.id, tasks),
+      fases,
       esfuerzo: leerEsfuerzo(root, f.id, tokensProyecto?.porFeature?.[f.id] ?? null),
       last_command: lastCommand,
       // Lista completa: el tablero local la dibuja. `paraPublicar` la reduce a
@@ -435,7 +457,12 @@ export function leerEstado(root, { framework = null } = {}) {
     resumen: {
       features: features.length,
       open: cuenta("OPEN"),
+      // `closed` ya es solo cierres verificados: `status` se derivó de la
+      // evidencia, así que una CLOSED sin review APROBADO cuenta en `open`, no
+      // acá. Las declaradas cerradas sin prueba viajan aparte, para que se vean
+      // sin contarse como hechas.
       closed: cuenta("CLOSED"),
+      closed_sin_verificar: features.filter((f) => f.cierre_sin_evidencia).length,
       blocked: cuenta("BLOCKED"),
       tareas: {
         total: suma((f) => f.tareas.total),
@@ -498,6 +525,13 @@ export function avisos(estado) {
     );
   else if (estado.audit.fail > 0)
     out.push(`el auditor reporta ${estado.audit.fail} FAIL en este repo`);
+
+  const sinEvidencia = estado.features.filter((f) => f.cierre_sin_evidencia);
+  if (sinEvidencia.length)
+    out.push(
+      `${sinEvidencia.length} feature(s) marcadas CLOSED sin evidencia de review APROBADO — ` +
+        `no se publican como hechas (${sinEvidencia.map((f) => f.id).join(", ")})`
+    );
 
   const tabla = estado.features.filter((f) => f.tareas.formato === "tabla");
   if (tabla.length)
