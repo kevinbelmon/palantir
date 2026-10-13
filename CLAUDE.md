@@ -1,6 +1,6 @@
 # SDD Model — Contexto del proyecto
 
-<!-- SDD:FRAMEWORK BEGIN v1.16.0 -->
+<!-- SDD:FRAMEWORK BEGIN v1.17.0 -->
 <!-- Todo lo que está entre estos marcadores es capa A (framework): se distribuye igual a
      todos los repos y NO se edita en destino. Ver contracts/framework.md.
      Las reglas propias de este repo van después del marcador de cierre, al final del archivo.
@@ -292,11 +292,15 @@ Reglas de frontera:
   Saltarse un gate requiere confirmación humana explícita + entrada en
   `DECISIONS.md` vía /sdd-log.
 - **Audit determinista**: `pnpm audit:sdd` (script `scripts/sdd-audit.mjs`)
-  verifica consistencia del modelo sin IA: registro↔specs, colisiones,
-  gates de cierre, grafo, sprints, trazabilidad de Discovery (derivación
-  `discovery_id` → `id`), consistencia de versión del framework e imports a
-  rutas `internal:` declaradas. Corre en CI en cada PR.
+  verifica consistencia del modelo sin IA: layout, registro↔specs, colisiones,
+  gates de cierre, grafo (`files`/`planned`), sprints, schema de artefactos
+  (Fuera de scope, trazabilidad US-N) y coherencia de versión del framework
+  (`.claude/VERSION` ↔ `skills/VERSION`, marcadores `SDD:FRAMEWORK` de `CLAUDE.md`).
+  Corre en CI en cada PR.
   Lo que el script ya verifica, los agentes NO lo recalculan — leen su salida.
+  **Todavía no implementados** (especificados en `contracts/rollout-multirepo.md`
+  2.3 y 5.2): la trazabilidad `discovery_id` → `id` y el check de imports a rutas
+  `internal:`. No los prometas como vigentes hasta que estén en el código.
 - **El auditor audita un `--root`**: por defecto `process.cwd()`, es decir el
   repo desde el que se lo invoca — nunca la carpeta donde está instalado el
   script. Siempre imprime el root resuelto y la versión del framework en la

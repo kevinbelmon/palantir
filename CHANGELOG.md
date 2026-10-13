@@ -8,6 +8,45 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.17.0 — 2026-10-13
+
+**MINOR.** El auditor gana el CHECK 8 (coherencia de versión e integridad de marcadores).
+Un repo bien instalado pasa igual que antes; solo falla el que ya estaba partido —y en ese
+caso falla porque corresponde, no por este cambio.
+
+### Agrega
+
+- **CHECK 8 — versión e integridad de marcadores.** Verifica la coherencia de ESTA
+  instalación (no compara contra upstream, eso lo hace `sdd-version.yml` en CI):
+  - `.claude/VERSION` ausente → WARN; distinto de `.claude/skills/VERSION` → **FAIL**
+    (instalación partida: el framework quedó a medio actualizar).
+  - Marcadores `SDD:FRAMEWORK` en `CLAUDE.md`: ninguno → WARN; duplicados, incompletos o
+    con el cierre antes de la apertura → **FAIL** (parten el bloque que hashea el manifiesto,
+    y `sdd-verify` no puede explicar por qué falla).
+
+  Corre antes del corte por "registro ausente": una instalación recién hecha todavía no
+  tiene `features.yaml`, y es justo cuando más importa saber que no quedó partida.
+
+- **`scripts/sdd-audit.test.mjs`** — tests de integración del CLI (node --test) que prueban
+  que CHECK 8 **bloquea** los cuatro casos. No se materializa en consumidores.
+
+### Corrige
+
+- **El job de secretos (`gitleaks`) fallaba en todo PR**, en este repo y en todos los
+  consumidores, con `403 Resource not accessible by integration`. No era un hallazgo: en un
+  PR la acción lista los commits vía API y el `GITHUB_TOKEN` estaba acotado a `contents: read`,
+  sin `pull-requests: read`. Se agrega ese permiso al job (solo a ese: los otros dos no lo
+  necesitan). Como `sdd-audit.yml` es capa A, el arreglo llega a cada repo con el próximo update.
+
+### Cambia
+
+- **`CLAUDE.md` deja de prometer dos checks que no existen.** La sección de gobernanza decía
+  que el auditor verifica la trazabilidad `discovery_id` → `id` e imports a rutas `internal:`;
+  ninguno estaba implementado (están en `rollout-multirepo.md` 2.3 y 5.2, sin escribir). Ahora
+  la lista describe lo que el código hace, y nombra aparte lo pendiente. Un documento del
+  sistema que describe un control inexistente es un hallazgo de auditoría.
+
+---
 ## 1.16.0 — 2026-10-08
 
 **MINOR.** Un solo parser de tasks.md, compartido. Comportamiento idéntico —la salida del
