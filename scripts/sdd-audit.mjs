@@ -201,6 +201,51 @@ if (!layoutPresent.length) {
 }
 pass("layout", `layout SDD presente (${layoutPresent.map((d) => `${d}/`).join(", ")})`);
 
+// ---------- CHECK 8: versión e integridad de marcadores ----------
+// Coherencia de ESTA instalación, no comparación contra upstream (eso lo hace
+// sdd-version.yml en CI, que sí sale a la red). Corre antes del corte por
+// "registro ausente" a propósito: una instalación recién hecha todavía no tiene
+// features.yaml, y es justo cuando más importa verificar que no quedó partida.
+{
+  const vPath = ".claude/VERSION";
+  const sPath = ".claude/skills/VERSION";
+  if (!exists(vPath)) {
+    warn("version", `${vPath} ausente — el framework no declara su versión en este root`);
+  } else if (exists(sPath)) {
+    const v = read(vPath).trim();
+    const s = read(sPath).trim();
+    if (v !== s) {
+      fail(
+        "version",
+        `.claude/VERSION (${v}) ≠ .claude/skills/VERSION (${s}) — instalación partida, corré sdd update`
+      );
+    } else {
+      pass("version", `versión del framework coherente (${v})`);
+    }
+  }
+
+  // Marcadores del bloque SDD:FRAMEWORK en CLAUDE.md. Es la región que el
+  // manifiesto hashea (tipo BLOCK): duplicados o cruzados parten ese hash sin
+  // que sdd-verify pueda explicarlo. Ver contracts/framework-files.txt.
+  if (exists("CLAUDE.md")) {
+    const c = read("CLAUDE.md");
+    const begins = [...c.matchAll(/<!--\s*SDD:FRAMEWORK BEGIN\b/gi)];
+    const ends = [...c.matchAll(/<!--\s*SDD:FRAMEWORK END\b/gi)];
+    if (begins.length === 0 && ends.length === 0) {
+      warn("version", `CLAUDE.md sin marcadores SDD:FRAMEWORK — el bloque de capa A no está delimitado`);
+    } else if (begins.length !== 1 || ends.length !== 1) {
+      fail(
+        "version",
+        `CLAUDE.md con marcadores SDD:FRAMEWORK mal formados (BEGIN=${begins.length}, END=${ends.length}) — parte el bloque que hashea el manifiesto`
+      );
+    } else if (ends[0].index < begins[0].index) {
+      fail("version", `CLAUDE.md: el marcador END va antes que BEGIN — parte el bloque que hashea el manifiesto`);
+    } else {
+      pass("version", `CLAUDE.md con marcadores SDD:FRAMEWORK bien formados`);
+    }
+  }
+}
+
 // ---------- carga del registro ----------
 const REGISTRY = "specs/_registry/features.yaml";
 if (!exists(REGISTRY)) {
