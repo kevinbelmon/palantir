@@ -30,6 +30,14 @@ caso falla porque corresponde, no por este cambio.
 - **`scripts/sdd-audit.test.mjs`** — tests de integración del CLI (node --test) que prueban
   que CHECK 8 **bloquea** los cuatro casos. No se materializa en consumidores.
 
+### Corrige
+
+- **El job de secretos (`gitleaks`) fallaba en todo PR**, en este repo y en todos los
+  consumidores, con `403 Resource not accessible by integration`. No era un hallazgo: en un
+  PR la acción lista los commits vía API y el `GITHUB_TOKEN` estaba acotado a `contents: read`,
+  sin `pull-requests: read`. Se agrega ese permiso al job (solo a ese: los otros dos no lo
+  necesitan). Como `sdd-audit.yml` es capa A, el arreglo llega a cada repo con el próximo update.
+
 ### Cambia
 
 - **`CLAUDE.md` deja de prometer dos checks que no existen.** La sección de gobernanza decía

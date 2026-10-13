@@ -81,6 +81,14 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    # El default del repo es `contents: read` (menor privilegio). En un PR,
+    # gitleaks-action lista los commits vía API (GET /pulls/<n>/commits) y sin
+    # `pull-requests: read` eso da 403 "Resource not accessible by integration"
+    # —el job falla sin que haya ningún secreto—. El permiso se declara acá,
+    # acotado a este job: los otros dos no lo necesitan.
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v4
         with:
