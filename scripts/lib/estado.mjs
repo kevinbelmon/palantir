@@ -19,9 +19,81 @@
  */
 
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join } from "node:path";
 import YAML from "yaml";
 import { parseTasks } from "./tasks.mjs";
+
+/**
+ * Descompone la URL de un remote git en `{ host, path }`, o null si no parece una.
+ *
+ * Seguridad: el host NUNCA lleva usuario ni token. Un remote https puede venir
+ * como `https://oauth2:<token>@host/...` o `https://x-access-token:<token>@host/...`,
+ * y este objeto se publica fuera del repo: dejar pasar esa credencial sería
+ * filtrarla al tablero. `new URL()` separa el userinfo del hostname por nosotros;
+ * para la forma SSH scp (`git@host:grupo/repo.git`) se descarta el `user@` a mano.
+ *
+ * `path` va sin `.git` y sin barras de borde. No fija host: sirve igual para
+ * GitLab, GitHub o cualquier otro.
+ */
+export function parseGitRemote(url) {
+  if (!url) return null;
+  url = String(url).trim();
+  let host, path;
+
+  if (url.includes("://")) {
+    // https:// · http:// · ssh:// — URL() descarta el userinfo del hostname.
+    let u;
+    try {
+      u = new URL(url);
+    } catch {
+      return null;
+    }
+    host = u.hostname; // sin usuario, sin token, sin puerto
+    path = u.pathname;
+  } else {
+    // Forma SSH scp: `[user@]host:grupo/repo.git`. El `user@` se descarta.
+    const m = url.match(/^(?:[^@/]+@)?([^:/]+):(.+)$/);
+    if (!m) return null;
+    host = m[1];
+    path = m[2];
+  }
+
+  host = host.replace(/\/+$/, "");
+  path = path.replace(/^\/+/, "").replace(/\.git$/i, "").replace(/\/+$/, "");
+  if (!host || !path) return null;
+  return { host, path };
+}
+
+/**
+ * Ubicación del codebase en su repo git: `{ host, path, subdir }`, o null.
+ *
+ * Es la única parte del módulo que ejecuta un subproceso. Lee config local (no
+ * sale a la red) y es best-effort: cualquier fallo —no es un repo, no hay remote
+ * origin, git no está— devuelve null, igual que `meta.repo` cuando falta.
+ *
+ * `subdir` sale de `git rev-parse --show-prefix`: vacío si el codebase está en la
+ * raíz del repo, con valor si es un monorepo. `meta.repo` no se toca: esto es un
+ * dato aparte (dónde vive) de la identidad que declara el equipo (qué es).
+ */
+function leerGit(root) {
+  const git = (args) => {
+    try {
+      return execFileSync("git", args, {
+        cwd: root,
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+    } catch {
+      return null;
+    }
+  };
+  const url = git(["remote", "get-url", "origin"]);
+  const parsed = parseGitRemote(url);
+  if (!parsed) return null;
+  const prefix = git(["rev-parse", "--show-prefix"]) ?? "";
+  return { host: parsed.host, path: parsed.path, subdir: prefix.replace(/\/+$/, "") };
+}
 
 /** Versión del formato del objeto. Sube si cambia la forma, no el contenido. */
 export const SCHEMA_VERSION = 3;
@@ -453,6 +525,9 @@ export function leerEstado(root, { framework = null } = {}) {
       repo: reg?.meta?.repo ?? null,
       proyecto_id: reg?.meta?.proyecto_id ?? null,
       registro: hayRegistro,
+      // Dónde vive el codebase (host/path/subdir del remote), para el panel
+      // Ambientes. Aparte de meta.repo, que es la identidad autodeclarada.
+      git: leerGit(root),
     },
     resumen: {
       features: features.length,
@@ -517,6 +592,8 @@ export function avisos(estado) {
     out.push("falta meta.repo en el registro — el documento sale sin identidad de codebase");
   if (!estado.source.proyecto_id)
     out.push("falta meta.proyecto_id en el registro — no se puede agrupar por proyecto");
+  if (!estado.source.git)
+    out.push("sin remote git `origin` (o el codebase no es un repo) — el panel Ambientes no sabrá dónde vive");
 
   if (!estado.audit)
     out.push(

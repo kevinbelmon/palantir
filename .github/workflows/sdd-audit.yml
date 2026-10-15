@@ -71,7 +71,7 @@ jobs:
       # materializan en consumidores, así que ahí el archivo no existe y se saltea.
       - name: Tests del framework (solo en el repo del modelo)
         if: hashFiles('scripts/lib/tasks.test.mjs') != ''
-        run: node --test scripts/lib/tasks.test.mjs scripts/sdd-audit.test.mjs
+        run: node --test scripts/lib/tasks.test.mjs scripts/lib/estado.test.mjs scripts/sdd-audit.test.mjs
 
       # Solo upstream: sdd-selftest.mjs no se materializa en repos consumidores,
       # así que en ellos este paso no encuentra el archivo y se saltea.

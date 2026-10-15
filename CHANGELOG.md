@@ -8,6 +8,30 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 1.18.0 — 2026-10-15
+
+**MINOR.** El estado publicado dice ahora en qué repo vive cada codebase, para el panel
+Ambientes del backoffice. Campo opcional y aditivo: nada de lo anterior cambia, y el server lo
+acepta sin tocar `schema_version`.
+
+### Agrega
+
+- **`source.git` en el documento de estado** — `{ host, path, subdir }`, leído del remote del
+  codebase (`git remote get-url origin` + `git rev-parse --show-prefix`):
+  - `host` sin usuario ni token. Un remote https puede venir como
+    `https://oauth2:<token>@host/...`; publicar eso filtraría la credencial al tablero, así que
+    el host se extrae descartando el userinfo. Funciona con https y con SSH (`git@host:grupo/repo.git`).
+  - `path` sin `.git`.
+  - `subdir` vacío si el codebase está en la raíz del repo; con valor, es un monorepo.
+  - Sin `.git` o sin remote `origin`: `git: null` y un aviso, igual que `meta.repo`.
+
+  `meta.repo` no cambia: sigue siendo la identidad **autodeclarada** del codebase (qué es);
+  `source.git` es un dato aparte (dónde vive).
+
+- **`scripts/lib/estado.test.mjs`** — tests de `parseGitRemote`, con foco en que el token nunca
+  llegue al host publicado (los casos `oauth2:` y `x-access-token:`). No se materializa en consumidores.
+
+---
 ## 1.17.0 — 2026-10-13
 
 **MINOR.** El auditor gana el CHECK 8 (coherencia de versión e integridad de marcadores).
