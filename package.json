@@ -1,6 +1,6 @@
 {
   "name": "@pmillanmc/sdd-framework",
-  "version": "1.17.0",
+  "version": "1.18.0",
   "description": "Framework SDD (capa A): comandos, skills, hooks, scripts y contratos del modelo Spec-Driven Development.",
   "type": "module",
   "license": "UNLICENSED",
@@ -26,6 +26,7 @@
     "!scripts/sdd-selftest.mjs",
     "!scripts/lib/tasks.test.mjs",
     "!scripts/sdd-audit.test.mjs",
+    "!scripts/lib/estado.test.mjs",
     "contracts/",
     ".github/workflows/sdd-audit.yml",
     ".github/workflows/sdd-version.yml",
@@ -51,7 +52,7 @@
     "sdd:state": "node scripts/sdd-state.mjs",
     "sdd:bump": "node scripts/sdd-bump.mjs",
     "sdd:selftest": "node scripts/sdd-selftest.mjs",
-    "test": "node --test scripts/lib/tasks.test.mjs scripts/sdd-audit.test.mjs",
+    "test": "node --test scripts/lib/tasks.test.mjs scripts/lib/estado.test.mjs scripts/sdd-audit.test.mjs",
     "sdd:publish": "node scripts/sdd-publish.mjs --root ."
   },
   "devDependencies": {

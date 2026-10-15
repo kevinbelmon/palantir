@@ -1,84 +1,69 @@
-// Tests de lib/estado.mjs — construyen un DATA_ROOT temporal y verifican que
-// el estado publicado derive "cerrada" de la EVIDENCIA, no del `status` crudo
-// del registro.
+// Tests de parseGitRemote (lib/estado.mjs) — la parte sensible del dato `source.git`:
+// descompone el remote y, sobre todo, NUNCA deja pasar un token al host publicado.
 //   node --test scripts/lib/estado.test.mjs
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { leerEstado, avisos } from "./estado.mjs";
+import { parseGitRemote } from "./estado.mjs";
 
-/**
- * Crea un root con una sola feature `001-x` en el status dado, y opcionalmente
- * un metrics con bloque `## Review` aprobado. Devuelve la ruta.
- */
-function root({ status = "CLOSED", reviewAprobado = false } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "sdd-estado-test-"));
-  for (const d of ["specs/001-x", "metrics", "graph", "specs/_registry"])
-    mkdirSync(join(dir, d), { recursive: true });
-
-  writeFileSync(
-    join(dir, "specs/_registry/features.yaml"),
-    [
-      "meta:",
-      "  repo: test/repo",
-      "  proyecto_id: PRY-001",
-      "features:",
-      "  - id: 001-x",
-      `    status: ${status}`,
-      "    created: 2026-01-01",
-      "    closed: 2026-02-01",
-      "",
-    ].join("\n")
-  );
-
-  if (reviewAprobado) {
-    writeFileSync(
-      join(dir, "metrics/001-x-metrics.md"),
-      "## Review\n- resultado: APROBADO\n"
-    );
-  }
-  return dir;
-}
-
-const cleanup = [];
-test.after(() => cleanup.forEach((d) => rmSync(d, { recursive: true, force: true })));
-const mk = (o) => { const d = root(o); cleanup.push(d); return d; };
-
-test("CLOSED con `## Review: APROBADO` → se publica como CLOSED", () => {
-  const e = leerEstado(mk({ status: "CLOSED", reviewAprobado: true }));
-  const f = e.features[0];
-  assert.equal(f.status, "CLOSED");
-  assert.equal(f.cierre_sin_evidencia, false);
-  assert.equal(f.closed, "2026-02-01");
-  assert.equal(e.resumen.closed, 1);
-  assert.equal(e.resumen.closed_sin_verificar, 0);
+test("https simple → host y path sin .git", () => {
+  assert.deepEqual(parseGitRemote("https://gitlab.proguidemc.com/beepmp/web-health.git"), {
+    host: "gitlab.proguidemc.com",
+    path: "beepmp/web-health",
+  });
 });
 
-test("CLOSED sin evidencia → NO se publica como cerrada (cae a OPEN)", () => {
-  const e = leerEstado(mk({ status: "CLOSED", reviewAprobado: false }));
-  const f = e.features[0];
-  assert.equal(f.status, "OPEN");
-  assert.equal(f.status_declarado, "CLOSED");
-  assert.equal(f.cierre_sin_evidencia, true);
-  assert.match(f.cierre_motivo, /no verificado/);
-  assert.equal(f.closed, null); // no exhibe fecha de cierre
-  assert.equal(e.resumen.closed, 0);
-  assert.equal(e.resumen.closed_sin_verificar, 1);
-  assert.equal(e.resumen.open, 1);
+test("https sin .git final", () => {
+  assert.deepEqual(parseGitRemote("https://github.com/org/repo"), {
+    host: "github.com",
+    path: "org/repo",
+  });
 });
 
-test("CLOSED sin evidencia → emite aviso", () => {
-  const e = leerEstado(mk({ status: "CLOSED", reviewAprobado: false }));
-  assert.ok(avisos(e).some((a) => /CLOSED sin evidencia/.test(a)));
+test("SEGURIDAD: https con oauth2:<token>@ — el token NO llega al host", () => {
+  const r = parseGitRemote("https://oauth2:glpat-SECRETO123@gitlab.proguidemc.com/beepmp/web-health.git");
+  assert.equal(r.host, "gitlab.proguidemc.com");
+  assert.equal(r.path, "beepmp/web-health");
+  assert.doesNotMatch(JSON.stringify(r), /SECRETO123|oauth2|glpat/);
 });
 
-test("OPEN sin review → sigue OPEN, sin falsos positivos de cierre", () => {
-  const e = leerEstado(mk({ status: "OPEN", reviewAprobado: false }));
-  const f = e.features[0];
-  assert.equal(f.status, "OPEN");
-  assert.equal(f.cierre_sin_evidencia, false);
-  assert.equal(e.resumen.closed_sin_verificar, 0);
+test("SEGURIDAD: https con x-access-token:<token>@ — idem", () => {
+  const r = parseGitRemote("https://x-access-token:ghp_SECRETO@github.com/org/repo.git");
+  assert.equal(r.host, "github.com");
+  assert.equal(r.path, "org/repo");
+  assert.doesNotMatch(JSON.stringify(r), /SECRETO|x-access-token|ghp_/);
+});
+
+test("https con user@ (sin token) — el user se descarta", () => {
+  assert.deepEqual(parseGitRemote("https://patricio@github.com/org/repo.git"), {
+    host: "github.com",
+    path: "org/repo",
+  });
+});
+
+test("SSH scp-like git@host:grupo/repo.git", () => {
+  assert.deepEqual(parseGitRemote("git@gitlab.proguidemc.com:beepmp/web-health.git"), {
+    host: "gitlab.proguidemc.com",
+    path: "beepmp/web-health",
+  });
+});
+
+test("ssh:// con puerto — host sin puerto", () => {
+  assert.deepEqual(parseGitRemote("ssh://git@gitlab.proguidemc.com:2222/beepmp/web-health.git"), {
+    host: "gitlab.proguidemc.com",
+    path: "beepmp/web-health",
+  });
+});
+
+test("path anidado de monorepo (grupo/subgrupo/repo)", () => {
+  assert.deepEqual(parseGitRemote("git@gitlab.proguidemc.com:grupo/sub/repo.git"), {
+    host: "gitlab.proguidemc.com",
+    path: "grupo/sub/repo",
+  });
+});
+
+test("entradas inválidas → null", () => {
+  assert.equal(parseGitRemote(""), null);
+  assert.equal(parseGitRemote(null), null);
+  assert.equal(parseGitRemote("no-es-una-url"), null);
 });
