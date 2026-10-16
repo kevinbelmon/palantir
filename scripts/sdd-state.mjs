@@ -52,18 +52,22 @@ const estado = leerEstado(DATA_ROOT, { framework: versionFramework() });
  * limpiar y no se puede actualizar sin adivinar a quién pisa. Mejor no publicar.
  */
 if (has("publish-path")) {
-  const { proyecto_id: pry, repo } = estado.source;
-  const falta = [!pry && "meta.proyecto_id", !repo && "meta.repo"].filter(Boolean);
+  const { proyecto_id: pry, repo, git } = estado.source;
+  const falta = [
+    !pry && "meta.proyecto_id en el registro (specs/_registry/features.yaml)",
+    !repo && "un remote git `origin` — la identidad del codebase es el nombre de su repo",
+  ].filter(Boolean);
   if (falta.length) {
-    console.error(`FAIL  no se puede publicar: falta ${falta.join(" y ")} en el registro.`);
-    console.error(`      Se completan en specs/_registry/features.yaml, bloque meta.`);
+    console.error(`FAIL  no se puede publicar: falta ${falta.join(" y ")}.`);
     console.error(`      El proyecto_id lo escribe /sdd-generate cuando llega un brief de Discovery.`);
+    console.error(`      El nombre del repo se deriva de git; sin remote no hay a quién atribuir el estado.`);
     process.exit(1);
   }
-  // El nombre del repo puede venir como `org/nombre`: solo interesa la hoja, y
-  // se sanea porque termina siendo un nombre de archivo.
-  const hoja = String(repo).split("/").pop().replace(/[^A-Za-z0-9._-]/g, "-");
-  process.stdout.write(`${pry}/${hoja}.json\n`);
+  const san = (x) => String(x).replace(/[^A-Za-z0-9._-]/g, "-");
+  // En un monorepo varios codebases comparten el nombre del repo; el subdir los
+  // separa para que no se pisen el archivo en el central.
+  const sub = git?.subdir ? "__" + san(git.subdir) : "";
+  process.stdout.write(`${pry}/${san(repo)}${sub}.json\n`);
   process.exit(0);
 }
 // Lo que se escribe es la versión publicable: sin rutas de archivo, porque este

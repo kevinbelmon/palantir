@@ -76,7 +76,7 @@ export function parseGitRemote(url) {
  * raíz del repo, con valor si es un monorepo. `meta.repo` no se toca: esto es un
  * dato aparte (dónde vive) de la identidad que declara el equipo (qué es).
  */
-function leerGit(root) {
+export function leerGit(root) {
   const git = (args) => {
     try {
       return execFileSync("git", args, {
@@ -517,17 +517,22 @@ export function leerEstado(root, { framework = null } = {}) {
   const contables = features.filter((f) => f.tareas.formato === "canonico");
   const suma = (sel) => contables.reduce((a, f) => a + sel(f), 0);
 
+  const git = leerGit(root);
+
   return {
     schema_version: SCHEMA_VERSION,
     generated: new Date().toISOString(),
     framework,
     source: {
-      repo: reg?.meta?.repo ?? null,
+      // La identidad del codebase ES el nombre de su repo git (la hoja de
+      // source.git.path), no un valor declarado a mano. Ver DECISIONS.md: antes
+      // meta.repo se escribía en el registro; ahora se deriva, siempre, del
+      // repo donde se corre. Sin remote git no hay identidad → no se publica.
+      repo: git ? git.path.split("/").pop() : null,
       proyecto_id: reg?.meta?.proyecto_id ?? null,
       registro: hayRegistro,
-      // Dónde vive el codebase (host/path/subdir del remote), para el panel
-      // Ambientes. Aparte de meta.repo, que es la identidad autodeclarada.
-      git: leerGit(root),
+      // Dónde vive el codebase (host/path/subdir del remote). `repo` sale de acá.
+      git,
     },
     resumen: {
       features: features.length,
@@ -588,12 +593,13 @@ export function avisos(estado) {
   const out = [];
   if (!estado.source.registro)
     out.push("no hay specs/_registry/features.yaml — el repo no corrió el modelo todavía");
-  if (!estado.source.repo)
-    out.push("falta meta.repo en el registro — el documento sale sin identidad de codebase");
+  if (!estado.source.git)
+    out.push(
+      "sin remote git `origin` (o el codebase no es un repo) — sin él no hay identidad " +
+        "de codebase (el nombre del repo) y no se puede publicar"
+    );
   if (!estado.source.proyecto_id)
     out.push("falta meta.proyecto_id en el registro — no se puede agrupar por proyecto");
-  if (!estado.source.git)
-    out.push("sin remote git `origin` (o el codebase no es un repo) — el panel Ambientes no sabrá dónde vive");
 
   if (!estado.audit)
     out.push(

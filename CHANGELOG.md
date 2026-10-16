@@ -8,6 +8,37 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 2.0.0 — 2026-10-16
+
+**MAJOR.** La identidad de un codebase deja de declararse a mano (`meta.repo`) y pasa a ser el
+**nombre de su repo git**, derivado de `origin`. Ver DECISIONS.md (2026-10-16).
+
+### Nota de migración
+
+- **`meta.repo` se eliminó del registro.** Si lo tenías y coincidía con el nombre de tu repo git,
+  no cambia nada. Si **difería** (p. ej. `meta.repo: mi-api` en un repo llamado `backend`), tu
+  estado pasa a publicarse como `backend.json` en vez de `mi-api.json`: el archivo viejo queda
+  huérfano en el central y aparece uno nuevo. Borrá el viejo a mano si molesta.
+- **Publicar ahora exige un remote git `origin`.** Sin él, `source.repo` es `null` y
+  `sdd-publish`/`sdd-state --publish-path` se niegan. Antes alcanzaba con `meta.repo` declarado.
+- `meta.proyecto_id` **no cambia**: se sigue declarando en el registro.
+- `meta.repo` en un registro viejo se ignora; no rompe el auditor.
+
+### Cambia
+
+- **`source.repo` se deriva de `source.git`** (la hoja de `path`), no de `meta.repo`. Una sola
+  fuente para la identidad: el estado y el publicador de specs (`lib/specs-publicables.mjs`) la
+  toman del mismo lugar, así no pueden discrepar.
+- **`sdd-state --publish-path`** usa el nombre derivado y, en monorepo, agrega el `subdir` como
+  sufijo (`<repo>__<subdir>.json`) para que dos codebases del mismo repo no se pisen.
+- **`/sdd-publish` confirma con el dev antes de pushear** (flujo interactivo): muestra proyecto,
+  codebase y destino, y espera el OK. El job de CI publica sin preguntar.
+
+### Quita
+
+- **`meta.repo`** del template del registro, de `CLAUDE.md` y de `contracts/paths.md`.
+
+---
 ## 1.18.0 — 2026-10-15
 
 **MINOR.** El estado publicado dice ahora en qué repo vive cada codebase, para el panel

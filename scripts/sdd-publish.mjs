@@ -109,9 +109,9 @@ function mismoEstado(rutaPublicada, rutaNueva) {
 /**
  * Guarda de identidad: nunca pisar el estado de otro.
  *
- * La ruta se arma con `meta.repo` y `meta.proyecto_id`. Si dos codebases
- * declaran la misma identidad —por copiar un registro, por un nombre genérico,
- * por un contador de proyecto que arranca en 1 en todos— el segundo en publicar
+ * La ruta se arma con el nombre del repo git y `meta.proyecto_id`. Si dos
+ * codebases comparten identidad —mismo repo sin subdir que los separe, o un
+ * contador de proyecto que arranca en 1 en todos— el segundo en publicar
  * borraba el estado del primero sin que nadie se enterara: el archivo cambiaba
  * de contenido y el tablero mostraba un proyecto donde antes había otro.
  *
@@ -135,8 +135,8 @@ function esDeOtro(textoPublicado, textoNuevo) {
     `publicado:  repo "${previo.repo}" - proyecto "${previo.proyecto_id}"`,
     `este repo:  repo "${mio.repo}" - proyecto "${mio.proyecto_id}"`,
     "",
-    "Dos codebases declararon la misma identidad y comparten ruta. Corregí",
-    "meta.repo o meta.proyecto_id en specs/_registry/features.yaml -el que",
+    "Dos codebases comparten identidad y ruta. Revisá el remote git (de ahí",
+    "sale el nombre del codebase) o meta.proyecto_id en el registro -el que",
     "esté mal- antes de volver a publicar. No lo decidas solo: uno de los",
     "dos ya está publicando ahí.",
   ];

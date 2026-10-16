@@ -40,6 +40,45 @@ Cuando se invalida una decisión vieja: editar SOLO el campo `status` de la entr
 
 ---
 
+## 2026-10-16 La identidad del codebase es el nombre de su repo git, no un campo declarado
+
+**feature_id:** global
+**command_origin:** pedido del dueño del modelo (panel Ambientes del backoffice)
+**status:** accepted
+
+**Gap o motivo:** `meta.repo` era la identidad **autodeclarada** del codebase, escrita a mano en
+`specs/_registry/features.yaml`. Podía diverger del repo real sin que nada lo marcara: en este
+mismo repo `meta.repo` decía `sdd-model-v1.1` mientras el repo git es `sdd-model`. Como esa
+identidad nombra el archivo que cada codebase publica en el central (`estado/<pry>/<repo>.json`),
+un valor mal tipeado publica con un nombre equivocado, y nadie lo nota. Además obliga a tipear a
+mano algo que el repo ya sabe.
+
+**Decisión:** se elimina `meta.repo`. La identidad del codebase pasa a ser **el nombre de su repo
+git** —la hoja de `source.git.path`, derivada de `origin` con `git remote get-url`—, calculada al
+publicar. En un monorepo, el `subdir` (de `git rev-parse --show-prefix`) distingue los codebases
+que comparten repo: el archivo lleva `<repo>__<subdir>.json`. `meta.proyecto_id` NO cambia: sigue
+declarado en el registro (es el PRY-nnn de Discovery, no se puede derivar de git).
+
+**Alternativas consideradas:**
+(a) Derivar por defecto pero permitir override con `meta.repo` (MINOR).
+(b) Siempre el repo git, sin excepción, con confirmación del dev antes de publicar (MAJOR).
+
+**Por qué (b):** el override de (a) reabre la puerta que el cambio cierra —un valor declarado que
+diverge del repo real—. La confirmación interactiva de `/sdd-publish` cubre el caso en que el
+nombre derivado no sea el deseado (el dev lo ve antes de pushear y, si está mal, corrige el remote,
+no un campo). El caso monorepo lo resuelve el `subdir`, no un nombre declarado.
+
+**Consecuencia / migración (MAJOR, bump a 2.0.0):** un repo cuyo `meta.repo` difería del nombre
+del repo git cambia de nombre de archivo en el central (el viejo queda huérfano, aparece uno
+nuevo). Publicar ahora exige un remote `origin`; sin él, `source.repo` es `null` y el script se
+niega. `meta.repo` en registros existentes se ignora (no rompe el auditor). Supersede la parte de
+identidad de la decisión **2026-08-19 (Esquema de features.yaml)**; el resto de esa decisión
+—registro local, identidad de negocio por referencia— sigue vigente.
+
+**Quién decidió:** Patricio Millán (dueño del modelo).
+
+---
+
 ## 2026-08-27 Mecanismo de distribución de la capa A: materialización verificada por manifiesto
 
 **feature_id:** global

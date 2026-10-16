@@ -38,8 +38,9 @@ Consecuencias, todas verificables contra el código:
 - **Un DATA_ROOT nunca abarca dos repositorios.** Si `specs/` vive en un repo y el código en otro,
   las rutas de `graph/domain.yaml` apuntan afuera del árbol y el CHECK 4 falla. Es la misma falla
   del incidente con otra forma.
-- **La identidad de un codebase es autodeclarada** en `meta.repo` del registro. El modelo no la
-  deduce del nombre del repositorio, de la carpeta ni del stack.
+- **La identidad de un codebase es el nombre de su repo git** — la hoja de `origin`, que el modelo
+  deriva al publicar. No se declara a mano (ver DECISIONS.md). En un monorepo, el `subdir` del
+  codebase distingue los que comparten repo.
 
 Los nombres concretos que aparezcan en `contracts/rollout-multirepo.md` son **la instancia que
 motivó este contrato**, no su definición.
