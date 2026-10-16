@@ -1,6 +1,6 @@
 # SDD Model — Contexto del proyecto
 
-<!-- SDD:FRAMEWORK BEGIN v1.18.0 -->
+<!-- SDD:FRAMEWORK BEGIN v2.0.0 -->
 <!-- Todo lo que está entre estos marcadores es capa A (framework): se distribuye igual a
      todos los repos y NO se edita en destino. Ver contracts/framework.md.
      Las reglas propias de este repo van después del marcador de cierre, al final del archivo.
@@ -176,8 +176,10 @@ propios que veas en documentos de rollout son instancias, no definiciones.
   solo filesystem— o uno por app (`apps/<x>/specs/…`). Se **declara** con `--root`, no se infiere.
 - **Un `DATA_ROOT` nunca abarca dos repositorios.** Si `specs/` vive en un repo y el código en otro,
   las rutas del grafo apuntan afuera del árbol y el CHECK 4 falla.
-- **Un registro por `DATA_ROOT`.** `specs/_registry/features.yaml` es local y puede declarar
-  `meta.repo` con la identidad **autodeclarada** del codebase. No se deduce del nombre del repo.
+- **Un registro por `DATA_ROOT`.** `specs/_registry/features.yaml` es local. La **identidad del
+  codebase es el nombre de su repo git** —la hoja de `origin`—, que el modelo **deriva** al publicar;
+  ya no se declara a mano (ver DECISIONS.md: `meta.repo` declarado se eliminó porque podía diverger
+  del repo real). En un monorepo, el `subdir` del codebase distingue los que comparten repo.
 - **`id`: dos regímenes según el origen de la feature.**
   - Vino de **Discovery** → el `id` **se deriva y es el mismo en todos los codebases** que la
     implementen: `F031-sso-login` → `031-sso-login` (quitar la `F`, conservar el slug). El número

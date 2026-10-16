@@ -16,6 +16,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import YAML from "yaml";
+import { leerGit } from "./estado.mjs";
 
 /**
  * Los cuatro artefactos que definen QUÉ se acordó construir, más el status.
@@ -41,11 +42,19 @@ export function identidad(root) {
   } catch (e) {
     return { error: `features.yaml no es YAML válido — ${e.message}` };
   }
-  const falta = [!meta.proyecto_id && "meta.proyecto_id", !meta.repo && "meta.repo"].filter(Boolean);
+  // `repo` se deriva del remote git (la misma fuente que el estado), no de un
+  // campo declarado: así las dos rutas de publicación no pueden discrepar.
+  // `proyecto_id` sigue siendo del registro (es el PRY-nnn de Discovery).
+  const git = leerGit(root);
+  const repo = git ? git.path.split("/").pop() : null;
+  const falta = [
+    !meta.proyecto_id && "meta.proyecto_id en el registro",
+    !repo && "un remote git `origin` (de ahí sale el nombre del codebase)",
+  ].filter(Boolean);
   if (falta.length) {
-    return { error: `falta ${falta.join(" y ")} en el registro. Sin identidad no se publica.` };
+    return { error: `falta ${falta.join(" y ")}. Sin identidad no se publica.` };
   }
-  return { proyecto: String(meta.proyecto_id), repo: String(meta.repo) };
+  return { proyecto: String(meta.proyecto_id), repo };
 }
 
 /**
