@@ -8,6 +8,34 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 2.1.0 — 2026-10-20
+
+**MINOR.** Dos capacidades aditivas, con una regla de oro: telemetría y push de código son
+cosas separadas y no se acoplan. Nada de lo anterior cambia.
+
+### Agrega
+
+- **`/sdd-review` refleja el cierre en el tablero al aprobar.** Cuando el resultado es
+  `APROBADO` y la feature ya quedó cerrada (status + registro + grafo), el review corre
+  `pnpm sdd:publish`. Es **observabilidad, no un gate**: tolera el fallo (si el publish falla,
+  el review NO falla), no reintenta, y es idempotente (`sin-cambios` si el estado no se movió).
+  Nunca se dispara con `PENDIENTE`. **Esto invierte la instrucción previa** —que dejaba el
+  publish como decisión manual del dev—: al cerrar en verde, el tablero se actualiza solo.
+
+- **`pnpm push:code` (`scripts/sdd-push-code.mjs`) + `/sdd-push`** — empuja el código de la
+  feature activa a una rama `sdd/<feature-id>` y da el link del MR. Determinista, solo git:
+  resuelve la feature `OPEN` (o `--feature <id>`), crea la rama desde HEAD **sin checkout**,
+  `git push -u origin sdd/<feature-id>`, imprime el link (lo arma del remote; GitLab además lo
+  emite) y **para**. El merge a la rama protegida es humano: sin auto-merge, sin `--force`, y
+  **nunca** empuja a la rama por defecto ni a una protegida.
+
+  Es **manual por diseño**: no lo dispara `/sdd-review` ni `sdd-publish`. El push de código y
+  la publicación de telemetría tienen destino, permisos y riesgo distintos.
+
+Los dos se materializan en los consumidores (capa A). El push reusa `parseGitRemote` del estado
+para armar el link del MR, así hay una sola forma de descomponer un remote en todo el modelo.
+
+---
 ## 2.0.0 — 2026-10-16
 
 **MAJOR.** La identidad de un codebase deja de declararse a mano (`meta.repo`) y pasa a ser el

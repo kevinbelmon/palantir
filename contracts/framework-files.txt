@@ -36,6 +36,7 @@ EXACT  .claude/commands/sdd-log.md
 EXACT  .claude/commands/sdd-metrics-summary.md
 EXACT  .claude/commands/sdd-metrics.md
 EXACT  .claude/commands/sdd-publish.md
+EXACT  .claude/commands/sdd-push.md
 EXACT  .claude/commands/sdd-refine.md
 EXACT  .claude/commands/sdd-review.md
 EXACT  .claude/commands/sdd-scan.md
@@ -73,6 +74,7 @@ EXACT  scripts/lib/transporte-http.mjs
 EXACT  scripts/lib/specs-publicables.mjs
 EXACT  scripts/sdd-state.mjs
 EXACT  scripts/sdd-publish.mjs
+EXACT  scripts/sdd-push-code.mjs
 EXACT  scripts/sdd-tokens.mjs
 
 # ── Contratos ──────────────────────────────────────────────────────────────────
@@ -105,6 +107,7 @@ MERGE  package.json  scripts.skills:sync:dry
 MERGE  package.json  scripts.sdd:verify
 MERGE  package.json  scripts.sdd:state
 MERGE  package.json  scripts.sdd:publish
+MERGE  package.json  scripts.push:code
 MERGE  package.json  devDependencies.yaml
 
 # ── Fixture de demo (opcional en repos de codigo; requerido en el repo del modelo) ──

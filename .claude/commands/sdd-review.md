@@ -152,6 +152,23 @@ grafo porque ya no va.
 
 ---
 
-Cerrada la feature, recordale al dev que puede publicar el estado al tablero central
-con `/sdd-publish`. No lo corras por tu cuenta: publicar escribe en un repo compartido
-entre proyectos y esa es una decision del dev, no un efecto colateral del review.
+## Reflejar el cierre en el tablero (solo si APROBADO)
+
+**Únicamente cuando el resultado fue `APROBADO` y la feature ya quedó cerrada** —
+`feature.status.md` en CLOSED, la entrada del registro en CLOSED, y lo que estaba en
+`planned` del grafo ya movido a `files`—, corré:
+
+```bash
+pnpm sdd:publish
+```
+
+Va **después** de persistir el cierre, para que `metrics/estado.json` ya refleje CLOSED.
+
+Es **observabilidad, no un gate**:
+- Si el publish falla, **el review NO falla** — tolerá el error y seguí. No reintentes.
+- Ya es idempotente: si el estado no cambió, responde `sin-cambios` y no escribe nada.
+- **Nunca lo dispares con resultado `PENDIENTE`** ni antes de que el cierre esté persistido.
+
+Esto reemplaza la antigua recomendación de dejar el publish como decisión manual del dev:
+al cerrar en verde, el tablero se actualiza solo. El push de *código* es otra cosa y no
+sale de acá — lo corre el dev a mano con `pnpm push:code`.
