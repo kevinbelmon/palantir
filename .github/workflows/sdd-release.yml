@@ -1,14 +1,13 @@
 name: SDD Release
 
-# Publica el framework al registry cuando se pushea un tag vX.Y.Z.
+# Valida un release cuando se pushea un tag vX.Y.Z. NO publica a ningún registro
+# de paquetes: la distribución es por repo (git / submódulo), en GitHub y GitLab,
+# no por npm. Lo que este workflow hace es convertir "taggear" en un acto seguro:
+# si las versiones no coinciden, si el manifiesto quedó viejo o si el árbol tiene
+# drift, el tag falla ruidosamente y se ve que ese release no es consistente.
 #
 # NO es capa A: no está en contracts/framework-files.txt y no se materializa en
-# ningún repo consumidor. Un repo de código que taggee su propia app no puede
-# terminar publicando el framework por accidente.
-#
-# El release es mecánico a propósito. Los tres chequeos de abajo son los que
-# convierten "taggear" en un acto seguro: si el manifiesto quedó viejo, si las
-# versiones no coinciden o si el árbol tiene drift, no se publica nada.
+# ningún repo consumidor.
 
 on:
   push:
@@ -16,9 +15,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
-  id-token: write        # OIDC: la identidad con la que sigstore firma
-  attestations: write    # guardar la attestation contra este repo
 
 jobs:
   release:
@@ -34,7 +30,6 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
-          registry-url: https://npm.pkg.github.com
 
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
@@ -66,37 +61,3 @@ jobs:
 
       - name: Auditar consistencia del modelo
         run: pnpm audit:sdd
-
-      # Se empaqueta aparte para tener el archivo que firma la attestation.
-      # `pnpm publish` vuelve a empaquetar, pero `pack` es determinista —mismas
-      # entradas, mismos bytes, verificado— así que la firma vale para el
-      # artefacto publicado.
-      - name: Empaquetar
-        run: pnpm pack --pack-destination dist
-
-      # Attestation de procedencia: sigstore firma con la identidad OIDC de este
-      # workflow, no con una llave privada que haya que guardar ni rotar. Prueba
-      # que este .tgz salió de este repo, de este commit y de este workflow.
-      #
-      # Quien lo consuma verifica con:
-      #   gh attestation verify <archivo>.tgz --repo pmillanmc/sdd-model-v1.1
-      #
-      # El manifiesto prueba integridad —que los bytes no cambiaron desde que se
-      # hasheó— pero viaja adentro de la caja. Esto prueba autenticidad: de dónde
-      # vino la caja.
-      # Solo en repos públicos o de organización: la attestation persistida por
-      # GitHub (sigstore) no está disponible en repos privados de usuario, y ahí
-      # el paso falla con "Feature not available for user-owned private
-      # repositories". El `if` la saltea cuando el repo es privado, para que el
-      # release empaquete y publique igual; la integridad la sigue dando el
-      # manifiesto. Si el repo se vuelve público, la attestation corre sola.
-      - name: Attestation de procedencia
-        if: ${{ github.event.repository.private == false }}
-        uses: actions/attest-build-provenance@v2
-        with:
-          subject-path: dist/*.tgz
-
-      - name: Publicar
-        run: pnpm publish --no-git-checks --access restricted
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
