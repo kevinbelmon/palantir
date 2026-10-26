@@ -8,9 +8,11 @@
  *
  * Sin nada instalado, desde cualquier repo:
  *
- *   npx github:pmillanmc/sdd-model-v1.1#v1.4.0 init
+ *   npx "git+https://gitlab.proguidemc.com/ia/models.git" init
  *
- * El repo del modelo es público, así que eso no necesita token ni registry.
+ * El repo del modelo es privado: el "git+" hace que npm clone con git y use
+ * tu credencial. Si no la tenés configurada, embebé un token de lectura:
+ *   npx "git+https://oauth2:<TOKEN>@gitlab.proguidemc.com/ia/models.git" init
  * Con el paquete ya agregado:  pnpm exec sdd init
  *
  * Comandos:
@@ -34,7 +36,7 @@ const { flags, opts } = parseArgs(argv);
 const cmd = argv.find((a) => !a.startsWith("--")) ?? "help";
 const ROOT = opts.root ? resolve(process.cwd(), opts.root) : process.cwd();
 
-const UPSTREAM = "https://github.com/pmillanmc/sdd-model-v1.1";
+const UPSTREAM = "https://gitlab.proguidemc.com/ia/models.git";
 const script = (n) => join(SRC, "scripts", n);
 const readTrim = (p) => (existsSync(p) ? norm(readFileSync(p, "utf8")).trim() : null);
 
@@ -185,5 +187,5 @@ console.log(`sdd — instalar y mantener el modelo SDD en un repo
   --no-install    no correr el gestor de paquetes
   --force         pisar archivos de capa A editados en destino (descarta el diff)
 
-Sin nada instalado:  npx github:pmillanmc/sdd-model-v1.1 init`);
+Sin nada instalado:  npx "git+https://gitlab.proguidemc.com/ia/models.git" init`);
 process.exit(cmd === "help" ? 0 : 1);

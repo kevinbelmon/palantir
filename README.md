@@ -13,19 +13,19 @@ SDD propone reemplazar workflows basados en prompts aislados por un sistema con 
 ## Instalar
 
 ```bash
-npx github:pmillanmc/sdd-model-v1.1 init
+npx "git+https://gitlab.proguidemc.com/ia/models.git" init
 ```
 
 Y para subir de versión:
 
 ```bash
-npx github:pmillanmc/sdd-model-v1.1 update
+npx "git+https://gitlab.proguidemc.com/ia/models.git" update
 ```
 
 Antes de cualquiera de los dos, `--dry-run` muestra qué tocaría sin escribir nada.
 
-Pineá una versión con `#vX.Y.Z` al final (`...sdd-model-v1.1#v1.13.0 init`). Sin pin traés
-`main`, que puede estar adelante del último release.
+Pineá una rama o commit con `#` al final (`...ia/models.git#develop init`). Sin pin traés
+`develop`, la rama por defecto.
 
 Después de instalar, `/sdd-setup` configura el entorno y los MCPs.
 
@@ -478,24 +478,31 @@ El framework (capa A) **no se copia a mano**. Se materializa con `sdd-install`, 
 archivo en la ruta que fija `contracts/paths.md` y deja un manifiesto de hashes con el que
 después se puede probar que la instalación está íntegra.
 
-Repo canónico: **`pmillanmc/sdd-model-v1.1`**. Es el que publica los releases.
+Repo canónico: **`gitlab.proguidemc.com/ia/models`** (rama por defecto `develop`). Es de donde
+se instala.
 
 #### Un comando
 
 El camino normal, y el que usa el equipo:
 
 ```bash
-npx github:pmillanmc/sdd-model-v1.1 init
+npx "git+https://gitlab.proguidemc.com/ia/models.git" init
 ```
 
 `sdd init` materializa el framework, corre el gestor de paquetes que use tu repo, verifica la
-integridad contra el manifiesto y audita. Cuatro pasos en una corrida. Pineá una versión con
-`#v1.13.0` al final si querés una en particular, y probá con `--dry-run` antes si es la primera vez.
+integridad contra el manifiesto y audita. Cuatro pasos en una corrida. Pineá una rama o commit
+con `#develop` (o un SHA) al final si querés uno en particular, y probá con `--dry-run` antes si
+es la primera vez.
 
-**El repo del modelo es privado.** Por debajo esto es un `git clone`, así que usa la credencial
-de git de tu máquina: si tenés acceso de lectura al repo, funciona sin configurar nada más. Si
-no lo tenés, GitHub responde `Repository not found` —404 en vez de 403, para no revelar que el
-repo existe— y hay que pedir acceso.
+**El repo del modelo es privado.** El `git+` hace que npm clone **con git**, usando la credencial
+de git de tu máquina: si tenés acceso de lectura, funciona sin configurar nada más. Si no la tenés
+configurada, embebé un token de lectura en la URL (una vez):
+
+```bash
+npx "git+https://oauth2:<TOKEN>@gitlab.proguidemc.com/ia/models.git" init
+```
+
+Si no tenés acceso, GitLab responde `404` y hay que pedirlo.
 
 #### Vía paquete, si vas a actualizar seguido
 
@@ -549,7 +556,7 @@ pnpm update @pmillanmc/sdd-framework    # respeta el rango ^: nunca cruza a un M
 pnpm exec sdd update
 ```
 
-Sin paquete: `npx github:pmillanmc/sdd-model-v1.1 update`.
+Sin paquete: `npx "git+https://gitlab.proguidemc.com/ia/models.git" update`.
 
 El árbol materializado **se commitea**; `node_modules/` no. Un dev que clona tu repo tiene el
 modelo funcionando sin instalar nada: el paquete hace falta para *cambiar* de versión, no para

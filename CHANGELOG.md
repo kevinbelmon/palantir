@@ -8,6 +8,32 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 2.2.0 — 2026-10-25
+
+**MINOR.** Guía aditiva de calidad de código en el steering skill. Nada cambia en gates,
+checks ni artefactos: ningún repo instalado tiene que tocar nada para seguir pasando el auditor.
+
+### Agrega
+
+- **Dos reglas de calidad del código generado** en
+  `.claude/skills/coding-standards/references/implementation-review.md`, el reference que
+  `/sdd-implement`, `/sdd-task`, `/sdd-fix` y `/sdd-review` cargan por progressive disclosure.
+  Aplican al **código que el modelo genera en el codebase objetivo**, no a los artefactos del
+  framework, y son agnósticas de lenguaje:
+  - **Parámetros seguros** — objeto/estructura con nombres cuando hay varios primitivos del mismo
+    tipo (intercambiables sin que el compilador lo note). No aplica a firmas de interfaz pública
+    fijadas en `plan.md` ni cuando lo posicional es más claro.
+  - **Manejo de errores** — usar el mecanismo del repo; no ocultar fallos ni devolver "éxito" ante
+    una operación fallida; evitar `try/catch` que no aporten recuperación, contexto o traducción.
+
+  Son el **default**: ante una convención real del repo (`existing-arch.md`) manda el repo y la
+  divergencia se registra en `DECISIONS.md`. El review verifica ambas y reporta incumplimientos
+  como gaps con evidencia. Se dejaron deliberadamente fuera las reglas que ya viven en el modelo
+  (tests TDD, no duplicar) o que son stack-específicas (tipado estricto), y los chequeos heurísticos
+  de slicing/nombres, por difusos.
+
+---
+
 ## 2.1.0 — 2026-10-20
 
 **MINOR.** Dos capacidades aditivas, con una regla de oro: telemetría y push de código son
