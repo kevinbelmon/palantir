@@ -84,7 +84,14 @@ jobs:
       # El manifiesto prueba integridad —que los bytes no cambiaron desde que se
       # hasheó— pero viaja adentro de la caja. Esto prueba autenticidad: de dónde
       # vino la caja.
+      # Solo en repos públicos o de organización: la attestation persistida por
+      # GitHub (sigstore) no está disponible en repos privados de usuario, y ahí
+      # el paso falla con "Feature not available for user-owned private
+      # repositories". El `if` la saltea cuando el repo es privado, para que el
+      # release empaquete y publique igual; la integridad la sigue dando el
+      # manifiesto. Si el repo se vuelve público, la attestation corre sola.
       - name: Attestation de procedencia
+        if: ${{ github.event.repository.private == false }}
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: dist/*.tgz
