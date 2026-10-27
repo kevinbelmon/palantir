@@ -1,6 +1,6 @@
 # SDD Model — Contexto del proyecto
 
-<!-- SDD:FRAMEWORK BEGIN v2.2.0 -->
+<!-- SDD:FRAMEWORK BEGIN v2.3.0 -->
 <!-- Todo lo que está entre estos marcadores es capa A (framework): se distribuye igual a
      todos los repos y NO se edita en destino. Ver contracts/framework.md.
      Las reglas propias de este repo van después del marcador de cierre, al final del archivo.
@@ -241,9 +241,14 @@ Reglas de frontera:
 - **El módulo esconde su implementación detrás de una interfaz pública chica y estable.** La
   comunicación entre módulos pasa por esa interfaz, nunca por internals.
 - `graph/domain.yaml` declara la frontera: `capability`, `module`, `public`, `internal`,
-  `depends_on` (que es una **lista de permisos**, no una descripción) y `meta.aliases`.
+  `depends_on` (que es una **lista de permisos**, no una descripción), `contract` y `meta.aliases`.
 - `public:` e `internal:` son **opt-in por dominio**. Un dominio que no los declara se comporta como
   hoy.
+- **`contract:` (opcional) es el spec OpenAPI del contrato HTTP del dominio** — la forma legible por
+  máquina de su interfaz pública cuando ésta es HTTP. Es capa C (local, nunca se copia); entre
+  codebases se referencia por `domain`, no por el archivo. El auditor exige que la ruta exista (igual
+  que `files`). `/sdd-generate` toma de ahí las firmas HTTP en vez de inventarlas y `/sdd-e2e` lo usa
+  como oráculo de conformidad contra la app corriendo. Un dominio que no expone HTTP no lo declara.
 - **Las firmas de la interfaz pública se fijan en `plan.md` y el agente no las inventa ni las
   cambia.** Los nombres internos no se fijan nunca: ahí la implementación es libre. Es la única
   excepción a la regla de "sin nombres de funciones" de `tasks.md`.

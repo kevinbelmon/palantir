@@ -160,7 +160,10 @@ Después de guardar `existing-arch.md`, generá o actualizá `graph/domain.yaml`
    (agrupaciones funcionales: auth, proyectos, pagos, etc. — no carpetas técnicas).
 2. Para cada dominio completá: `description`, `entities`, `services`, `components`,
    `storage`, `features` (cruzando con `specs/_registry/features.yaml` si existe),
-   `depends_on` y `files` (rutas exactas).
+   `depends_on` y `files` (rutas exactas). Si el dominio expone una API HTTP y existe
+   un spec OpenAPI en el repo (o lo podés derivar de rutas detectables), apuntalo con
+   `contract:` — es opcional y **solo** para dominios HTTP; el auditor exigirá que esa
+   ruta exista. No lo inventes: si no hay spec ni rutas claras, dejalo sin declarar.
 3. Actualizá `meta.commit` con el SHA actual y `meta.updated` con la fecha.
 4. Mostrá el grafo propuesto al humano y pedí confirmación antes de guardar
    (misma regla de doble confirmación).

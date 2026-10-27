@@ -100,7 +100,7 @@ Exige nota de migración en `DECISIONS.md` y actualización de `contracts/paths.
   (`discovery_id` para el CHECK 7, `internal:` para el CHECK 9);
 - flag nuevo con default equivalente al comportamiento anterior (`--root`);
 - campo opcional nuevo en el registro (`meta.repo`) o en el grafo (`public`, `internal`,
-  `capability`, `module`, `meta.aliases`).
+  `capability`, `module`, `contract`, `meta.aliases`).
 
 **PATCH** — no cambia contratos ni comportamiento observable:
 - redacción de prompts, ejemplos, mensajes de error;

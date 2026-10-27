@@ -8,6 +8,48 @@ a pasar el auditor, era MAJOR.**
 
 ---
 
+## 2.3.0 — 2026-10-26
+
+**MINOR.** Contrato HTTP del dominio como artefacto de primera clase, vía OpenAPI. Todo aditivo y
+opt-in: un dominio que no declara `contract:` se comporta igual que antes y ningún repo instalado
+tiene que tocar nada para seguir pasando el auditor.
+
+### Agrega
+
+- **Campo opcional `contract:` en `graph/domain.yaml`** — apunta al spec OpenAPI del contrato HTTP
+  del dominio: la forma legible por máquina de su interfaz pública cuando ésta es HTTP. Es **capa C**
+  (local al repo, se commitea con el código, **nunca se copia** a otro repo); entre codebases se
+  referencia por `domain`, no por el archivo. Solo para dominios que exponen HTTP.
+- **Check de existencia en el auditor (CHECK 4, grafo)** — si un dominio declara `contract:`, su
+  ruta tiene que existir, misma regla que `files`. Un contrato referenciado pero ausente en disco
+  no sirve ni de oráculo ni de fuente de firmas. Un dominio sin `contract:` no dispara el check.
+- **`/sdd-scan`** siembra `contract:` cuando hay un spec OpenAPI en el repo o rutas derivables
+  (solo dominios HTTP; no lo inventa si no hay fuente).
+- **`/sdd-generate`** — si el dominio afectado declara `contract:`, `plan.md` toma de ahí las firmas
+  de la interfaz pública HTTP en vez de inventarlas, igual que las firmas que `plan.md` ya fija.
+- **Nudge de adopción en `/sdd-generate` y `/sdd-validate`** — si el `spec.md` describe endpoints
+  HTTP y el dominio afectado **no** declara `contract:`, los comandos lo avisan y sugieren declararlo
+  (en `/sdd-generate`, una pregunta al poblar el grafo; en `/sdd-validate`, una línea en
+  `### Recomendación`). Es heurístico (el agente lee la prosa de la spec), así que es un aviso, **no
+  un gate**, y en `/sdd-validate` **no cuenta como gap**. La declaración sigue siendo un acto humano
+  de una línea; esto solo evita que dependa de la memoria.
+- **`/sdd-e2e` — verificación de conformidad (Fase 2).** Cuando la feature es SDD y su dominio
+  declara `contract:`, además de los casos derivados a mano se valida que **toda** respuesta de la
+  app corriendo conforme al schema del spec; una respuesta que no conforma es un `failed` bloqueante
+  (drift código↔contrato). La herramienta la pone el stack (schemathesis, dredd, assertions de
+  schema), no la fija el modelo. **Cross-repo:** el consumer corre esa misma conformidad contra el
+  spec publicado del provider, unidos por `domain` — cierra el hueco de drift de contrato entre
+  codebases que ningún script detectaba. Evidencia nueva en el bloque `## E2E`:
+  `conformidad_contrato` y `contract_ref`.
+
+### No cambia
+
+- El routing de contexto sigue leyendo solo `files`. `contract:` no entra al routing.
+- OpenAPI cubre HTTP/REST. La interfaz pública in-process del módulo (`public:`/`internal:`) no la
+  toca este cambio: son capas distintas.
+
+---
+
 ## 2.2.0 — 2026-10-25
 
 **MINOR.** Guía aditiva de calidad de código en el steering skill. Nada cambia en gates,

@@ -17,6 +17,7 @@ domains: {}
 #     storage: localStorage | api | db
 #     features: [001-login]          # ids de specs/_registry/features.yaml
 #     depends_on: []                 # otros dominios
+#     contract: contracts/auth.openapi.yaml   # (opcional) spec del contrato HTTP del dominio
 #     files:                         # lo que EXISTE — el routing lee solo esto
 #       types: [src/types/auth.ts]
 #       services: [src/services/token.ts]
@@ -30,3 +31,10 @@ domains: {}
 # porque el auditor exige que todo lo de `files` exista: una ruta futura ahi da
 # rojo desde /sdd-generate hasta /sdd-implement, en cada feature, siempre.
 # /sdd-review mueve a `files` lo de `planned` que ya exista al cerrar.
+#
+# `contract:` (opcional) apunta al spec OpenAPI del contrato HTTP del dominio — la forma
+# legible por maquina de su interfaz publica cuando esa interfaz es HTTP. Es capa C: local
+# al repo, se commitea con el codigo, nunca se copia a otro repo. Entre codebases se
+# referencia por `domain`, no por el archivo. El auditor exige que la ruta exista, igual
+# que `files`. Un dominio que no expone HTTP no lo declara. /sdd-generate toma de ahi las
+# firmas HTTP en vez de inventarlas; /sdd-e2e lo usa como oraculo de conformidad.
