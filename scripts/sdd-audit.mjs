@@ -420,6 +420,17 @@ if (!exists(GRAPH)) {
       }
     }
 
+    // `contract:` (opcional) es el spec OpenAPI del contrato HTTP del dominio. Si se
+    // declara, la ruta tiene que existir — misma regla que `files`: un contrato que se
+    // referencia pero no esta en disco no sirve ni de oraculo (/sdd-e2e) ni de fuente
+    // de firmas (/sdd-generate). Un dominio que no expone HTTP no lo declara y esto no corre.
+    for (const p of collectStrings(d.contract ?? {})) {
+      if (!exists(p)) {
+        fail("grafo", `dominio "${name}": contract ${p} declarado pero no existe`);
+        graphOk = false;
+      }
+    }
+
     // `planned` son rutas que una feature declaro que va a crear y todavia no
     // existen. Exigirlas como `files` da rojo garantizado: entre /sdd-generate
     // y /sdd-implement no hay nada en disco. Lo que si es un defecto es que

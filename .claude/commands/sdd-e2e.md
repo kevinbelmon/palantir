@@ -132,6 +132,14 @@ comportamientos esperados. Según el caso:
   verificable, **preguntá al QA** antes de inventarlo.
 - **Si es un contrato de API (OpenAPI/colección):** los endpoints, métodos, statuses y schemas
   son la fuente; van a casos estructurados `request`/`requests` + `assertions`.
+  **Verificación de conformidad (cuando la feature es SDD y su dominio declara `contract:` en
+  `graph/domain.yaml`):** además de los casos derivados a mano, validá que **toda** respuesta de la
+  app corriendo conforme al schema declarado en el spec —no solo los endpoints elegidos—. El spec es
+  el oráculo; una respuesta que no conforma al contrato es un `failed` bloqueante (drift entre código
+  y contrato). La herramienta la pone el stack (schemathesis, dredd, o assertions de schema con el
+  runner que ya uses); no mandes una en particular. Entre codebases, el consumer corre esta misma
+  conformidad contra el spec **publicado** del provider, unidos por `domain` — así un cambio de forma
+  del provider se detecta del lado que lo asume, que es el hueco que el modelo no cerraba con scripts.
 
 En todos los casos, distinguí qué criterios son **E2E-verificables** (flujo de UI o API contra
 la app corriendo) de los de juicio humano/subjetivo — esos NO son E2E (van a `/sdd-checklist`
@@ -231,6 +239,8 @@ agregá al archivo `metrics/[feature_id]-metrics.md` este bloque. Si es una app 
 - failed: [N]
 - requisitos_cubiertos: [lista de refs con caso passed — US-N / JIRA-xxxx / doc §x]
 - requisitos_sin_cobertura: [refs E2E-verificables sin caso passed]
+- conformidad_contrato: [endpoints conformes / declarados en el contract: — o — si no aplica]
+- contract_ref: [ruta del contract: del dominio — o —]
 - suite_congelada: [ruta de proguide_tests/suite/... o —]
 ```
 

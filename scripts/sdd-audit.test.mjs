@@ -75,3 +75,33 @@ test("CHECK 8: corre aunque no exista features.yaml (instalación recién hecha)
   const { out } = run(mk({ version: "9.9.9", skills: "9.9.9" }));
   assert.match(out, /versión del framework coherente \(9\.9\.9\)/);
 });
+
+// CHECK 4 (grafo) corre después de cargar el registro; sin features.yaml el auditor
+// hace report() y sale antes de llegar. Los fixtures de contrato escriben un registro
+// vacío para que el grafo se evalúe.
+function withRegistry(dir) {
+  mkdirSync(join(dir, "specs/_registry"), { recursive: true });
+  writeFileSync(join(dir, "specs/_registry/features.yaml"), "features: []\n");
+}
+
+test("CHECK 4: contract declarado pero inexistente → FAIL", () => {
+  const dir = mk({ version: "1.2.0", skills: "1.2.0" });
+  withRegistry(dir);
+  writeFileSync(join(dir, "graph/domain.yaml"),
+    "domains:\n  reservas:\n    contract: contracts/reservas.openapi.yaml\n");
+  const { code, out } = run(dir);
+  assert.equal(code, 1);
+  assert.match(out, /contract .* declarado pero no existe/);
+});
+
+test("CHECK 4: contract declarado y presente → no falla por contrato", () => {
+  const dir = mk({ version: "1.2.0", skills: "1.2.0" });
+  withRegistry(dir);
+  mkdirSync(join(dir, "contracts"), { recursive: true });
+  writeFileSync(join(dir, "contracts/reservas.openapi.yaml"), "openapi: 3.0.0\n");
+  writeFileSync(join(dir, "graph/domain.yaml"),
+    "domains:\n  reservas:\n    contract: contracts/reservas.openapi.yaml\n");
+  const { code, out } = run(dir);
+  assert.equal(code, 0);
+  assert.doesNotMatch(out, /declarado pero no existe/);
+});

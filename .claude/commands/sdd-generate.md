@@ -75,6 +75,12 @@ Actualizá (o creá) `graph/domain.yaml` con la información de esta feature:
   - `files`: los `touches` que ya existen, en las claves semánticas correctas
   - `planned`: los `touches` que esta feature va a crear, con las mismas claves
   - `depends_on`: [] (el humano puede completarlo después)
+- **Detección de contrato HTTP (nudge, no gate):** si el `spec.md` de esta feature describe
+  endpoints HTTP (métodos, rutas, status, forma de request/response) y el dominio afectado **no**
+  declara `contract:`, avisá y preguntá si se declara uno: *"Esta feature describe una API HTTP y
+  el dominio `<x>` no tiene `contract:` en el grafo. ¿Querés declarar su spec OpenAPI? Sin él,
+  `/sdd-e2e` no puede verificar conformidad ni atrapar drift de contrato."* Es una pregunta, no un
+  bloqueo: si el dev dice que no, seguís sin declararlo. No lo inventes si la spec no habla de HTTP.
 Esto garantiza el routing de contexto en proyectos greenfield desde la primera feature.
 
 **Routing de contexto (si existe `graph/domain.yaml`):**
@@ -92,7 +98,7 @@ Si existe `existing-arch.md` en la raíz, leélo TAMBIÉN. Estás en modo brownf
 A partir de esos archivos generá estos cuatro archivos en orden:
 1. constitution.md — principios MUST/PROHIBITED del proyecto
 2. spec.md — user stories con criterios Given/When/Then, uno por feature de UI, más una sección obligatoria `## Fuera de scope (v1)` con los ítems del campo OUT OF SCOPE de `input.md` (uno por línea, con la razón de rechazo si fue mencionada). Esta sección es el contrato negativo de la feature: lo que el equipo se comprometió a NO construir en v1.
-3. plan.md — stack técnico, estructura de carpetas y lista de componentes a crear
+3. plan.md — stack técnico, estructura de carpetas y lista de componentes a crear. Si el dominio afectado declara `contract:` en `graph/domain.yaml`, las firmas de su interfaz pública HTTP (rutas, métodos, forma de request/response) salen de ese spec OpenAPI — no las inventes ni las redefinas, igual que las firmas de interfaz pública que `plan.md` fija y el agente no cambia.
 4. tasks.md — una tarea por componente o feature (T001 = scaffold, T002 = un componente, etc.), siguiendo estas tres reglas:
    - **Tracer bullets (slicing vertical)**: cada tarea atraviesa todas las capas necesarias para que ese user story funcione de punta a punta (backend + UI + integración). No hagas fases horizontales por capa tecnológica (ej: "toda la DB en T001, toda la UI en T002") — eso no da feedback hasta el final y genera diseños que no se integran. Preferí "T002 = user puede ver su revenue con filtro 30d" sobre "T002 = analytics service completo".
    - **Sin nombres de funciones**: las tareas describen QUÉ construir, no CÓMO. No nombres funciones, métodos ni variables específicas — eso se decide al implementar y se vuelve stale inmediatamente si algo cambia.

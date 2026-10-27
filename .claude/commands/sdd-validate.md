@@ -23,6 +23,13 @@ brief" y pasa a significar "no sabíamos algo y lo dijimos", que es lo contrario
 Lo que **sí** es un gap, y hay que reportarlo como ❌: una suposición de tipo (b) que
 `spec.md` contradice, o que ningún artefacto refleja.
 
+**Contrato HTTP sin declarar (aviso de adopción, no es un gap):** si `spec.md` describe endpoints
+HTTP (métodos, rutas, status, forma de request/response) y el dominio afectado en
+`graph/domain.yaml` **no** declara `contract:`, mencionalo en **### Recomendación** sugiriendo
+declarar su spec OpenAPI —así `/sdd-e2e` puede verificar conformidad y atrapar drift de contrato—.
+**No es un ❌ ni un ⚠️ y no entra en `gaps_encontrados`:** es adopción, no un hueco del brief. Si la
+spec no habla de HTTP, omitilo.
+
 Al terminar, generá un reporte con este formato:
 
 ## Validación de artefactos
