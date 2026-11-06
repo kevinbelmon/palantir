@@ -2,7 +2,6 @@ import { readFileSync } from "node:fs";
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ESTADO_INICIAL } from "../src/flujo";
-import { Ayuda } from "../src/ui/Ayuda";
 import { BarraSuperior } from "../src/ui/BarraSuperior";
 import { BotonMusica } from "../src/ui/BotonMusica";
 
@@ -25,9 +24,6 @@ describe("aspecto moderno, sin emojis", () => {
     }
   });
 
-  it("la ayuda no usa emojis", () => {
-    expect(emoji.test(renderToString(<Ayuda />))).toBe(false);
-  });
 
   it("los carteles del mundo (2D y 3D) se dibujan sin emojis", () => {
     for (const f of ["src/escena/texturas.ts", "src/escena/mundo3d.ts", "src/oficina/dibujo.ts"]) {

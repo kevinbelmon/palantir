@@ -9,10 +9,10 @@ describe("la pantalla del juego", () => {
     expect(html).toContain("<canvas");
   });
 
-  it("le explica a la persona cómo mover la cámara, en palabras simples", () => {
+  it("no muestra un cartel de ayuda con el texto de la cámara (el gesto sigue funcionando)", () => {
     const texto = html.toLowerCase();
-    expect(texto).toContain("clic derecho");
-    expect(texto).toContain("rueda");
+    expect(texto).not.toContain("clic derecho");
+    expect(texto).not.toContain("rueda");
   });
 
   it("al empezar, la guía le pide dejar el brief en la papelería", () => {

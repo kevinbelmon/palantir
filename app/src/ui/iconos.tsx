@@ -21,21 +21,3 @@ export function IconoSonido({ apagado }: { apagado: boolean }) {
     </svg>
   );
 }
-
-export function IconoMouse() {
-  return (
-    <svg {...base}>
-      <rect x="6" y="3" width="12" height="18" rx="6" />
-      <path d="M12 3v7M12 10h6" />
-    </svg>
-  );
-}
-
-export function IconoLupa() {
-  return (
-    <svg {...base}>
-      <circle cx="11" cy="11" r="6.500" />
-      <path d="M16 16l5 5M11 8.500v5M8.500 11h5" />
-    </svg>
-  );
-}

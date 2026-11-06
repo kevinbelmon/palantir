@@ -3,7 +3,6 @@ import { mensajeGuia } from "./contenido";
 import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./flujo";
 import { crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
-import { Ayuda } from "./ui/Ayuda";
 import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
 import { BotonMusica } from "./ui/BotonMusica";
@@ -108,7 +107,6 @@ export default function App() {
           despachar({ tipo: "reiniciar" });
         }}
       />
-      <Ayuda />
     </main>
   );
 }
