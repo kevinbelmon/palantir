@@ -15,6 +15,11 @@ describe("la pantalla del juego", () => {
     expect(texto).toContain("rueda");
   });
 
+  it("al empezar, la guía le pide dejar el brief en la papelería", () => {
+    expect(html.toLowerCase()).toContain("papelería");
+    expect(html.toLowerCase()).toContain("brief");
+  });
+
   it("describe la oficina para lectores de pantalla, en español", () => {
     expect(html).toContain("aria-label=");
     expect(html.toLowerCase()).toContain("oficina");

@@ -1,14 +1,16 @@
 import { useEffect, useRef } from "react";
 import type { EstadoAgente, UbicacionBrief } from "../flujo";
-import { arrastrar, camaraAjustada, dibujarOficina, factorRueda, zoomEn, type Camara } from "../oficina";
+import { arrastrar, camaraAjustada, dibujarOficina, elementoEn, factorRueda, pantallaAMundo, zoomEn, type Camara, type Elemento } from "../oficina";
 
-type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief };
+type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir: (e: Elemento) => void };
 
 /** El mapa de la oficina: se arrastra con el clic derecho y se acerca o aleja con la rueda. */
-export function Lienzo({ agentes, brief }: Props) {
+export function Lienzo({ agentes, brief, alElegir }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const vista = useRef({ agentes, brief });
   vista.current = { agentes, brief };
+  const elegir = useRef(alElegir);
+  elegir.current = alElegir;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -20,6 +22,7 @@ export function Lienzo({ agentes, brief }: Props) {
     let movida = false; // si la persona ya movió la cámara, no la reacomodamos al cambiar el tamaño
     let arrastrando = false;
     let ultimo = { x: 0, y: 0 };
+    let inicioClic: { x: number; y: number } | null = null;
 
     const tamano = () => ({ ancho: canvas.clientWidth, alto: canvas.clientHeight });
 
@@ -34,6 +37,7 @@ export function Lienzo({ agentes, brief }: Props) {
     observador.observe(canvas);
 
     const alBajar = (e: PointerEvent) => {
+      if (e.button === 0) inicioClic = { x: e.clientX, y: e.clientY };
       if (e.button !== 2) return;
       arrastrando = true;
       ultimo = { x: e.clientX, y: e.clientY };
@@ -51,6 +55,16 @@ export function Lienzo({ agentes, brief }: Props) {
       movida = true;
     };
     const alSoltar = (e: PointerEvent) => {
+      if (e.button === 0 && inicioClic && camara) {
+        const lejos = Math.hypot(e.clientX - inicioClic.x, e.clientY - inicioClic.y) > 6;
+        if (!lejos) {
+          const caja = canvas.getBoundingClientRect();
+          const punto = pantallaAMundo(camara, e.clientX - caja.left, e.clientY - caja.top);
+          const elemento = elementoEn(punto.x, punto.y);
+          if (elemento) elegir.current(elemento);
+        }
+        inicioClic = null;
+      }
       if (e.button !== 2) return;
       arrastrando = false;
       canvas.style.cursor = "";
