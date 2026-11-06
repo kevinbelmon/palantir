@@ -672,3 +672,17 @@ explícito). A cargo de DevOps: sacar la entrada `cortex` del `.mcp.json` commit
 distribución del binario con versión y hash, igual que la capa A.
 
 **Decidido por:** Patricio Millán — dueño del modelo (2026-08-25)
+
+---
+## 2026-11-06 Oficina grande con una sala por agente, según foto de referencia
+
+**feature_id:** 901-juego-sdd
+**command_origin:** sdd-validate
+**status:** accepted
+**Gap o motivo:** En `/sdd-generate` de 901-juego-sdd se había definido una oficina vista desde arriba con 8 agentes. El humano pasó una foto de referencia y pidió una oficina más grande, con una sala chica por agente y con los comandos del modelo. Se incorporó la foto como guía visual (`drafts/referencia-oficina.png`) y se actualizaron `input.md`, la constitución, la spec, el plan y las tasks. Después, `/sdd-validate` encontró 2 gaps de cobertura parcial: la spec no decía qué documento deja cada agente ni la disposición de las salas y el cartel central. Se agregaron esos criterios a US-1 y US-5.
+**Alternativas consideradas:** (1) Mantener la oficina original de una sola sala y dibujar los 8 agentes en escritorios sueltos. (2) Incorporar la foto como imagen de fondo del juego, en lugar de dibujar la oficina en código. (3) Dejar los 2 gaps de la spec para resolverlos durante la implementación.
+**Por qué se descartaron:** (1) No refleja la referencia ni el pedido de una oficina chica por agente, y pierde la idea de recorrer salas. (2) La constitución prohíbe incluir imágenes y recursos externos, y una imagen fija no permite animar personajes ni dejar documentos sobre cada escritorio. (3) Va contra DX-002 (ambigüedad en 0) y dejaría decisiones de diseño en manos del agente de implementación.
+**Decisión tomada:** La oficina es grande, más grande que la pantalla, vista desde arriba en perspectiva, con 8 salas chicas (1 a 4 arriba, 5 a 7 abajo y el review como sala de vidrio a la derecha), un lobby central con el cartel "Spec-Driven Development — Planear primero. Construir después." y la papelería como zona propia. Todo se dibuja en código; la foto es solo una guía y no forma parte del juego. US-1 fija la disposición y US-5 fija qué documento deja cada agente. Las tasks pasan de 11 a 12 (T003 decora la oficina como la foto).
+**Motivo:** Replicar lo que el humano mostró sin romper las reglas del proyecto (recursos propios, sin imágenes externas) y mantener la ambigüedad en 0 antes de implementar.
+**Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`; se agregó `drafts/referencia-oficina.png` como referencia.
+**Decidido por:** kbelmonte (delegó el criterio de esta entrada a Claude: "elegí vos")

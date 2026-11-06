@@ -8,6 +8,9 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 - Dado que abro `localhost:5173`, cuando carga el juego, entonces veo una oficina grande desde
   arriba, en perspectiva, con la papelería, un lobby central y 8 salas chicas en orden; cada sala
   tiene su cartel con el comando, su pizarra, su escritorio y su personajito.
+- Las salas 1 a 4 (refine, generate, validate, log) van arriba, la 5 a la 7 (implement, e2e,
+  checklist) abajo, y la 8 (review) es una sala de vidrio a la derecha; en el centro está el
+  cartel «Spec-Driven Development — Planear primero. Construir después.».
 
 **US-2 — Mover la cámara**
 - Dado que miro la oficina, cuando mantengo el clic derecho y arrastro, entonces el mapa se
@@ -24,6 +27,9 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 **US-5 — Leer lo que produjo**
 - Dado que un agente terminó, cuando abro el documento sobre su escritorio, entonces leo la versión
   simplificada de lo que produjo (con el ejemplo de gastos entre amigos) y lo puedo cerrar.
+- Cada agente deja el suyo: refine, el brief pulido; generate, los documentos de especificación;
+  validate, el reporte de huecos; log, el registro de la decisión; implement, código y tests; e2e,
+  la evidencia de las pruebas; checklist, la lista de verificación; review, la verificación final.
 
 **US-6 — Avanzar en orden**
 - Dado que un agente terminó, cuando el brief pasa al siguiente, entonces solo ese se habilita;
