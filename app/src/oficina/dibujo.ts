@@ -6,7 +6,7 @@ import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, SALAS, type Rect, type Sala } 
 import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, PLANTAS, SILLON } from "./decoracion";
 import { PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
-import { caja, type Ctx, rectRedondo, rellenar, sombra, texto } from "./primitivas";
+import { caja, type Ctx, envolver, FUENTE, rectRedondo, rellenar, sombra, texto } from "./primitivas";
 
 export type VistaDibujo = {
   ancho: number;
@@ -263,7 +263,7 @@ function escritorio(ctx: Ctx, e: Rect, t: number, activo: boolean) {
   rectRedondo(ctx, e.x + e.w / 2 - 44, e.y + 10, 88, 16, 4);
   rellenar(ctx, "#3a3f5f");
   ctx.beginPath();
-  ctx.arc(e.x + e.w / 2 + 70, e.y + 14, 9, 0, Math.PI * 2);
+  ctx.arc(e.x + e.w - 130, e.y + 14, 9, 0, Math.PI * 2);
   rellenar(ctx, "#ffffff");
 }
 
@@ -292,6 +292,7 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
   pizarra(ctx, sala.pizarra, textos.pizarra);
 
   const { x: px, y: py } = sala.personaje;
+  if (estado === "habilitado") halo(ctx, sala, v.tiempo);
   silla(ctx, px, py);
   if (esVidrio) {
     // sala de reuniones: mesa redonda con colegas sentados alrededor
@@ -307,7 +308,97 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
     escritorio(ctx, sala.escritorio, v.tiempo, estado === "corriendo");
   }
 
+  if (typeof v.brief === "object" && v.brief.agente === indice) briefEnEscritorio(ctx, sala);
+  if (estado === "habilitado") signoDeAviso(ctx, sala, v.tiempo);
+  if (estado === "corriendo") globito(ctx, areaGlobito(sala), textos.globito, v.tiempo);
+
   cartel(ctx, a.x + a.w / 2, a.y - 36, sala.numero, textos.nombre, textos.subtitulo, colorDeSala(indice));
+  if (estado === "terminado") insigniaListo(ctx, a.x + a.w / 2 + 170, a.y - 34);
+}
+
+/** Aro amarillo que late alrededor del escritorio del agente que espera la orden. */
+function halo(ctx: Ctx, sala: Sala, t: number) {
+  const e = sala.escritorio;
+  const pulso = 0.5 + 0.5 * Math.sin(t * 4);
+  ctx.save();
+  ctx.strokeStyle = `rgba(255, 213, 74, ${0.4 + 0.45 * pulso})`;
+  ctx.lineWidth = 8;
+  ctx.shadowColor = PALETA.resalte;
+  ctx.shadowBlur = 26;
+  rectRedondo(ctx, e.x - 26, e.y - 74, e.w + 52, e.h + 100, 28);
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Signo de admiración que rebota sobre la cabeza: "tocame". */
+function signoDeAviso(ctx: Ctx, sala: Sala, t: number) {
+  const { x, y } = sala.personaje;
+  const rebote = Math.sin(t * 5) * 7;
+  ctx.beginPath();
+  ctx.arc(x + 70, y - 104 + rebote, 19, 0, Math.PI * 2);
+  rellenar(ctx, PALETA.resalte);
+  texto(ctx, "!", x + 70, y - 96 + rebote, { tam: 28, color: "#1e2033", peso: 900, alinear: "center" });
+}
+
+/** Dónde va el globito de cada sala: en un lugar libre, al lado del personaje. */
+function areaGlobito(sala: Sala): Rect {
+  const a = sala.area;
+  return sala.tipo === "vidrio" ? { x: a.x + 20, y: a.y + 230, w: 262, h: 116 } : { x: a.x + 16, y: a.y + 14, w: 262, h: 112 };
+}
+
+function globito(ctx: Ctx, r: Rect, mensaje: string, t: number) {
+  sombra(ctx, r.x + r.w / 2, r.y + r.h + 6, r.w / 2.2, 6, 0.2);
+  rectRedondo(ctx, r.x, r.y, r.w, r.h, 16);
+  rellenar(ctx, "#ffffff");
+  rectRedondo(ctx, r.x, r.y, r.w, r.h, 16);
+  ctx.strokeStyle = "#8e92c4";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  // piquito hacia el personaje
+  ctx.beginPath();
+  ctx.moveTo(r.x + r.w - 2, r.y + r.h - 34);
+  ctx.lineTo(r.x + r.w + 18, r.y + r.h - 22);
+  ctx.lineTo(r.x + r.w - 2, r.y + r.h - 14);
+  rellenar(ctx, "#ffffff");
+
+  ctx.font = `600 14px ${FUENTE}`;
+  envolver(ctx, mensaje, r.w - 28).slice(0, 4).forEach((linea, i) => {
+    texto(ctx, linea, r.x + 14, r.y + 24 + i * 18, { tam: 14, color: "#2a2d4a", peso: 600 });
+  });
+  for (let i = 0; i < 3; i++) {
+    const alfa = 0.25 + 0.75 * Math.max(0, Math.sin(t * 6 - i * 0.9));
+    ctx.beginPath();
+    ctx.arc(r.x + 22 + i * 14, r.y + r.h - 12, 4, 0, Math.PI * 2);
+    rellenar(ctx, `rgba(91, 140, 255, ${alfa})`);
+  }
+}
+
+/** Tilde verde sobre el cartel de la sala: este agente ya terminó. */
+function insigniaListo(ctx: Ctx, x: number, y: number) {
+  sombra(ctx, x, y + 22, 14, 4, 0.25);
+  ctx.beginPath();
+  ctx.arc(x, y, 17, 0, Math.PI * 2);
+  rellenar(ctx, PALETA.check);
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.beginPath();
+  ctx.moveTo(x - 7, y);
+  ctx.lineTo(x - 2, y + 6);
+  ctx.lineTo(x + 8, y - 6);
+  ctx.stroke();
+}
+
+/** El brief sobre el escritorio (o la mesa) del agente que lo tiene ahora. */
+function briefEnEscritorio(ctx: Ctx, sala: Sala) {
+  const e = sala.escritorio;
+  const x = sala.tipo === "vidrio" ? MESA_REDONDA_REVIEW.x + 30 : e.x + e.w / 2 + 52;
+  const y = sala.tipo === "vidrio" ? MESA_REDONDA_REVIEW.y - 66 : e.y + 2;
+  rectRedondo(ctx, x, y, 44, 30, 4);
+  rellenar(ctx, PALETA.papel);
+  ctx.fillStyle = "#b9bde0";
+  for (let i = 0; i < 3; i++) ctx.fillRect(x + 6, y + 6 + i * 7, 32 - (i === 2 ? 12 : 0), 3);
 }
 
 function colorDeSala(indice: number): string {

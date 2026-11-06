@@ -7,20 +7,35 @@ export type Estado = {
   agentes: readonly EstadoAgente[];
 };
 
-export type Accion = { tipo: "dejarBrief" };
+export type Accion =
+  | { tipo: "dejarBrief" }
+  | { tipo: "ordenarCorrer"; indice: number }
+  | { tipo: "terminarCorrida"; indice: number };
+
+/** Cuánto trabaja un agente antes de terminar: lo justo para leer su globito. */
+export const DURACION_CORRIDA_MS = 4500;
 
 export const ESTADO_INICIAL: Estado = {
   briefDejado: false,
   agentes: AGENTES.map(() => "deshabilitado"),
 };
 
-/** Cada acción devuelve un estado nuevo; nunca modifica el anterior. */
+function cambiar(e: Estado, indice: number, de: EstadoAgente, a: EstadoAgente): Estado {
+  if (e.agentes[indice] !== de) return e;
+  return { ...e, agentes: e.agentes.map((estado, i) => (i === indice ? a : estado)) };
+}
+
+/** Cada acción devuelve un estado nuevo; nunca modifica el anterior. Lo que no corresponde no hace nada. */
 export function reducir(e: Estado, a: Accion): Estado {
   switch (a.tipo) {
     case "dejarBrief": {
       if (e.briefDejado) return e;
       return { ...e, briefDejado: true, agentes: e.agentes.map((estado, i) => (i === 0 ? "habilitado" : estado)) };
     }
+    case "ordenarCorrer":
+      return cambiar(e, a.indice, "habilitado", "corriendo");
+    case "terminarCorrida":
+      return cambiar(e, a.indice, "corriendo", "terminado");
   }
 }
 

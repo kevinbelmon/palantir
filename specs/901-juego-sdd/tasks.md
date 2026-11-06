@@ -13,7 +13,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       una oficina más grande que la pantalla. Crea: cámara en `app/src/oficina/`. · US: US-2
 - [x] **T005** — Dejar el brief en la papelería: el brief de ejemplo queda ahí y habilita al
       agente 1. Crea: `app/src/flujo/`, brief en `app/src/contenido/`. · US: US-3
-- [ ] **T006** — Ordenar correr: con el agente habilitado, animación corta y globito que explica
+- [x] **T006** — Ordenar correr: con el agente habilitado, animación corta y globito que explica
       qué hace. Toca: `flujo/`, `oficina/`, `ui/`. · US: US-4
 - [ ] **T007** — Leer lo que produjo: documento simplificado de cada agente sobre su escritorio,
       que se abre y se cierra. Crea: documentos en `app/src/contenido/`. · US: US-5

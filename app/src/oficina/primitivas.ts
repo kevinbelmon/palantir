@@ -58,6 +58,21 @@ export function caja(
   ctx.fillRect(x, y, w, h);
 }
 
+/** Parte un texto en renglones que entren en `ancho`. Usa la fuente que tenga el contexto. */
+export function envolver(ctx: Ctx, s: string, ancho: number): string[] {
+  const renglones: string[] = [];
+  let actual = "";
+  for (const palabra of s.split(" ")) {
+    const prueba = actual ? actual + " " + palabra : palabra;
+    if (actual && ctx.measureText(prueba).width > ancho) {
+      renglones.push(actual);
+      actual = palabra;
+    } else actual = prueba;
+  }
+  if (actual) renglones.push(actual);
+  return renglones;
+}
+
 /** Sombra suave bajo un objeto, para que no flote. */
 export function sombra(ctx: Ctx, cx: number, cy: number, rx: number, ry: number, alfa = 0.22) {
   ctx.fillStyle = `rgba(20, 22, 50, ${alfa})`;

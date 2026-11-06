@@ -21,3 +21,12 @@ describe("la guía que acompaña a la persona", () => {
     expect(texto).toContain("correr");
   });
 });
+
+describe("la guía mientras un agente trabaja", () => {
+  it("avisa que está trabajando y que hay que esperar", () => {
+    const corriendo = reducir(reducir(ESTADO_INICIAL, { tipo: "dejarBrief" }), { tipo: "ordenarCorrer", indice: 0 });
+    const texto = mensajeGuia(corriendo).toLowerCase();
+    expect(texto).toContain("trabajando");
+    expect(texto).toContain("refine");
+  });
+});

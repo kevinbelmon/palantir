@@ -6,6 +6,11 @@ export function mensajeGuia(e: Estado): string {
   if (!e.briefDejado) {
     return "Paso 1: dejá el brief en la papelería. Hacé clic en la mesa de la papelería (a la izquierda) para dejar la idea que vamos a trabajar.";
   }
+  const corriendo = e.agentes.findIndex((a) => a === "corriendo");
+  if (corriendo !== -1) {
+    const nombre = TEXTOS_AGENTES[AGENTES[corriendo].id].nombre;
+    return `El agente ${AGENTES[corriendo].numero} (${nombre}) está trabajando. Mirá su globito y esperá a que termine.`;
+  }
   const habilitado = e.agentes.findIndex((a) => a === "habilitado");
   if (habilitado !== -1) {
     const agente = AGENTES[habilitado];
