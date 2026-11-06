@@ -19,7 +19,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       que se abre y se cierra. Crea: documentos en `app/src/contenido/`. · US: US-5
 - [x] **T008** — Avanzar en orden: el brief pasa al siguiente agente, solo ese se habilita y
       ninguno corre solo. Toca: `flujo/`, `oficina/`. · US: US-6
-- [ ] **T009** — Pantalla final con el repaso de los pasos y botón "Jugar de nuevo" que reinicia.
+- [x] **T009** — Pantalla final con el repaso de los pasos y botón "Jugar de nuevo" que reinicia.
       Crea: pantalla final en `app/src/ui/`. · US: US-7
 - [ ] **T010** — Música chill generada con el sonido del navegador, que arranca con el primer
       clic y se puede silenciar. Crea: `app/src/musica/`. · US: US-8

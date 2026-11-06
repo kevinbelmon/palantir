@@ -6,6 +6,7 @@ import { Ayuda } from "./ui/Ayuda";
 import { Guia } from "./ui/Guia";
 import { Lienzo } from "./ui/Lienzo";
 import { PanelAgente } from "./ui/PanelAgente";
+import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
 
 export default function App() {
@@ -42,6 +43,14 @@ export default function App() {
       )}
       {estado.documentoAbierto !== null && (
         <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} />
+      )}
+      {estado.fin && (
+        <PantallaFinal
+          alReiniciar={() => {
+            setSeleccion(null);
+            despachar({ tipo: "reiniciar" });
+          }}
+        />
       )}
       <Ayuda />
     </main>

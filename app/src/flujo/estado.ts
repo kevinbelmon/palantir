@@ -7,6 +7,8 @@ export type Estado = {
   agentes: readonly EstadoAgente[];
   /** Qué agente tiene su documento abierto para leer, si hay alguno. */
   documentoAbierto: number | null;
+  /** Se mira la pantalla final: ya se leyó el documento del último agente. */
+  fin: boolean;
 };
 
 export type Accion =
@@ -14,7 +16,8 @@ export type Accion =
   | { tipo: "ordenarCorrer"; indice: number }
   | { tipo: "terminarCorrida"; indice: number }
   | { tipo: "abrirDocumento"; indice: number }
-  | { tipo: "cerrarDocumento" };
+  | { tipo: "cerrarDocumento" }
+  | { tipo: "reiniciar" };
 
 /** Cuánto trabaja un agente antes de terminar: lo justo para leer su globito. */
 export const DURACION_CORRIDA_MS = 4500;
@@ -23,6 +26,7 @@ export const ESTADO_INICIAL: Estado = {
   briefDejado: false,
   agentes: AGENTES.map(() => "deshabilitado"),
   documentoAbierto: null,
+  fin: false,
 };
 
 function cambiar(e: Estado, indice: number, de: EstadoAgente, a: EstadoAgente): Estado {
@@ -47,8 +51,15 @@ export function reducir(e: Estado, a: Accion): Estado {
     }
     case "abrirDocumento":
       return e.agentes[a.indice] === "terminado" ? { ...e, documentoAbierto: a.indice } : e;
-    case "cerrarDocumento":
-      return e.documentoAbierto === null ? e : { ...e, documentoAbierto: null };
+    case "cerrarDocumento": {
+      if (e.documentoAbierto === null) return e;
+      // al cerrar el documento del último agente, con todos terminados, termina el recorrido
+      const ultimo = e.agentes.length - 1;
+      const recorridoCompleto = e.documentoAbierto === ultimo && e.agentes.every((x) => x === "terminado");
+      return { ...e, documentoAbierto: null, fin: recorridoCompleto };
+    }
+    case "reiniciar":
+      return ESTADO_INICIAL;
   }
 }
 

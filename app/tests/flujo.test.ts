@@ -143,3 +143,49 @@ describe("avanzar en orden", () => {
     expect(ubicacionBrief(e)).toEqual({ agente: AGENTES.length - 1 });
   });
 });
+
+describe("el final del recorrido", () => {
+  const todosTerminados = () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    for (let i = 0; i < AGENTES.length; i++) {
+      e = reducir(e, { tipo: "ordenarCorrer", indice: i });
+      e = reducir(e, { tipo: "terminarCorrida", indice: i });
+    }
+    return e;
+  };
+
+  it("al principio no hay pantalla final", () => {
+    expect(ESTADO_INICIAL.fin).toBe(false);
+  });
+
+  it("terminar el último agente no alcanza: hay que leer y cerrar su documento", () => {
+    expect(todosTerminados().fin).toBe(false);
+    const abierto = reducir(todosTerminados(), { tipo: "abrirDocumento", indice: 7 });
+    expect(abierto.fin).toBe(false);
+  });
+
+  it("al cerrar el documento del último agente aparece la pantalla final", () => {
+    const e = reducir(reducir(todosTerminados(), { tipo: "abrirDocumento", indice: 7 }), { tipo: "cerrarDocumento" });
+    expect(e.fin).toBe(true);
+    expect(e.documentoAbierto).toBeNull();
+  });
+
+  it("cerrar el documento de otro agente no termina el juego", () => {
+    const e = reducir(reducir(todosTerminados(), { tipo: "abrirDocumento", indice: 0 }), { tipo: "cerrarDocumento" });
+    expect(e.fin).toBe(false);
+  });
+
+  it("si no terminaron todos, cerrar un documento no muestra el final", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    e = reducir(reducir(e, { tipo: "ordenarCorrer", indice: 0 }), { tipo: "terminarCorrida", indice: 0 });
+    e = reducir(reducir(e, { tipo: "abrirDocumento", indice: 0 }), { tipo: "cerrarDocumento" });
+    expect(e.fin).toBe(false);
+  });
+
+  it("jugar de nuevo reinicia todo: brief en la mano y nadie habilitado", () => {
+    const fin = reducir(reducir(todosTerminados(), { tipo: "abrirDocumento", indice: 7 }), { tipo: "cerrarDocumento" });
+    const nuevo = reducir(fin, { tipo: "reiniciar" });
+    expect(nuevo).toEqual(ESTADO_INICIAL);
+    expect(ubicacionBrief(nuevo)).toBe("mano");
+  });
+});

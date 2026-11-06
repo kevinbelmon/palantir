@@ -65,3 +65,16 @@ describe("la guía al pasar al siguiente agente", () => {
     expect(texto).toContain("documento");
   });
 });
+
+describe("la guía en la pantalla final", () => {
+  it("se calla: ahí manda la pantalla final", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    for (let i = 0; i < 8; i++) {
+      e = reducir(e, { tipo: "ordenarCorrer", indice: i });
+      e = reducir(e, { tipo: "terminarCorrida", indice: i });
+    }
+    e = reducir(reducir(e, { tipo: "abrirDocumento", indice: 7 }), { tipo: "cerrarDocumento" });
+    expect(e.fin).toBe(true);
+    expect(mensajeGuia(e)).toBe("");
+  });
+});
