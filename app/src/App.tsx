@@ -1,8 +1,10 @@
 import { useEffect, useReducer, useState } from "react";
 import { mensajeGuia } from "./contenido";
 import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./flujo";
+import { crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
 import { Ayuda } from "./ui/Ayuda";
+import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
 import { Lienzo } from "./ui/Lienzo";
 import { PanelAgente } from "./ui/PanelAgente";
@@ -12,6 +14,25 @@ import { VisorDocumento } from "./ui/VisorDocumento";
 export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
   const [seleccion, setSeleccion] = useState<number | null>(null);
+  const [musica] = useState(() => crearReproductor());
+  const [silenciada, setSilenciada] = useState(false);
+
+  // la música arranca con el primer clic (o tecla) de la persona: antes, el navegador no la deja sonar
+  useEffect(() => {
+    const arrancar = () => musica.iniciar();
+    window.addEventListener("pointerdown", arrancar, { once: true });
+    window.addEventListener("keydown", arrancar, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", arrancar);
+      window.removeEventListener("keydown", arrancar);
+      musica.detener();
+    };
+  }, [musica]);
+
+  const alternarMusica = () => {
+    musica.silenciar(!silenciada);
+    setSilenciada(!silenciada);
+  };
 
   const alElegir = (el: Elemento) => {
     if (el.tipo === "papeleria") despachar({ tipo: "dejarBrief" });
@@ -52,6 +73,7 @@ export default function App() {
           }}
         />
       )}
+      <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} />
       <Ayuda />
     </main>
   );

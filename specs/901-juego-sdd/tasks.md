@@ -21,7 +21,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       ninguno corre solo. Toca: `flujo/`, `oficina/`. · US: US-6
 - [x] **T009** — Pantalla final con el repaso de los pasos y botón "Jugar de nuevo" que reinicia.
       Crea: pantalla final en `app/src/ui/`. · US: US-7
-- [ ] **T010** — Música chill generada con el sonido del navegador, que arranca con el primer
+- [x] **T010** — Música chill generada con el sonido del navegador, que arranca con el primer
       clic y se puede silenciar. Crea: `app/src/musica/`. · US: US-8
 - [ ] **T011** — Textos simples: revisar que cada agente diga qué hace, para qué sirve y qué
       produjo, sin jerga sin explicar (con test sobre el contenido). Toca: `contenido/`. · US: US-9
