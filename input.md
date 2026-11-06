@@ -38,6 +38,10 @@ paso. No hay cuentas ni login.
 12. El mundo se ve en 3D real, con perspectiva, luces y sombras, como un render de bloques; la
     cámara se desplaza con el clic derecho y se acerca con la rueda. Si el navegador no puede
     mostrar 3D, se ve la oficina en 2D.
+13. A la izquierda hay un panel «Paso a paso» con los 8 comandos en orden y su estado. Al tocar uno,
+    la cámara viaja a su sala y aparece una explicación corta (una frase) de para qué sirve.
+14. La barra de arriba, el botón de música y los carteles se ven modernos y limpios: sin emojis
+    (el cohete, el parlante, la hoja); los íconos y el logo se dibujan en código.
 
 ## OUT OF SCOPE (v1)
 - Puntaje o ranking.
@@ -48,8 +52,8 @@ paso. No hay cuentas ni login.
 - Que la persona maneje un personaje o escriba su propio brief.
 - Efectos de sonido: solo hay música de fondo.
 - Login, cuentas, servidor o base de datos.
-- Menú lateral (Mi Juego, Analytics, Configuración), repositorio por persona y cuenta de Claude:
-  son una feature aparte (902), que se refina después.
+- Menú de Inicio, Mi Juego, Analytics y Configuración, repositorio por persona y cuenta de Claude:
+  son una feature aparte (902). El panel «Paso a paso» sí entra.
 - Marcas, logos, nombres o personajes de otras obras: el estilo de bloques es propio y genérico.
 
 ## RESTRICCIONES TÉCNICAS
@@ -88,4 +92,7 @@ guarda en el repositorio por ser de terceros): piso gris con tacos, paredes de l
 muñecos de bloques, una etiqueta flotante sobre cada uno con su nombre y un punto de estado (verde,
 amarillo), y un dock abajo con el avatar de cada uno, un número rojo cuando algo le espera, un
 botón «Nuevo» y los contadores «Tareas» y «Te toca». Acá las etiquetas llevan el nombre de cada
-comando. Pedido posterior: más realidad, así que el mundo pasa a verse en 3D de verdad.
+comando. Pedido posterior: más realidad, así que el mundo pasa a verse en 3D de verdad. Otro pedido: un panel
+lateral «Paso a paso» (los 8 comandos, un toque explica para qué sirve en una frase corta), y quitar
+el aspecto «Windows XP» (emojis y degradé brillante) de la barra de arriba, el botón de música y los
+carteles: logo e íconos dibujados en código, estilo plano y moderno.

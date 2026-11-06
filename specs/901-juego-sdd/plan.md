@@ -27,7 +27,7 @@ escena/      mundo en 3D con Three.js: bloques, personajes, luces, cámara 3D y 
              (la oficina en 2D de `oficina/` queda de respaldo si el navegador no puede mostrar 3D)
 contenido/   textos, globitos y documentos simplificados de cada agente, y el brief de ejemplo
 musica/      música chill generada con el sonido del navegador (partitura pura + reproductor)
-ui/          componentes React: lienzo, globito, visor de documento, pantalla final, silenciar
+ui/          componentes React: lienzo, «Paso a paso», visor, pantalla final, música, íconos
 app/tests/   un archivo de test por capacidad
 ```
 
@@ -46,5 +46,5 @@ y `oficina/` calculan.
 - Contenido en español simple para los 8 agentes: globito, qué hace, para qué sirve y documento.
 - Visor de documento, pantalla final con repaso y botón "Jugar de nuevo".
 - Música ambiente chill con botón de silenciar, que arranca tras el primer clic.
+- Panel lateral «Paso a paso» (frase corta por comando) y barra, botón y carteles sin emojis.
 
-Referencia visual: `drafts/referencia-oficina.png` (solo guía); la paleta se define en T002.

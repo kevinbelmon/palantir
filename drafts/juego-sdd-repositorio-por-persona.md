@@ -35,3 +35,10 @@ Los números de esa foto (tokens, uptime, costo) son de ejemplo.
   usa hoy el modelo sale de los registros locales de Claude Code (`ccusage`). Hay que decidir de
   dónde sale el número "real".
 - Requiere un servidor y cuentas, que la feature 901 deja explícitamente afuera.
+
+## Respuestas ya dadas en el refine (2026-11-06)
+
+- El juego conecta con el repo desde adentro de la página: se crea un repositorio vacío y se copia
+  ahí el brief y todos los comandos del modelo.
+- Iniciar sesión con GitHub: sí, con el botón «Autorizar» de GitHub (la persona autoriza una vez;
+  en el juego no se escribe ninguna contraseña ni token). Falta decidir el resto de las categorías.

@@ -728,3 +728,17 @@ distribución del binario con versión y hash, igual que la capa A.
 **Motivo:** Es lo que pidió el humano con una opción elegida a conciencia. Mantener el 2D como respaldo evita dejar sin juego a quien no tenga 3D y reutiliza lo ya probado. La dependencia nueva es una sola, con versión fija, sin scripts de instalación y de licencia permisiva; el resto del juego (reglas, textos, dock, música) no cambia.
 **Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`.
 **Decidido por:** kbelmonte (eligió la opción "3D de verdad" en una pregunta; la redacción de esta entrada la hizo Claude)
+
+---
+## 2026-11-06 Panel «Paso a paso» y aspecto moderno sin emojis; E2E salteado por ahora
+
+**feature_id:** 901-juego-sdd
+**command_origin:** sdd-refine
+**status:** accepted
+**Gap o motivo:** Con la feature en 15/15, el humano pidió (1) un panel lateral con el paso a paso de los comandos, donde al tocar uno se explique para qué sirve en una frase corta, y (2) cambiar el aspecto «Windows XP» de la barra de arriba, el botón de música y los carteles (el cohete y otros emojis, el degradé brillante). La spec dejaba el menú lateral afuera, para la feature 902.
+**Alternativas consideradas:** (1) Dejar el panel para 902. (2) Hacer solo el panel «Paso a paso» ahora, y dejar el resto del menú (Inicio, Analytics, Configuración) en 902. (3) Reemplazar el dock de abajo por el panel.
+**Por qué se descartaron:** (1) no atiende el pedido y el panel no necesita cuentas ni servidor. (3) el dock sirve para otra cosa (estado y tareas) y el humano no pidió sacarlo.
+**Decisión tomada:** US-12 y T016 (panel «Paso a paso» a la izquierda, frase corta por comando) y US-13 y T017 (barra, botón de música y carteles sin emojis, con logo e íconos dibujados en código). El resto del menú lateral sigue siendo 902. Se actualizan `input.md`, `spec.md`, `plan.md` y `tasks.md` (esta última comprimida para entrar en el límite de líneas). Aparte, el humano indicó que `/sdd-e2e` se puede saltear por ahora: no se registra en esta entrada porque pidió anotarlo después; queda pendiente de `/sdd-log`.
+**Motivo:** Es solo interfaz, sin cuentas ni servidor, y no choca con la constitución. Mantener 902 aparte evita mezclar login y repositorios con un cambio visual.
+**Artefactos modificados:** `input.md`, `specs/901-juego-sdd/spec.md`, `plan.md`, `tasks.md`.
+**Decidido por:** kbelmonte (lo pidió; la redacción de esta entrada la hizo Claude)
