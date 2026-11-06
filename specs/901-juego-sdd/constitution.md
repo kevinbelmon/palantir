@@ -30,8 +30,9 @@ Principios no negociables. Si algo choca con ellos, se registra con `/sdd-log` a
 
 1. **Motores o librerías de juego** (Phaser, Pixi y similares) y **librerías de audio**. Solo
    React, Vite y, como herramienta de desarrollo, Vitest.
-2. **Descargar o incluir recursos externos:** imágenes, fuentes, audio, sprites. Tampoco arte de
-   Roblox: los personajes se dibujan en código, con estilo propio.
+2. **Descargar o incluir recursos externos:** imágenes, fuentes, audio, sprites. Tampoco arte,
+   nombres, logos ni personajes de otras marcas u obras (Roblox, juguetes de bloques, series):
+   todo se dibuja en código, con estilo propio.
 3. **Dependencias nuevas fuera de `plan.md`.** Cada paquete va con versión fija.
 4. **Avance automático** del brief o de los agentes.
 5. **Efectos de sonido:** solo hay música de fondo.

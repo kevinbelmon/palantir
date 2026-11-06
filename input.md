@@ -31,6 +31,10 @@ paso. No hay cuentas ni login.
 10. La oficina tiene vida: una ruta con flechas marca por dónde viaja el brief, los personajes se
     mueven aunque nadie los toque y una barra superior muestra en qué paso va la persona. Si el
     sistema pide menos movimiento, todo queda quieto.
+11. Todo parece armado con bloques que se encastran (piso con tacos, paredes de ladrillos blancos,
+    muebles y personajes de bloques). Sobre cada personaje flota una etiqueta con el nombre de su
+    comando y su estado, y abajo hay un dock con los 8 agentes, cuántas tareas faltan y a quién le
+    toca. Al tocar un agente, la cámara viaja a su sala.
 
 ## OUT OF SCOPE (v1)
 - Puntaje o ranking.
@@ -43,6 +47,7 @@ paso. No hay cuentas ni login.
 - Login, cuentas, servidor o base de datos.
 - Menú lateral (Mi Juego, Analytics, Configuración), repositorio por persona y cuenta de Claude:
   son una feature aparte (902), que se refina después.
+- Marcas, logos, nombres o personajes de otras obras: el estilo de bloques es propio y genérico.
 
 ## RESTRICCIONES TÉCNICAS
 - React con TypeScript y Vite, que se levanta con `pnpm dev` en `localhost:5173` (puerto por
@@ -74,4 +79,9 @@ registro de la decisión), implement (código y tests), e2e (evidencia de las pr
 `/sdd-generate`. La oficina tiene vida: una ruta con flechas muestra por dónde viaja el brief (lo
 hecho en verde, lo que sigue en amarillo), los personajes respiran y parpadean, cada sala tiene
 objetos propios de lo que hace su agente, y una barra superior muestra el título y el paso en que va
-la persona.
+la persona. Tercera referencia (una captura de una oficina armada con ladrillos de juguete; no se
+guarda en el repositorio por ser de terceros): piso gris con tacos, paredes de ladrillos blancos,
+muñecos de bloques, una etiqueta flotante sobre cada uno con su nombre y un punto de estado (verde,
+amarillo), y un dock abajo con el avatar de cada uno, un número rojo cuando algo le espera, un
+botón «Nuevo» y los contadores «Tareas» y «Te toca». Acá las etiquetas llevan el nombre de cada
+comando.

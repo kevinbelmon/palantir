@@ -53,6 +53,13 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
   toque y una barra superior dice en qué paso voy.
 - Dado que mi sistema pide menos movimiento, cuando abro el juego, entonces nada se anima.
 
+**US-11 — Un mundo de bloques con etiquetas y dock**
+- Dado que miro la oficina, cuando carga, entonces todo parece armado con bloques que se encastran
+  (piso con tacos, paredes de ladrillos, muebles y personajes) y sobre cada personaje flota una
+  etiqueta con el nombre de su comando y su estado.
+- Dado que miro abajo, cuando uso el dock, entonces veo a los 8 agentes con su estado, cuántas
+  tareas faltan y a quién le toca, y al tocar uno la cámara viaja a su sala.
+
 ## Fuera de scope (v1)
 
 - Puntaje o ranking — no pedido.
@@ -64,6 +71,7 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 - Efectos de sonido — solo hay música de fondo.
 - Login, cuentas, servidor o base de datos — el juego corre en el navegador.
 - Menú lateral, repositorio por persona y cuenta de Claude — feature aparte (902).
+- Marcas, logos, nombres o personajes de otras obras — el estilo de bloques es propio.
 
 ## Measurable Process Outcomes (DX)
 

@@ -700,3 +700,17 @@ distribución del binario con versión y hash, igual que la capa A.
 **Motivo:** Cumplir lo que el humano pidió con el menor riesgo: lo visual no toca cuentas ni credenciales y se puede hacer con TDD ahora; las integraciones reales merecen su propio ciclo del modelo.
 **Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`; se agregó `drafts/referencia-oficina-2.png`.
 **Decidido por:** kbelmonte (delegó el criterio de esta entrada a Claude: "3 elegí vos")
+
+---
+## 2026-11-06 Estilo de bloques propio, etiquetas con el comando y dock de agentes
+
+**feature_id:** 901-juego-sdd
+**command_origin:** sdd-implement
+**status:** accepted
+**Gap o motivo:** Con la feature cerrada en 13/13, el humano mostró una tercera referencia visual (una captura de una oficina armada con ladrillos de juguete, con una etiqueta flotante sobre cada personaje y un dock abajo con todos los agentes) y pidió que el juego se vea así, "con los nombres de los comandos". La spec no pedía ese estilo, ni etiquetas, ni dock.
+**Alternativas consideradas:** (1) Mantener el estilo actual (piso lavanda, personajes lisos). (2) Reproducir la captura tal cual, con sus marcas, logos y personajes. (3) Un estilo de bloques propio y genérico, inspirado en la idea (piso con tacos, paredes de ladrillos, personajes de bloques), con etiquetas y dock con nuestros comandos.
+**Por qué se descartaron:** (1) no atiende el pedido. (2) usaría marcas, logos y personajes de terceros, que la constitución ya prohíbe incluir, y la captura es contenido ajeno.
+**Decisión tomada:** US-11 y T014: piso con tacos, paredes de ladrillos blancos, muebles y personajes de bloques; sobre cada personaje una etiqueta con el nombre de su comando y su estado; un dock abajo con los 8 agentes, un contador de tareas que faltan y de "te toca", y un botón «Nuevo»; al tocar un agente la cámara viaja a su sala. La constitución (PROHIBITED 2) pasa a vedar arte, nombres, logos y personajes de otras marcas u obras. La captura no se guarda en el repositorio; queda descrita en `input.md`.
+**Motivo:** Atender el pedido visual sin copiar contenido de terceros y sin tocar cuentas ni integraciones. Es solo dibujo y una barra de interfaz, comprobable con tests de la lógica pura.
+**Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`.
+**Decidido por:** kbelmonte (pidió el estilo con una referencia; la redacción de esta entrada la hizo Claude)

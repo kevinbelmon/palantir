@@ -38,6 +38,7 @@ y `oficina/` calculan.
 - Oficina grande en perspectiva: 8 salas (cartel, pizarra, escritorio, personaje), lobby, papelería.
 - Cámara: desplazar con clic derecho arrastrando; zoom con la rueda.
 - Ruta del brief con flechas, vida de los personajes, objetos por sala y barra superior con el paso.
+- Estilo de bloques (tacos y ladrillos), etiquetas con el comando y dock con los 8 agentes.
 - Contenido en español simple para los 8 agentes: globito, qué hace, para qué sirve y documento.
 - Visor de documento, pantalla final con repaso y botón "Jugar de nuevo".
 - Música ambiente chill con botón de silenciar, que arranca tras el primer clic.
