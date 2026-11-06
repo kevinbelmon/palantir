@@ -5,8 +5,9 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 ## User stories
 
 **US-1 — Ver la oficina**
-- Dado que abro `localhost:5173`, cuando carga el juego, entonces veo la oficina desde arriba con
-  la papelería y 8 agentes en orden, cada uno con su nombre de comando.
+- Dado que abro `localhost:5173`, cuando carga el juego, entonces veo una oficina grande desde
+  arriba, en perspectiva, con la papelería, un lobby central y 8 salas chicas en orden; cada sala
+  tiene su cartel con el comando, su pizarra, su escritorio y su personajito.
 
 **US-2 — Mover la cámara**
 - Dado que miro la oficina, cuando mantengo el clic derecho y arrastro, entonces el mapa se

@@ -21,6 +21,8 @@ Principios no negociables. Si algo choca con ellos, se registra con `/sdd-log` a
    persona y siempre se puede silenciar.
 10. **TDD.** Los tests van antes de la implementación; `pnpm test` en verde para cerrar una task.
 11. **Puerto fijo:** `localhost:5173` con `pnpm dev`. Si está ocupado, falla con un aviso claro.
+12. **Una sala por agente**, con cartel, pizarra y escritorio, alrededor de un lobby central,
+    como en la foto de referencia (`drafts/referencia-oficina.png`). La foto es solo una guía.
 
 ## PROHIBITED
 

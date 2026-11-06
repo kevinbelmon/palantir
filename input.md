@@ -13,8 +13,9 @@ deja el brief y le ordena a cada agente que corra. Aprende mirando qué hace y q
 paso. No hay cuentas ni login.
 
 ## DONE CRITERIA
-1. Se abre en `http://localhost:5173` con `pnpm dev` y se ve la oficina completa: la papelería y
-   8 agentes en orden (refine, generate, validate, log, implement, e2e, checklist y review).
+1. Se abre en `http://localhost:5173` con `pnpm dev` y se ve una oficina grande, más grande que la
+   pantalla, con la papelería, un lobby central y 8 salas chicas, una por agente y en orden (refine,
+   generate, validate, log, implement, e2e, checklist y review), como en `drafts/referencia-oficina.png`.
 2. La cámara se desplaza con clic derecho arrastrando y se acerca o aleja con la rueda del mouse.
 3. El brief de ejemplo se deja en la papelería, y recién ahí se habilita al agente 1.
 4. Cada agente corre solo cuando la persona se lo ordena, nunca solo. Al terminar deja sobre su
@@ -44,18 +45,24 @@ paso. No hay cuentas ni login.
 - Mapa con el lienzo 2D del navegador, sin motores de juego. Lo único que se instala es React y
   Vite.
 - La música se genera con el sonido del propio navegador: sin archivos de audio ni descargas.
-- Personajes dibujados por nosotros, con formas simples de bloques y estilo propio parecido a
-  Roblox. No se usa arte de Roblox ni ningún recurso externo.
+- Personajes, salas y muebles dibujados por nosotros en el lienzo, con formas simples de bloques y
+  estilo propio parecido a Roblox. La foto de referencia es solo una guía: no se incluye en el
+  juego, y no se usa arte de Roblox ni ningún recurso externo.
 - Solo en computadora, con mouse. Gestor de paquetes: `pnpm`.
 
 ## UI / FLUJO
-Oficina vista desde arriba (2D), con personajes chiquitos, cada uno en su escritorio y en orden,
-y una zona de papelería. Flujo: la persona deja el brief de ejemplo en la papelería ("una app para
+Oficina grande vista desde arriba en perspectiva, como en `drafts/referencia-oficina.png`: 8 salas
+chicas, una por agente, alrededor de un lobby central con el cartel «Spec-Driven Development —
+Planear primero. Construir después.», un sillón y plantas. Cada sala tiene su cartel con número y
+nombre del comando, una pizarra con lo que hace, un escritorio con compu, plantas y su personajito
+de bloques. Las salas 1 a 4 van arriba (refine, generate, validate, log), la 5 a la 7 abajo
+(implement, e2e, checklist) y la 8 (review) es una sala de reuniones de vidrio a la derecha. La
+papelería es una zona propia junto al lobby. Flujo: la persona deja el brief de ejemplo en la papelería ("una app para
 dividir gastos entre amigos", siempre el mismo) → se habilita al agente 1 → la persona le ordena
 que corra → el agente trabaja con una animación corta, explica en un globito qué hace y deja un
 documento simplificado que se puede abrir → el brief pasa al agente siguiente → se repite hasta el
 agente 8 → pantalla final. Documentos de cada agente, simplificados con el ejemplo: refine (el
 brief pulido), generate (los documentos de especificación), validate (reporte de huecos), log (el
 registro de la decisión), implement (código y tests), e2e (evidencia de las pruebas), checklist
-(lista de verificación) y review (verificación final). Sin referencia visual: el diseño lo define
-`/sdd-generate`.
+(lista de verificación) y review (verificación final). Referencia visual: la foto en
+`drafts/referencia-oficina.png`; los colores y detalles los define `/sdd-generate`.

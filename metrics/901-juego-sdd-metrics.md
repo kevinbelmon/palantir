@@ -6,3 +6,10 @@
 - categorias_bloqueadas: 0
 - bloqueos_resueltos: —
 - alertas_seguridad: 0
+
+## Validate — 2026-11-06
+- command_origin: sdd-validate
+- gaps_encontrados: 2
+- supuestos_declarados: 0
+- cobertura_inicial: 90%
+- iteration_number: 1

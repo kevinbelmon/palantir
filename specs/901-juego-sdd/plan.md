@@ -20,8 +20,8 @@ pnpm create vite@latest app -- --template react-ts
 
 ```
 flujo/       estado del juego: 8 agentes en orden, brief, desbloqueos, avance (lógica pura)
-oficina/     mapa de la oficina, escritorios, papelería, personajes dibujados en el lienzo,
-             animaciones, cámara (desplazar y zoom: cuentas puras + dibujo)
+oficina/     mapa grande en perspectiva: 8 salas, lobby, papelería, muebles y personajes
+             dibujados en el lienzo; animaciones; cámara (desplazar y zoom: cuentas + dibujo)
 contenido/   textos, globitos y documentos simplificados de cada agente, y el brief de ejemplo
 musica/      música chill generada con el sonido del navegador (partitura pura + reproductor)
 ui/          componentes React: lienzo, globito, visor de documento, pantalla final, silenciar
@@ -35,10 +35,10 @@ y `oficina/` calculan.
 ## Componentes a crear
 
 - Estado del juego: papelería → agente 1 … agente 8 → fin, con "corriendo" y "terminado".
-- Oficina vista desde arriba: papelería, 8 escritorios, 8 personajes de bloques, animación de trabajo.
+- Oficina grande en perspectiva: 8 salas (cartel, pizarra, escritorio, personaje), lobby, papelería.
 - Cámara: desplazar con clic derecho arrastrando; zoom con la rueda.
 - Contenido en español simple para los 8 agentes: globito, qué hace, para qué sirve y documento.
 - Visor de documento, pantalla final con repaso y botón "Jugar de nuevo".
 - Música ambiente chill con botón de silenciar, que arranca tras el primer clic.
 
-Sin referencia visual: paleta cálida y simple, definida en T002.
+Referencia visual: `drafts/referencia-oficina.png` (solo guía); la paleta se define en T002.
