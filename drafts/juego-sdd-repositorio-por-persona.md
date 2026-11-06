@@ -42,3 +42,8 @@ Los números de esa foto (tokens, uptime, costo) son de ejemplo.
   ahí el brief y todos los comandos del modelo.
 - Iniciar sesión con GitHub: sí, con el botón «Autorizar» de GitHub (la persona autoriza una vez;
   en el juego no se escribe ninguna contraseña ni token). Falta decidir el resto de las categorías.
+- Conexión al repo (decidido): la persona **pega el link de un repo que ya existe**; un programa
+  local (corre en su compu junto al juego) guarda el brief que escribió en `drafts/` y sube ahí el
+  brief y el modelo con el `git` que ya tiene autenticado. Sin contraseñas ni tokens en el juego, y
+  sin botón «Autorizar» ni creación de repos en esta versión (reemplaza la respuesta anterior).
+- El brief ya no es fijo en esta feature: lo escribe o carga la persona.
