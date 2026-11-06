@@ -2,12 +2,12 @@
 
 Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
 
-- [ ] **T001** — Scaffold: app React con TypeScript y Vite en `app/`, puerto fijo 5173, Vitest, y
+- [x] **T001** — Scaffold: app React con TypeScript y Vite en `app/`, puerto fijo 5173, Vitest, y
       `pnpm dev` / `pnpm test` funcionando con una pantalla vacía. Crea: `app/`. · US: —
-- [ ] **T002** — Ver la oficina: lienzo con la oficina grande en perspectiva, 8 salas chicas en
+- [x] **T002** — Ver la oficina: lienzo con la oficina grande en perspectiva, 8 salas chicas en
       orden (cartel con número y comando, pizarra, escritorio), lobby central con el cartel del
       modelo, papelería y 8 personajes de bloques. Crea: `app/src/oficina/`, `app/src/ui/`. · US: US-1
-- [ ] **T003** — Decorar la oficina como la foto de referencia: plantas, sillón, bebedero, sala de
+- [x] **T003** — Decorar la oficina como la foto de referencia: plantas, sillón, bebedero, sala de
       reuniones de vidrio para el review y paleta definida. Toca: `app/src/oficina/`. · US: US-1
 - [ ] **T004** — Mover la cámara: desplazar con clic derecho arrastrando y zoom con la rueda, sobre
       una oficina más grande que la pantalla. Crea: cámara en `app/src/oficina/`. · US: US-2
