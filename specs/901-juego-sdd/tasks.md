@@ -23,7 +23,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       Crea: pantalla final en `app/src/ui/`. · US: US-7
 - [x] **T010** — Música chill generada con el sonido del navegador, que arranca con el primer
       clic y se puede silenciar. Crea: `app/src/musica/`. · US: US-8
-- [ ] **T011** — Textos simples: revisar que cada agente diga qué hace, para qué sirve y qué
+- [x] **T011** — Textos simples: revisar que cada agente diga qué hace, para qué sirve y qué
       produjo, sin jerga sin explicar (con test sobre el contenido). Toca: `contenido/`. · US: US-9
 - [ ] **T012** — Cierre: `pnpm test` en verde, `pnpm audit:sdd` sin FAIL y recorrido completo
       del juego en `localhost:5173`. · US: —

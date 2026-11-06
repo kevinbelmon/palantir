@@ -5,3 +5,4 @@ export { BRIEF_EJEMPLO } from "./brief";
 export { DOCUMENTOS } from "./documentos";
 export type { BloqueDocumento, Documento } from "./documentos";
 export { mensajeGuia } from "./guia";
+export { oracionMasLarga, palabrasTecnicas } from "./lenguaje";
