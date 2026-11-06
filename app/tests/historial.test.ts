@@ -40,8 +40,8 @@ describe("el historial en disco", () => {
 
   it("guarda y lee por repo, y recuerda cuál fue el último", () => {
     expect(ultimoRepo(base)).toBeNull();
-    guardarHistorial(base, { url: "https://github.com/a/uno.git", nombre: "uno", briefSubido: true, salidas: { 0: "hola" }, actividad: {}, progreso: avance });
-    guardarHistorial(base, { url: "https://github.com/a/dos.git", nombre: "dos", briefSubido: false, salidas: {}, actividad: {}, progreso: null });
+    guardarHistorial(base, { url: "https://github.com/a/uno.git", nombre: "uno", briefSubido: true, salidas: { 0: "hola" }, actividad: {}, progreso: avance, chat: {} });
+    guardarHistorial(base, { url: "https://github.com/a/dos.git", nombre: "dos", briefSubido: false, salidas: {}, actividad: {}, progreso: null, chat: {} });
     expect(ultimoRepo(base)).toBe("dos");
     expect(leerHistorial(base, "uno")?.progreso).toEqual(avance);
     expect(leerHistorial(base, "uno")?.salidas[0]).toBe("hola");
@@ -56,7 +56,7 @@ describe("el programa local se acuerda aunque se reinicie", () => {
   let remoto = "";
   const permisivo = (u: string) => (u === remoto ? { url: remoto, nombre: "repo-memoria" } : null);
   const abrir = async () => {
-    const s = crearServidor({ base: join(base, "trabajo"), validarUrl: permisivo, ejecutor: async () => "ok" });
+    const s = crearServidor({ base: join(base, "trabajo"), validarUrl: permisivo, ejecutor: async () => ({ texto: "ok", sesion: null }) });
     await new Promise<void>((ok) => s.listen(0, "127.0.0.1", ok));
     return { s, url: `http://127.0.0.1:${(s.address() as AddressInfo).port}` };
   };

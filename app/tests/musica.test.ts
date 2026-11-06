@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { acordeDelCompas, arpegioDelCompas, BPM, DURACION_COMPAS, frecuencia, PROGRESION } from "../src/musica";
+import { acordeDelCompas, bajoDelCompas, BPM, DURACION_COMPAS, frecuencia, golpesDeAcorde, melodiaDelCompas, PROGRESION, ritmoDelCompas } from "../src/musica";
 import { crearReproductor, type ContextoDeAudio } from "../src/musica";
 
 describe("la partitura", () => {
@@ -34,18 +34,66 @@ describe("la partitura", () => {
     expect(acordeDelCompas(PROGRESION.length + 2)).toEqual(PROGRESION[2]);
   });
 
-  it("el arpegio de cada compás usa notas del acorde, en orden de tiempo", () => {
+  it("los golpes de acorde usan notas del acorde y caen adentro del compás", () => {
     for (let c = 0; c < PROGRESION.length; c++) {
       const acorde = acordeDelCompas(c);
-      const notas = arpegioDelCompas(c);
-      expect(notas.length).toBeGreaterThanOrEqual(6);
-      notas.forEach((n, i) => {
-        expect(acorde.some((a) => (n.midi - a) % 12 === 0)).toBe(true);
-        if (i > 0) expect(n.tiempo).toBeGreaterThan(notas[i - 1].tiempo);
+      const golpes = golpesDeAcorde(c);
+      expect(golpes.length).toBeGreaterThanOrEqual(6);
+      for (const n of golpes) {
+        expect(acorde).toContain(n.midi);
         expect(n.tiempo).toBeGreaterThanOrEqual(0);
         expect(n.tiempo).toBeLessThan(DURACION_COMPAS);
+      }
+    }
+  });
+
+  it("el bajo toca la nota más grave del acorde, una octava abajo, y no se pasa del compás", () => {
+    for (let c = 0; c < PROGRESION.length; c++) {
+      const bajo = bajoDelCompas(c);
+      expect(bajo.length).toBeGreaterThanOrEqual(2);
+      for (const n of bajo) {
+        expect(n.midi).toBe(acordeDelCompas(c)[0] - 12);
+        expect(n.tiempo + n.duracion).toBeLessThanOrEqual(DURACION_COMPAS + 0.3);
+      }
+    }
+  });
+
+  it("la melodía entra desde la segunda vuelta, con notas suaves y sin salirse del compás", () => {
+    for (let c = 0; c < PROGRESION.length; c++) expect(melodiaDelCompas(c)).toEqual([]);
+    for (let c = PROGRESION.length; c < PROGRESION.length * 3; c++) {
+      const m = melodiaDelCompas(c);
+      expect(m.length).toBeGreaterThanOrEqual(3);
+      m.forEach((n, i) => {
+        expect(n.midi).toBeGreaterThanOrEqual(60);
+        expect(n.midi).toBeLessThanOrEqual(76);
+        expect(n.tiempo).toBeLessThan(DURACION_COMPAS);
+        if (i > 0) expect(n.tiempo).toBeGreaterThan(m[i - 1].tiempo);
       });
     }
+  });
+
+  it("el ritmo tiene bombo, caja y hi-hat, con la caja en el segundo y el cuarto tiempo", () => {
+    const r = ritmoDelCompas();
+    expect(new Set(r.map((g) => g.instrumento))).toEqual(new Set(["bombo", "caja", "hihat"]));
+    const negra = DURACION_COMPAS / 4;
+    expect(r.filter((g) => g.instrumento === "caja").map((g) => g.tiempo)).toEqual([negra, negra * 3]);
+    expect(r[0]).toMatchObject({ instrumento: "bombo", tiempo: 0 });
+    for (const g of r) {
+      expect(g.tiempo).toBeGreaterThanOrEqual(0);
+      expect(g.tiempo).toBeLessThan(DURACION_COMPAS);
+      expect(g.fuerza).toBeGreaterThan(0);
+      expect(g.fuerza).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("el hi-hat lleva swing: los contratiempos llegan un poco tarde", () => {
+    const hihats = ritmoDelCompas().filter((g) => g.instrumento === "hihat");
+    const media = DURACION_COMPAS / 8;
+    expect(hihats).toHaveLength(8);
+    hihats.forEach((g, i) => {
+      if (i % 2 === 0) expect(g.tiempo).toBeCloseTo(i * media);
+      else expect(g.tiempo).toBeGreaterThan(i * media);
+    });
   });
 });
 
@@ -151,7 +199,7 @@ describe("el reproductor de música", () => {
     r.iniciar();
     r.iniciar();
     expect(contextos).toHaveLength(1);
-    expect(contextos[0].osciladores.length).toBeGreaterThanOrEqual(PROGRESION[0].length);
+    expect(contextos[0].osciladores.length).toBeGreaterThanOrEqual(PROGRESION[0].length + ritmoDelCompas().length);
     expect(r.estaActivo()).toBe(true);
   });
 

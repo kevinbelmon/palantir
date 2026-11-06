@@ -43,10 +43,20 @@ export function actividadDe(linea: string): string[] {
   for (const parte of e.message.content as unknown[]) {
     if (typeof parte !== "object" || parte === null) continue;
     const p = parte as { type?: unknown; text?: unknown; name?: unknown; input?: unknown };
-    if (p.type === "text" && typeof p.text === "string" && p.text.trim()) frases.push(`Dice: ${corto(p.text.trim().replace(/\s+/g, " "))}`);
+    if (p.type === "text" && typeof p.text === "string" && p.text.trim()) frases.push(`Dice: ${corto(p.text.trim().replace(/[*`#]/g, "").replace(/\s+/g, " "))}`);
     if (p.type === "tool_use" && typeof p.name === "string") frases.push(deHerramienta(p.name, typeof p.input === "object" && p.input !== null ? (p.input as Record<string, unknown>) : {}));
   }
   return frases;
+}
+
+/** La sesión de la conversación (viene en cada evento): sirve para seguirla en el próximo turno. */
+export function sesionDe(linea: string): string | null {
+  try {
+    const e = JSON.parse(linea) as { session_id?: unknown };
+    return typeof e.session_id === "string" ? e.session_id : null;
+  } catch {
+    return null;
+  }
 }
 
 /** El mensaje final de una corrida: viene en el evento `result`. */

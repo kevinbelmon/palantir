@@ -11,7 +11,7 @@ import { Guia } from "./ui/Guia";
 import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
-import { PanelAgente } from "./ui/PanelAgente";
+import { ANCHO_PANEL, PanelAgente } from "./ui/PanelAgente";
 import { Archivos, BotonArchivos } from "./ui/Archivos";
 import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
@@ -32,6 +32,7 @@ export default function App() {
   const [archivosAbierto, setArchivosAbierto] = useState(false);
   const [aviso, setAviso] = useState("");
   const real = local.briefSubido;
+  const [ocupado, setOcupado] = useState(false);
 
   // al abrir el juego, si el programa local ya tiene un repo (el último que se usó), se retoma donde se dejó
   useEffect(() => {
@@ -95,44 +96,59 @@ export default function App() {
     else setSeleccion(el.indice);
   };
 
-  // el agente que corre termina solo, unos segundos después de que se le ordenó
+  // sin repo conectado, el agente que corre termina solo, unos segundos después de que se le ordenó
   const corriendo = estado.agentes.findIndex((a) => a === "corriendo");
   useEffect(() => {
-    if (corriendo === -1) return;
-    if (!real) {
-      const t = setTimeout(() => despachar({ tipo: "terminarCorrida", indice: corriendo }), DURACION_CORRIDA_MS);
-      return () => clearTimeout(t);
-    }
-    // con un repo conectado el agente corre de verdad: se espera lo que conteste el programa local
-    let vivo = true;
-    // mientras el agente trabaja, se le pregunta cada tanto qué va haciendo
-    const seguimiento = setInterval(() => {
+    if (corriendo === -1 || real) return;
+    const t = setTimeout(() => despachar({ tipo: "terminarCorrida", indice: corriendo }), DURACION_CORRIDA_MS);
+    return () => clearTimeout(t);
+  }, [corriendo, real]);
+
+  // se le ordena a un agente que corra. Con un repo conectado corre de verdad: se presenta y, si necesita algo,
+  // pregunta en el chat; el paso se da por listo desde ahí
+  const ordenar = (indice: number) => {
+    despachar({ tipo: "ordenarCorrer", indice });
+    if (!real) return;
+    setOcupado(true);
+    cliente
+      .correrAgente(indice)
+      .then(setLocal)
+      .catch((e: unknown) => {
+        setAviso(e instanceof Error ? e.message : "Algo salió mal.");
+        despachar({ tipo: "cancelarCorrida", indice });
+      })
+      .finally(() => setOcupado(false));
+  };
+
+  // mientras hay un turno en marcha, se le pregunta cada tanto al programa local qué va haciendo el agente
+  useEffect(() => {
+    if (!ocupado) return;
+    const t = setInterval(() => {
       cliente
         .estado()
-        .then((e) => vivo && setLocal((previo) => ({ ...previo, actividad: e.actividad })))
+        .then((e) => setLocal((previo) => ({ ...previo, actividad: e.actividad })))
         .catch(() => {});
     }, 1500);
+    return () => clearInterval(t);
+  }, [ocupado, cliente]);
+
+  // la persona le contesta al agente: su mensaje se ve enseguida y el agente sigue la misma conversación
+  const enviarAlAgente = (indice: number, texto: string) => {
+    setOcupado(true);
+    setLocal((p) => ({ ...p, chat: { ...p.chat, [String(indice)]: [...(p.chat[String(indice)] ?? []), { rol: "persona", texto }] } }));
     cliente
-      .correrAgente(corriendo)
-      .then((r) => {
-        if (!vivo) return;
-        setLocal(r);
-        despachar({ tipo: "terminarCorrida", indice: corriendo });
-      })
+      .enviarMensaje(indice, texto)
+      .then(setLocal)
       .catch((e: unknown) => {
-        if (!vivo) return;
         setAviso(e instanceof Error ? e.message : "Algo salió mal.");
-        despachar({ tipo: "cancelarCorrida", indice: corriendo });
-      });
-    return () => {
-      vivo = false;
-      clearInterval(seguimiento);
-    };
-  }, [corriendo, real, cliente]);
+        cliente.estado().then(setLocal).catch(() => {});
+      })
+      .finally(() => setOcupado(false));
+  };
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS }}>
+      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS, right: seleccion !== null ? ANCHO_PANEL : 0 }}>
         <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
       </div>
       <PasoAPaso
@@ -150,10 +166,14 @@ export default function App() {
           indice={seleccion}
           estado={estado.agentes[seleccion]}
           briefDejado={estado.briefDejado}
-          alOrdenar={() => despachar({ tipo: "ordenarCorrer", indice: seleccion })}
+          alOrdenar={() => ordenar(seleccion)}
           alCerrar={() => setSeleccion(null)}
           alLeer={() => despachar({ tipo: "abrirDocumento", indice: seleccion })}
           actividad={real ? local.actividad[String(seleccion)] : undefined}
+          mensajes={real ? (local.chat[String(seleccion)] ?? (local.salidas[String(seleccion)] ? [{ rol: "agente" as const, texto: local.salidas[String(seleccion)] }] : undefined)) : undefined}
+          ocupado={ocupado && corriendo === seleccion}
+          alEnviar={real ? (texto) => enviarAlAgente(seleccion, texto) : undefined}
+          alTerminar={real ? () => despachar({ tipo: "terminarCorrida", indice: seleccion }) : undefined}
         />
       )}
       {estado.documentoAbierto !== null && (

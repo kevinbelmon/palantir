@@ -4,6 +4,9 @@ import { join } from "node:path";
 /** Dónde va la persona en el juego (lo mismo que el estado de la pantalla). */
 export type Progreso = { briefDejado: boolean; agentes: string[]; documentoAbierto: number | null; fin: boolean };
 
+export type Mensaje = { rol: "agente" | "persona"; texto: string };
+export type Conversacion = { sesion: string | null; mensajes: Mensaje[] };
+
 export type Historial = {
   url: string;
   nombre: string;
@@ -11,6 +14,7 @@ export type Historial = {
   salidas: Record<number, string>;
   actividad: Record<number, string[]>;
   progreso: Progreso | null;
+  chat: Record<number, Conversacion>;
 };
 
 const ESTADOS = new Set(["deshabilitado", "habilitado", "corriendo", "terminado"]);
@@ -56,6 +60,7 @@ export function leerHistorial(base: string, nombre: string): Historial | null {
     salidas: typeof h.salidas === "object" && h.salidas !== null ? h.salidas : {},
     actividad: typeof h.actividad === "object" && h.actividad !== null ? h.actividad : {},
     progreso: progresoValido(h.progreso),
+    chat: typeof h.chat === "object" && h.chat !== null ? h.chat : {},
   };
 }
 

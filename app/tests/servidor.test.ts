@@ -62,9 +62,9 @@ describe("el programa local", () => {
     servidor = crearServidor({
       base: join(base, "servidor"),
       validarUrl: permisivo,
-      ejecutor: async (_c, comando) => {
-        llamadas.push(comando);
-        return `Listo: ${comando}`;
+      ejecutor: async (_c, prompt) => {
+        llamadas.push(prompt);
+        return { texto: `Listo: ${prompt}`, sesion: null };
       },
     });
     await new Promise<void>((ok) => servidor.listen(0, "127.0.0.1", ok));
@@ -95,9 +95,9 @@ describe("el programa local", () => {
     const r = await pedir("/api/agente", { indice: 1 });
     const cuerpo = (await r.json()) as { salida: string; salidas: Record<string, string> };
     expect(r.status).toBe(200);
-    expect(cuerpo.salida).toBe("Listo: sdd-generate");
-    expect(llamadas).toEqual(["sdd-generate"]);
-    expect(cuerpo.salidas["1"]).toBe("Listo: sdd-generate");
+    expect(cuerpo.salida).toBe("Listo: /sdd-generate");
+    expect(llamadas).toEqual(["/sdd-generate"]);
+    expect(cuerpo.salidas["1"]).toBe("Listo: /sdd-generate");
   }, 60_000);
 
   it("rechaza un agente que no existe", async () => {

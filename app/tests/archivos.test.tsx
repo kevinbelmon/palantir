@@ -23,6 +23,7 @@ describe("lo que va haciendo el agente, en frases simples", () => {
   it("cuenta lo que dice y no muestra comandos ni datos crudos", () => {
     const f = actividadDe(evento([{ type: "text", text: "Voy a leer   el brief\ny preguntar." }, { type: "tool_use", name: "Bash", input: { command: "secreto" } }]));
     expect(f[0]).toBe("Dice: Voy a leer el brief y preguntar.");
+    expect(actividadDe(evento([{ type: "text", text: "**Análisis** de `drafts/brief.md`" }]))).toEqual(["Dice: Análisis de drafts/brief.md"]);
     expect(f.join(" ")).not.toContain("secreto");
   });
 
