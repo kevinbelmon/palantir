@@ -47,3 +47,6 @@ Los números de esa foto (tokens, uptime, costo) son de ejemplo.
   brief y el modelo con el `git` que ya tiene autenticado. Sin contraseñas ni tokens en el juego, y
   sin botón «Autorizar» ni creación de repos en esta versión (reemplaza la respuesta anterior).
 - El brief ya no es fijo en esta feature: lo escribe o carga la persona.
+- «End to end» (decidido, opción B): el programa local lanza Claude Code (con la sesión ya iniciada
+  de la persona) y ejecuta de verdad los 8 agentes sobre su brief, uno por vez cuando ella lo ordena;
+  cada agente del juego muestra lo que produjo en serio. Incluye `/sdd-e2e`.
