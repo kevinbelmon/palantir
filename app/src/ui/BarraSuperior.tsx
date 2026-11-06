@@ -1,5 +1,6 @@
 import { textosDe } from "../contenido";
 import { AGENTES, progreso, type Estado } from "../flujo";
+import { Logo } from "./iconos";
 
 /** Alto de la barra: el mapa deja ese margen arriba para no quedar tapado. */
 export const ALTO_BARRA = 64;
@@ -27,16 +28,14 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         alignItems: "center",
         gap: 20,
         padding: "0 200px 0 16px",
-        background: "linear-gradient(90deg, rgba(20,22,40,0.97), rgba(38,34,78,0.94))",
+        background: "rgba(20, 22, 40, 0.97)",
         borderBottom: "1px solid #3a3f66",
         color: "#ffffff",
         zIndex: 5,
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 11, background: "linear-gradient(135deg,#5b8cff,#8e6bff)", display: "grid", placeItems: "center", fontSize: 22 }} aria-hidden="true">
-          🚀
-        </div>
+        <Logo tam={36} />
         <div style={{ minWidth: 0 }}>
           <div style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.1 }}>Spec-Driven Development</div>
           <div style={{ fontSize: 13, color: "#aab0d8" }}>Planear primero. Construir después.</div>

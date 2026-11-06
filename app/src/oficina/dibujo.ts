@@ -10,7 +10,7 @@ import { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
 import { posicionEtiqueta } from "./etiquetas";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
-import { caja, type Ctx, envolver, FUENTE, rectRedondo, rellenar, sombra, texto } from "./primitivas";
+import { caja, type Ctx, envolver, FUENTE, iconoHoja, marcaDeBloques, rectRedondo, rellenar, sombra, texto } from "./primitivas";
 
 export type VistaDibujo = {
   ancho: number;
@@ -234,7 +234,7 @@ function dibujarLobby(ctx: Ctx) {
   sombra(ctx, a.x + a.w / 2, a.y + a.h + 14, a.w / 2.1, 12);
   rectRedondo(ctx, a.x, a.y, a.w, a.h, 22);
   rellenar(ctx, PALETA.cartelFondo);
-  texto(ctx, "🚀", a.x + 70, a.y + a.h / 2 + 18, { tam: 56, color: "#fff", alinear: "center" });
+  marcaDeBloques(ctx, a.x + 66, a.y + a.h / 2, 64);
   texto(ctx, CARTEL_CENTRAL.titulo, a.x + 130, a.y + 68, { tam: 44, color: PALETA.cartelTexto, peso: 800 });
   texto(ctx, CARTEL_CENTRAL.lema, a.x + 132, a.y + 108, { tam: 24, color: PALETA.cartelSub, peso: 500 });
 }
@@ -539,7 +539,7 @@ function dibujarPapeleria(ctx: Ctx, v: VistaDibujo) {
   sombra(ctx, sx + 60, a.y + 86, 130, 7, 0.22);
   rectRedondo(ctx, sx - 30, a.y + 14, 230, 66, 16);
   rellenar(ctx, PALETA.cartelFondo);
-  texto(ctx, "📄", sx + 2, a.y + 58, { tam: 32, color: "#fff", alinear: "center" });
+  iconoHoja(ctx, sx + 2, a.y + 47, 34);
   texto(ctx, "Papelería", sx + 30, a.y + 44, { tam: 24, color: PALETA.cartelTexto, peso: 800 });
   texto(ctx, "Dejá acá el brief", sx + 30, a.y + 66, { tam: 15, color: PALETA.cartelSub, peso: 500 });
 }

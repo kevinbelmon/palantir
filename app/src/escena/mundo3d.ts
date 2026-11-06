@@ -100,7 +100,7 @@ export function construirMundo(): Mundo3D {
   raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(150, 6, 70), plastico("#5a5f86")), cm.x, 65, cm.z));
   const ranuras = [-110, -50, 10, 70, 130].map((dx) => ({ x: cm.x + dx, y: mesa.y + 8 }));
   raiz.add(tacosInstanciados(ranuras, 62, plastico(PALETA.maderaTapa), 5, 4));
-  const rotuloPapeleria = sprite(texturaCartelChico("📄", "Papelería", "Dejá acá el brief"), 230, 58);
+  const rotuloPapeleria = sprite(texturaCartelChico("Papelería", "Dejá acá el brief"), 230, 58);
   raiz.add(colocar(rotuloPapeleria, pa.x + pa.w / 2 + 85, 70, pa.y - 34));
 
   const briefPapel = crearPapel(84, 58);

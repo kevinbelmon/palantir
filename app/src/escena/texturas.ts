@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { iconoHoja, marcaDeBloques } from "../oficina/primitivas";
 
 // Todas las texturas se dibujan en código con un lienzo 2D: no hay imágenes ni archivos externos.
 const FUENTE = '"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif';
@@ -188,7 +189,7 @@ export function texturaCartelCentral(titulo: string, lema: string): THREE.Canvas
   redondo(ctx, 0, 0, 800, 150, 22);
   ctx.fillStyle = "#1e2033";
   ctx.fill();
-  texto(ctx, "🚀", 70, 95, 56, "#fff", 600, "center");
+  marcaDeBloques(ctx, 66, 75, 64);
   texto(ctx, titulo, 130, 68, 44, "#ffffff", 800);
   texto(ctx, lema, 132, 108, 24, "#aab0d8", 500);
   return aTextura(c);
@@ -252,15 +253,15 @@ export function texturaGuiones(): THREE.CanvasTexture {
   return aTextura(c, true);
 }
 
-/** Cartel chico con un ícono (emoji), un título y una línea de ayuda: el de la papelería. */
-export function texturaCartelChico(icono: string, titulo: string, sub: string): THREE.CanvasTexture {
+/** Cartel chico con una hoja dibujada, un título y una línea de ayuda: el de la papelería. */
+export function texturaCartelChico(titulo: string, sub: string): THREE.CanvasTexture {
   const S = 3;
   const { c, ctx } = lienzo(260 * S, 66 * S);
   ctx.scale(S, S);
   redondo(ctx, 0, 0, 260, 66, 16);
   ctx.fillStyle = "#1e2033";
   ctx.fill();
-  texto(ctx, icono, 36, 44, 32, "#ffffff", 600, "center");
+  iconoHoja(ctx, 34, 33, 34);
   texto(ctx, titulo, 68, 30, 24, "#ffffff", 800);
   texto(ctx, sub, 68, 54, 15, "#aab0d8", 500);
   return aTextura(c);

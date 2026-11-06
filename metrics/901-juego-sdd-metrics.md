@@ -204,3 +204,41 @@
 - supuestos_declarados: 0
 - cobertura_inicial: 100%
 - iteration_number: 6
+
+### 📊 Reporte de Esfuerzo SDD
+
+**Contexto de ejecución**
+- **feature_id**: 901-juego-sdd
+- **command_origin**: sdd-implement
+- **iteration_number**: 5
+- **timestamp**: 2026-11-06T21:00:00-03:00
+
+**Eficiencia de la IA (DX)**
+- [x] DX_MET_001 **Ciclos de Autocorrección**: 2. La spec y las tasks se pasaron del límite de líneas al agregar US-12/13 y T016/T017, y hubo que compactarlas; y en la captura el nombre «/sdd-implement» se partía en dos renglones dentro del panel.
+- [x] DX_MET_002 **Consultas de Clarificación**: 0 sobre esta parte (el pedido venía en un solo mensaje).
+- [x] DX_MET_003 **Interacciones Totales**: 1 turno del usuario (panel «Paso a paso» y quitar el aspecto «Windows XP»).
+
+**Análisis de Retrabajo**
+- [x] DX_MET_004 **Causa Raíz**: Mía: no medí cuánto espacio quedaba en los archivos con tope de líneas, y el texto del panel no cabía en una línea.
+- [x] DX_MET_005 **Resiliencia**: No se alcanzó ningún límite de rate-limit ni de tokens.
+- [x] DX_MET_006 **Token Budget** — **No medido** (exige `npx ccusage@latest`, que descarga un paquete, no corrido sin OK). `session_ids` se omite.
+
+**Rework Ratio (calculado)**
+- **Tareas totales en tasks.md**: 17
+- **DX_MET_001 acumulado**: 13 + 2 = 15
+- **Entradas en DECISIONS.md para esta feature**: 5
+- **Rework Ratio estimado**: (15 + 5) ÷ 17 ≈ 1,18
+
+**Verificación**
+- `pnpm test`: 26 archivos, 211 tests, en verde. `pnpm typecheck`, `pnpm lint` y `pnpm build`: en verde.
+- Captura en Edge sin ventana: se ve el panel «Paso a paso» a la izquierda, el comando 3 desplegado con su frase y la cámara en su sala, la barra con el logo de cuatro bloques y el botón de música con ícono dibujado.
+- **Sin verificar a ojo:** el aspecto final de los carteles del lobby y la papelería (su dibujo no se probó en captura tras el cambio), el panel con el recorrido avanzado, y el modo 2D.
+- Los emojis que quedan (✔ y ▶ en textos de documentos y botones del panel del agente, 🎉 y 🔄 en la pantalla final) no se tocaron: US-13 cubre barra, música y carteles.
+
+## Implement — 2026-11-06T21:00:00-03:00
+- command_origin: sdd-implement
+- tasks_completadas: 17/17
+- tests: PASS
+- lint: PASS
+- build: PASS
+- gate_override: false

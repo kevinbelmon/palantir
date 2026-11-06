@@ -31,8 +31,8 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
 - [x] **T015** — Mundo en 3D con Three.js: piso con tacos, ladrillos, luces y sombras, muñecos y
       objetos de bloques, ruta, carteles, etiquetas, globitos, cámara con clic derecho y rueda, y
       respaldo en 2D si no hay 3D. Crea: `app/src/escena/`. · US: US-1
-- [ ] **T016** — Panel lateral «Paso a paso»: los 8 comandos en orden con su estado; al tocar uno,
+- [x] **T016** — Panel lateral «Paso a paso»: los 8 comandos en orden con su estado; al tocar uno,
       la cámara viaja a su sala y se despliega una frase corta de para qué sirve (frase en
       `contenido/`, con test de que es corta y sin jerga). Toca: `contenido/`, `ui/`. · US: US-12
-- [ ] **T017** — Aspecto moderno: barra de arriba, botón de música y carteles sin emojis, con
+- [x] **T017** — Aspecto moderno: barra de arriba, botón de música y carteles sin emojis, con
       logo e íconos dibujados en código, estilo plano. Toca: `ui/`, `escena/`. · US: US-13

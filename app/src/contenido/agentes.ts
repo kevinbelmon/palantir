@@ -5,6 +5,8 @@ import { DOCUMENTOS, type Documento } from "./documentos";
 export type TextoAgente = {
   nombre: string;
   subtitulo: string;
+  /** Una sola frase corta de para qué sirve, para el panel «Paso a paso». */
+  resumen: string;
   pizarra: readonly [string, string, string];
   /** Lo que cuenta el agente mientras trabaja (primera persona). */
   globito: string;
@@ -20,6 +22,7 @@ export type TextoAgente = {
 const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   refine: {
     nombre: "Refine",
+    resumen: "Pule la idea del brief hasta que quede clara, preguntando lo que falte.",
     subtitulo: "Pulir el pedido",
     pizarra: ["Entender el pedido", "Hacer preguntas", "Dejar el brief claro"],
     globito: "Estoy leyendo el brief y haciendo preguntas hasta que quede clarísimo qué hay que construir.",
@@ -29,6 +32,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   generate: {
     nombre: "Generate",
+    resumen: "Convierte el brief en cuatro documentos cortos: reglas, historias, plan y tareas.",
     subtitulo: "Armar el plan",
     pizarra: ["Reglas del proyecto", "Historias de usuario", "Pasos a seguir"],
     globito: "Armo el plan: las reglas del proyecto, las historias de usuario y la lista de pasos para construirlo.",
@@ -38,6 +42,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   validate: {
     nombre: "Validate",
+    resumen: "Revisa que el plan cubra todo lo pedido y marca lo que falte.",
     subtitulo: "Buscar huecos",
     pizarra: ["Comparar con el pedido", "Marcar lo que falta", "Avisar al equipo"],
     globito: "Comparo el plan con el pedido original para ver si falta algo o si algo no tiene sentido.",
@@ -47,6 +52,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   log: {
     nombre: "Log",
+    resumen: "Anota por qué se tomó cada decisión, para no olvidarlo después.",
     subtitulo: "Dejar constancia",
     pizarra: ["Anotar la decisión", "Explicar el por qué", "Guardar el registro"],
     globito: "Anoto la decisión que se tomó y explico por qué, para que quede registrada y nadie la olvide.",
@@ -56,6 +62,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   implement: {
     nombre: "Implement",
+    resumen: "Construye el programa y sus pruebas, una tarea por vez.",
     subtitulo: "Construir",
     pizarra: ["Escribir las pruebas", "Escribir el código", "Chequear que anda"],
     globito: "Escribo primero las pruebas y después el código, y chequeo que todo funcione como se pidió.",
@@ -65,6 +72,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   e2e: {
     nombre: "E2E",
+    resumen: "Prueba la aplicación funcionando, de punta a punta, como lo haría una persona.",
     subtitulo: "Probar de punta a punta",
     pizarra: ["Abrir la aplicación", "Hacer el recorrido", "Guardar la evidencia"],
     globito: "Abro la aplicación como lo haría una persona y hago el recorrido completo, guardando cada captura.",
@@ -74,6 +82,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   checklist: {
     nombre: "Checklist",
+    resumen: "Arma la lista para que una persona confirme que todo se ve y anda bien.",
     subtitulo: "Revisión humana",
     pizarra: ["Lista de chequeo", "Mirar como persona", "Tildar lo que está bien"],
     globito: "Miro lo que solo una persona puede juzgar, como si se entiende un botón, y armo la lista para tildar.",
@@ -83,6 +92,7 @@ const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   },
   review: {
     nombre: "Review",
+    resumen: "Hace la revisión final: confirma que lo construido cumple lo pedido.",
     subtitulo: "Revisión final",
     pizarra: ["Repasar todo", "Confirmar que cumple", "Dar el visto bueno"],
     globito: "Repaso todo el recorrido: el pedido, el plan, el código, las pruebas y la lista, para dar el visto bueno final.",

@@ -80,3 +80,27 @@ export function sombra(ctx: Ctx, cx: number, cy: number, rx: number, ry: number,
   ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
   ctx.fill();
 }
+
+/** El logo: cuatro bloques que se encastran, dibujados en código. `(cx, cy)` es el centro y `lado` el ancho total. */
+export function marcaDeBloques(ctx: Ctx, cx: number, cy: number, lado: number) {
+  const b = lado * 0.46;
+  const colores = ["#5b8cff", "#8e6bff", "#3ecf6e", "#ffd54a"];
+  colores.forEach((c, i) => {
+    const x = cx - lado / 2 + (i % 2) * (lado - b);
+    const y = cy - lado / 2 + Math.floor(i / 2) * (lado - b);
+    rectRedondo(ctx, x, y, b, b, b * 0.28);
+    rellenar(ctx, c);
+  });
+}
+
+/** Una hoja con renglones, como ícono. `(cx, cy)` es el centro y `alto` su alto total. */
+export function iconoHoja(ctx: Ctx, cx: number, cy: number, alto: number) {
+  const w = alto * 0.76;
+  rectRedondo(ctx, cx - w / 2, cy - alto / 2, w, alto, alto * 0.14);
+  rellenar(ctx, "#f4f3ee");
+  ctx.fillStyle = "#5b8cff";
+  ctx.fillRect(cx - w * 0.32, cy - alto * 0.26, w * 0.4, alto * 0.08);
+  ctx.fillStyle = "#b9bde0";
+  ctx.fillRect(cx - w * 0.32, cy - alto * 0.06, w * 0.64, alto * 0.08);
+  ctx.fillRect(cx - w * 0.32, cy + alto * 0.14, w * 0.5, alto * 0.08);
+}

@@ -12,6 +12,7 @@ import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
 import { PanelAgente } from "./ui/PanelAgente";
+import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
 
@@ -22,6 +23,7 @@ export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
   const [seleccion, setSeleccion] = useState<number | null>(null);
   const [enfoque, setEnfoque] = useState<Enfoque | null>(null);
+  const [pasoAbierto, setPasoAbierto] = useState<number | null>(null);
   const [musica] = useState(() => crearReproductor());
   const [silenciada, setSilenciada] = useState(false);
 
@@ -58,7 +60,17 @@ export default function App() {
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS }}>
+        <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+      </div>
+      <PasoAPaso
+        estado={estado}
+        abierto={pasoAbierto}
+        alElegir={(i) => {
+          setPasoAbierto(pasoAbierto === i ? null : i);
+          setEnfoque({ indice: i, vez: Date.now() });
+        }}
+      />
       <BarraSuperior estado={estado} />
       <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
       {seleccion !== null && (
@@ -92,6 +104,7 @@ export default function App() {
         alNuevo={() => {
           setSeleccion(null);
           setEnfoque(null);
+          setPasoAbierto(null);
           despachar({ tipo: "reiniciar" });
         }}
       />

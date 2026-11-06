@@ -1,3 +1,5 @@
+import { IconoLupa, IconoMouse } from "./iconos";
+
 /** Cómo moverse por la oficina, siempre a la vista. */
 export function Ayuda() {
   return (
@@ -19,8 +21,12 @@ export function Ayuda() {
         pointerEvents: "none",
       }}
     >
-      <span>🖱️ Mantené el clic derecho y arrastrá para mover la oficina</span>
-      <span>🔍 Usá la rueda para acercar o alejar</span>
+      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <IconoMouse /> Mantené el clic derecho y arrastrá para mover la oficina
+      </span>
+      <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <IconoLupa /> Usá la rueda para acercar o alejar
+      </span>
     </aside>
   );
 }
