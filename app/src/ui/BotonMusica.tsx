@@ -9,7 +9,8 @@ export function BotonMusica({ silenciada, alAlternar }: Props) {
       aria-label={silenciada ? "Activar la música" : "Silenciar la música"}
       style={{
         position: "absolute",
-        top: 16,
+        top: 12,
+        zIndex: 6,
         right: 16,
         padding: "9px 16px",
         borderRadius: 12,

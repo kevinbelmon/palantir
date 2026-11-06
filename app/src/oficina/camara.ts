@@ -6,13 +6,14 @@ export type Vista = { ancho: number; alto: number };
 
 const ZOOM_MAXIMO = 1.6;
 
-/** Cámara que muestra toda la oficina, centrada, en una ventana de cualquier forma. */
-export function camaraAjustada(anchoVista: number, altoVista: number): Camara {
-  const zoom = Math.min(anchoVista / MUNDO.ancho, altoVista / MUNDO.alto) * 0.96;
+/** Cámara que muestra toda la oficina, centrada, en una ventana de cualquier forma. `margenSuperior` deja lugar para la barra de arriba. */
+export function camaraAjustada(anchoVista: number, altoVista: number, margenSuperior = 0): Camara {
+  const altoUtil = altoVista - margenSuperior;
+  const zoom = Math.min(anchoVista / MUNDO.ancho, altoUtil / MUNDO.alto) * 0.96;
   return {
     zoom,
     x: -(anchoVista / zoom - MUNDO.ancho) / 2,
-    y: -(altoVista / zoom - MUNDO.alto) / 2,
+    y: -(altoUtil / zoom - MUNDO.alto) / 2 - margenSuperior / zoom,
   };
 }
 

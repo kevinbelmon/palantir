@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import type { EstadoAgente, UbicacionBrief } from "../flujo";
-import { arrastrar, camaraAjustada, dibujarOficina, elementoEn, factorRueda, pantallaAMundo, zoomEn, type Camara, type Elemento } from "../oficina";
+import { arrastrar, camaraAjustada, dibujarOficina, elementoEn, factorRueda, pantallaAMundo, tiempoVisible, zoomEn, type Camara, type Elemento } from "../oficina";
+import { ALTO_BARRA } from "./BarraSuperior";
 
 type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir: (e: Elemento) => void };
 
@@ -26,6 +27,11 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
     let arrastrando = false;
     let ultimo = { x: 0, y: 0 };
     let inicioClic: { x: number; y: number } | null = null;
+    // si el sistema pide menos movimiento, la oficina queda quieta
+    const pideQuietud = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reducido = pideQuietud.matches;
+    const alCambiarQuietud = () => (reducido = pideQuietud.matches);
+    pideQuietud.addEventListener("change", alCambiarQuietud);
 
     const tamano = () => ({ ancho: canvas.clientWidth, alto: canvas.clientHeight });
 
@@ -33,7 +39,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
       const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(canvas.clientWidth * dpr);
       canvas.height = Math.round(canvas.clientHeight * dpr);
-      if (!movida) camara = camaraAjustada(canvas.clientWidth, canvas.clientHeight);
+      if (!movida) camara = camaraAjustada(canvas.clientWidth, canvas.clientHeight, ALTO_BARRA);
     };
     ajustar();
     const observador = new ResizeObserver(ajustar);
@@ -89,7 +95,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
 
     const bucle = (ahora: number) => {
       const { ancho, alto } = tamano();
-      camara ??= camaraAjustada(ancho, alto);
+      camara ??= camaraAjustada(ancho, alto, ALTO_BARRA);
       dibujarOficina(ctx, {
         ancho,
         alto,
@@ -97,7 +103,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
         camara,
         agentes: vista.current.agentes,
         brief: vista.current.brief,
-        tiempo: (ahora - inicio) / 1000,
+        tiempo: tiempoVisible((ahora - inicio) / 1000, reducido),
       });
       raf = requestAnimationFrame(bucle);
     };
@@ -106,6 +112,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
     return () => {
       cancelAnimationFrame(raf);
       observador.disconnect();
+      pideQuietud.removeEventListener("change", alCambiarQuietud);
       canvas.removeEventListener("pointerdown", alBajar);
       canvas.removeEventListener("pointermove", alMover);
       canvas.removeEventListener("pointerup", alSoltar);

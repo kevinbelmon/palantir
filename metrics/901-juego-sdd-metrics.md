@@ -67,3 +67,42 @@
 - supuestos_declarados: 0
 - cobertura_inicial: 100%
 - iteration_number: 3
+
+### 📊 Reporte de Esfuerzo SDD
+
+**Contexto de ejecución**
+- **feature_id**: 901-juego-sdd
+- **command_origin**: sdd-implement
+- **iteration_number**: 2
+- **timestamp**: 2026-11-06T13:40:00-03:00
+
+**Eficiencia de la IA (DX)**
+- [x] DX_MET_001 **Ciclos de Autocorrección**: 0. Ningún test falló después de implementar (los fallos esperados fueron solo el Red). Hubo dos ajustes visuales que encontré mirando capturas, no por tests: el botón de música quedaba tapado por la barra superior y la guía pisaba los carteles de arriba. **DX-001 se cumple en T013 (0 de 3 posibles).**
+- [x] DX_MET_002 **Consultas de Clarificación**: 0. El orden entre lo visual y el repositorio lo elegí yo por delegación del humano ("3 elegí vos").
+- [x] DX_MET_003 **Interacciones Totales**: 2 turnos del usuario en esta iteración (la segunda foto con el pedido, y "REAL, página publicada, testeamos local, elegí vos"). El resto fue trabajo autónomo.
+
+**Análisis de Retrabajo**
+- [x] DX_MET_004 **Causa Raíz**: Sin errores de test. Los dos ajustes visuales fueron de diseño míos, no de ambigüedad de la spec.
+- [x] DX_MET_005 **Resiliencia**: No se alcanzó ningún límite de rate-limit ni de tokens.
+
+- [x] DX_MET_006 **Token Budget** — **No medido**, por la misma razón que en la iteración 1: la variante A exige `npx ccusage@latest` (descarga un paquete de npm, no corrido sin OK) y la única sesión en `metrics/sessions.jsonl` cubrió otras features. `session_ids` se omite.
+
+**Rework Ratio (calculado)**
+- **Tareas totales en tasks.md**: 13
+- **DX_MET_001 acumulado (todas las iteraciones de esta feature)**: 5 (iteración 1) + 0 (esta) = 5
+- **Entradas en DECISIONS.md para esta feature**: 2 (oficina grande con una sala por agente; oficina con vida y 902 aparte)
+- **Rework Ratio estimado**: (5 + 2) ÷ 13 ≈ 0,54
+
+**Verificación**
+- `pnpm test`: 19 archivos, 152 tests, todos en verde. `pnpm typecheck` y `pnpm lint` sin advertencias.
+- Capturas en un navegador real (Edge sin ventana) del estado inicial y de mitad de recorrido: barra superior con el paso, ruta del brief (verde lo hecho, amarillo lo que sigue, con el papelito viajando), objeto propio en cada sala, globito de quien trabaja.
+- **Sin verificar a ojo:** la respiración y el parpadeo (solo por test: la lógica es pura) y el comportamiento con "menos movimiento" activado en el sistema (solo por test del tiempo congelado en 0).
+- `pnpm audit:sdd`: ver el cierre de esta iteración.
+
+## Implement — 2026-11-06T13:40:00-03:00
+- command_origin: sdd-implement
+- tasks_completadas: 13/13
+- tests: PASS
+- lint: PASS
+- build: PASS
+- gate_override: false

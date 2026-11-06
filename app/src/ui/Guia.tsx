@@ -7,10 +7,10 @@ export function Guia({ mensaje }: { mensaje: string }) {
       aria-live="polite"
       style={{
         position: "absolute",
-        top: 16,
+        bottom: 16,
         left: "50%",
         transform: "translateX(-50%)",
-        maxWidth: "min(760px, 90vw)",
+        maxWidth: "min(720px, calc(100vw - 760px))",
         padding: "12px 20px",
         borderRadius: 14,
         background: "rgba(30, 32, 51, 0.9)",

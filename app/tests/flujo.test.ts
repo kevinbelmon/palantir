@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { AGENTES, DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "../src/flujo";
+import { AGENTES, DURACION_CORRIDA_MS, ESTADO_INICIAL, progreso, reducir, ubicacionBrief } from "../src/flujo";
 
 describe("el juego recién abierto", () => {
   it("no tiene a nadie habilitado: primero hay que dejar el brief", () => {
@@ -187,5 +187,30 @@ describe("el final del recorrido", () => {
     const nuevo = reducir(fin, { tipo: "reiniciar" });
     expect(nuevo).toEqual(ESTADO_INICIAL);
     expect(ubicacionBrief(nuevo)).toBe("mano");
+  });
+});
+
+describe("el progreso del recorrido", () => {
+  const terminar = (e: ReturnType<typeof reducir>, i: number) =>
+    reducir(reducir(e, { tipo: "ordenarCorrer", indice: i }), { tipo: "terminarCorrida", indice: i });
+
+  it("al empezar no hay ningún paso hecho ni actual", () => {
+    expect(progreso(ESTADO_INICIAL)).toEqual({ hechos: 0, total: 8, actual: null });
+  });
+
+  it("al dejar el brief, el paso actual es el del primer agente", () => {
+    expect(progreso(reducir(ESTADO_INICIAL, { tipo: "dejarBrief" }))).toEqual({ hechos: 0, total: 8, actual: 0 });
+  });
+
+  it("cuenta los agentes que terminaron y marca el que sigue", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    e = terminar(terminar(e, 0), 1);
+    expect(progreso(e)).toEqual({ hechos: 2, total: 8, actual: 2 });
+  });
+
+  it("al terminar los 8 ya no hay paso actual", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    for (let i = 0; i < 8; i++) e = terminar(e, i);
+    expect(progreso(e)).toEqual({ hechos: 8, total: 8, actual: null });
   });
 });

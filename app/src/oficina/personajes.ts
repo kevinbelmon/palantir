@@ -1,4 +1,5 @@
 import type { EstadoAgente } from "../flujo";
+import { parpadeo, respiracion } from "./animacion";
 import { APARIENCIAS, PALETA } from "./paleta";
 import { type Ctx, rectRedondo, rellenar } from "./primitivas";
 
@@ -7,6 +8,8 @@ export function dibujarPersonaje(ctx: Ctx, cx: number, cy: number, indice: numbe
   const a = APARIENCIAS[indice % APARIENCIAS.length];
   ctx.save();
   if (estado === "deshabilitado") ctx.globalAlpha = 0.62;
+  // respira: el cuerpo sube y baja un poquito, aunque nadie lo toque
+  ctx.translate(0, respiracion(t, indice));
 
   // movimiento de los brazos: teclea si está corriendo, saluda si está habilitado
   const teclea = estado === "corriendo" ? Math.sin(t * 14) * 6 : 0;
@@ -45,8 +48,13 @@ export function dibujarPersonaje(ctx: Ctx, cx: number, cy: number, indice: numbe
   rellenar(ctx, a.pelo);
   // cara
   ctx.fillStyle = "#1d2133";
-  ctx.fillRect(cx - 13, cy - 58, 7, 9);
-  ctx.fillRect(cx + 6, cy - 58, 7, 9);
+  if (parpadeo(t, indice)) {
+    ctx.fillRect(cx - 13, cy - 54, 7, 2);
+    ctx.fillRect(cx + 6, cy - 54, 7, 2);
+  } else {
+    ctx.fillRect(cx - 13, cy - 58, 7, 9);
+    ctx.fillRect(cx + 6, cy - 58, 7, 9);
+  }
   ctx.strokeStyle = "#7a4a3a";
   ctx.lineWidth = 3;
   ctx.lineCap = "round";

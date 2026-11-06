@@ -15,3 +15,20 @@ body,
   height: 100%;
   overflow: hidden;
 }
+
+/* el paso actual de la barra superior late; si el sistema pide menos movimiento, queda quieto */
+@keyframes latido {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.latido {
+  animation: latido 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .latido {
+    animation: none;
+  }
+}

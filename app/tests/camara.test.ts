@@ -83,3 +83,17 @@ describe("zoom con la rueda", () => {
     expect(MUNDO.alto * max).toBeGreaterThan(VISTA.alto);
   });
 });
+
+describe("el margen para la barra superior", () => {
+  it("deja el borde de arriba de la oficina por debajo de la barra", () => {
+    const c = camaraAjustada(1700, 1000, 64);
+    const arriba = mundoAPantalla(c, 0, 0).y;
+    const abajo = mundoAPantalla(c, 0, MUNDO.alto).y;
+    expect(arriba).toBeGreaterThanOrEqual(63.5);
+    expect(abajo).toBeLessThanOrEqual(1000.5);
+  });
+
+  it("sin margen se comporta como antes", () => {
+    expect(camaraAjustada(1700, 1000)).toEqual(camaraAjustada(1700, 1000, 0));
+  });
+});

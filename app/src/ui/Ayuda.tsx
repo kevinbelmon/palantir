@@ -8,12 +8,14 @@ export function Ayuda() {
         left: 16,
         bottom: 16,
         display: "flex",
-        gap: 18,
+        flexDirection: "column",
+        gap: 6,
         padding: "10px 16px",
         borderRadius: 12,
         background: "rgba(30, 32, 51, 0.82)",
         color: "#e6e8f5",
         fontSize: 14,
+        maxWidth: 340,
         pointerEvents: "none",
       }}
     >

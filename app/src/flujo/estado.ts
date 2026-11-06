@@ -63,6 +63,14 @@ export function reducir(e: Estado, a: Accion): Estado {
   }
 }
 
+/** Cuántos agentes terminaron y cuál es el que sigue (`null` si todavía no hay brief o ya terminaron todos). */
+export function progreso(e: Estado): { hechos: number; total: number; actual: number | null } {
+  const total = e.agentes.length;
+  const hechos = e.agentes.filter((a) => a === "terminado").length;
+  const actual = e.briefDejado && hechos < total ? e.agentes.findIndex((a) => a !== "terminado") : null;
+  return { hechos, total, actual };
+}
+
 /** Dónde está el brief ahora: en la mano, en la papelería, o en el escritorio de quien lo tiene. */
 export function ubicacionBrief(e: Estado): UbicacionBrief {
   if (!e.briefDejado) return "mano";

@@ -27,6 +27,6 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       produjo, sin jerga sin explicar (con test sobre el contenido). Toca: `contenido/`. · US: US-9
 - [x] **T012** — Cierre: `pnpm test` en verde, `pnpm audit:sdd` sin FAIL y recorrido completo
       del juego en `localhost:5173`. · US: —
-- [ ] **T013** — Una oficina con vida: ruta con flechas del brief, personajes que respiran y
+- [x] **T013** — Una oficina con vida: ruta con flechas del brief, personajes que respiran y
       parpadean, objetos propios en cada sala, barra superior con el paso actual y animaciones que
       se apagan si el sistema lo pide. Toca: `app/src/oficina/`, `flujo/`, `ui/`. · US: US-10

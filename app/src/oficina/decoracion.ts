@@ -31,3 +31,15 @@ export const COLEGAS_REVIEW: readonly { x: number; y: number; indice: number }[]
   { x: salaReview.area.x + 470, y: salaReview.area.y + 520, indice: 3 },
   { x: salaReview.area.x + 280, y: salaReview.area.y + 700, indice: 5 },
 ];
+
+export type TipoObjeto = "papelero" | "libros" | "lupa" | "libreta" | "servidor" | "dispositivos" | "portapapeles" | "trofeo";
+export type ObjetoSala = { sala: number; tipo: TipoObjeto; x: number; y: number; w: number; h: number };
+
+const TIPOS_POR_SALA: readonly TipoObjeto[] = ["papelero", "libros", "lupa", "libreta", "servidor", "dispositivos", "portapapeles", "trofeo"];
+
+/** Un objeto propio en cada sala, que cuenta qué hace su agente: el papelero de las ideas, el servidor de la construcción, el trofeo del final. */
+export const OBJETOS_SALA: readonly ObjetoSala[] = SALAS.map((s, i) =>
+  s.tipo === "vidrio"
+    ? { sala: i, tipo: TIPOS_POR_SALA[i], x: s.area.x + 40, y: s.area.y + 230, w: 56, h: 110 }
+    : { sala: i, tipo: TIPOS_POR_SALA[i], x: s.area.x + 34, y: s.area.y + 200, w: 52, h: 110 },
+);

@@ -3,7 +3,9 @@ import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 import type { Camara } from "./camara";
 import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALAS, type Rect, type Sala } from "./mundo";
-import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, PLANTAS, SILLON } from "./decoracion";
+import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "./decoracion";
+import { dibujarObjeto } from "./objetos";
+import { estadoDeSegmento, puntoEnRuta, RUTA } from "./ruta";
 import { PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
 import { caja, type Ctx, envolver, FUENTE, rectRedondo, rellenar, sombra, texto } from "./primitivas";
@@ -30,10 +32,12 @@ export function dibujarOficina(ctx: Ctx, v: VistaDibujo): void {
   ctx.setTransform(c.zoom * dpr, 0, 0, c.zoom * dpr, -c.x * c.zoom * dpr, -c.y * c.zoom * dpr);
 
   dibujarEdificio(ctx);
+  dibujarRuta(ctx, v);
   dibujarLobby(ctx);
   dibujarPapeleria(ctx, v);
   SALAS.forEach((sala, i) => dibujarSala(ctx, sala, i, v));
   dibujarDecoracion(ctx);
+  vineta(ctx, v);
 }
 
 function dibujarPlanta(ctx: Ctx, x: number, y: number) {
@@ -265,6 +269,17 @@ function escritorio(ctx: Ctx, e: Rect, t: number, activo: boolean) {
   ctx.beginPath();
   ctx.arc(e.x + e.w - 130, e.y + 14, 9, 0, Math.PI * 2);
   rellenar(ctx, "#ffffff");
+  // vapor de la taza
+  ctx.strokeStyle = "rgba(255,255,255,0.5)";
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  for (let k = 0; k < 2; k++) {
+    const bx = e.x + e.w - 133 + k * 6;
+    ctx.beginPath();
+    ctx.moveTo(bx, e.y + 4);
+    ctx.quadraticCurveTo(bx + Math.sin(t * 3 + k) * 5, e.y - 6, bx, e.y - 14);
+    ctx.stroke();
+  }
 }
 
 function silla(ctx: Ctx, x: number, y: number) {
@@ -290,6 +305,8 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
   if (!esVidrio) muros(ctx, a, a.y < LOBBY.y ? "abajo" : "arriba");
 
   pizarra(ctx, sala.pizarra, textos.pizarra);
+  const objeto = OBJETOS_SALA.find((o) => o.sala === indice);
+  if (objeto) dibujarObjeto(ctx, objeto, v.tiempo);
 
   const { x: px, y: py } = sala.personaje;
   if (estado === "habilitado") halo(ctx, sala, v.tiempo);
@@ -475,4 +492,66 @@ function dibujarPapeleria(ctx: Ctx, v: VistaDibujo) {
   texto(ctx, "📄", sx + 2, a.y + 58, { tam: 32, color: "#fff", alinear: "center" });
   texto(ctx, "Papelería", sx + 30, a.y + 44, { tam: 24, color: PALETA.cartelTexto, peso: 800 });
   texto(ctx, "Dejá acá el brief", sx + 30, a.y + 66, { tam: 15, color: PALETA.cartelSub, peso: 500 });
+}
+
+/** La ruta del brief por los pasillos: verde lo hecho, amarillo lo que sigue (con un papelito que viaja), tenue lo pendiente. */
+function dibujarRuta(ctx: Ctx, v: VistaDibujo) {
+  RUTA.forEach((tramo, i) => {
+    const estado = estadoDeSegmento(i, v.agentes);
+    const color = estado === "hecho" ? PALETA.check : estado === "activo" ? PALETA.resalte : "rgba(255,255,255,0.3)";
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = estado === "pendiente" ? 6 : 8;
+    if (estado === "activo") {
+      ctx.shadowColor = PALETA.resalte;
+      ctx.shadowBlur = 16;
+      ctx.setLineDash([18, 14]);
+      ctx.lineDashOffset = -v.tiempo * 60;
+    } else if (estado === "pendiente") {
+      ctx.setLineDash([14, 16]);
+    }
+    ctx.beginPath();
+    tramo.forEach((p, k) => (k === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.shadowBlur = 0;
+
+    // punta de flecha al llegar a la puerta
+    const fin = tramo[tramo.length - 1];
+    const antes = tramo[tramo.length - 2];
+    const ang = Math.atan2(fin.y - antes.y, fin.x - antes.x);
+    ctx.translate(fin.x, fin.y);
+    ctx.rotate(ang);
+    ctx.beginPath();
+    ctx.moveTo(4, 0);
+    ctx.lineTo(-16, -11);
+    ctx.lineTo(-16, 11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // el papelito del brief que viaja por el tramo activo
+    if (estado === "activo") {
+      const q = puntoEnRuta(tramo, (v.tiempo * 0.15) % 1);
+      ctx.save();
+      ctx.shadowColor = PALETA.resalte;
+      ctx.shadowBlur = 14;
+      rectRedondo(ctx, q.x - 13, q.y - 9, 26, 18, 3);
+      rellenar(ctx, PALETA.papel);
+      ctx.restore();
+    }
+  });
+}
+
+/** Bordes apenas más oscuros, para que la mirada vaya al centro. */
+function vineta(ctx: Ctx, v: VistaDibujo) {
+  ctx.setTransform(v.dpr, 0, 0, v.dpr, 0, 0);
+  const g = ctx.createRadialGradient(v.ancho / 2, v.alto / 2, Math.min(v.ancho, v.alto) * 0.35, v.ancho / 2, v.alto / 2, Math.max(v.ancho, v.alto) * 0.75);
+  g.addColorStop(0, "rgba(10, 10, 30, 0)");
+  g.addColorStop(1, "rgba(10, 10, 30, 0.4)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, v.ancho, v.alto);
 }

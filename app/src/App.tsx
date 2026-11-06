@@ -4,6 +4,7 @@ import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./
 import { crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
 import { Ayuda } from "./ui/Ayuda";
+import { BarraSuperior } from "./ui/BarraSuperior";
 import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
 import { Lienzo } from "./ui/Lienzo";
@@ -51,6 +52,7 @@ export default function App() {
   return (
     <main style={{ height: "100%", position: "relative" }}>
       <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} />
+      <BarraSuperior estado={estado} />
       <Guia mensaje={mensajeGuia(estado)} />
       {seleccion !== null && (
         <PanelAgente

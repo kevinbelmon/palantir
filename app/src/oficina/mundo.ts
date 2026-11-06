@@ -85,3 +85,10 @@ export function rectDocumento(sala: Sala): Rect {
     ? { x: e.x + e.w / 2 - 74, y: e.y + 34, ...PAPEL }
     : { x: e.x + e.w / 2 - 100, y: e.y + 2, ...PAPEL };
 }
+
+/** La puerta de la sala: abajo en las de arriba, arriba en las de abajo y a la izquierda en la de vidrio. */
+export function puertaDeSala(sala: Sala): { x: number; y: number } {
+  const a = sala.area;
+  if (sala.tipo === "vidrio") return { x: a.x, y: a.y + a.h / 2 };
+  return { x: a.x + a.w / 2, y: a.y < LOBBY.y ? a.y + a.h : a.y };
+}

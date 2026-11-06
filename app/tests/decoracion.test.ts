@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LOBBY, SALAS, type Rect } from "../src/oficina";
-import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, PLANTAS, SILLON } from "../src/oficina/decoracion";
+import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../src/oficina/decoracion";
 import { APARIENCIAS, PALETA } from "../src/oficina/paleta";
 
 const contiene = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
@@ -62,5 +62,24 @@ describe("la sala de vidrio del review", () => {
     expect(contiene(sala.area, MESA_REDONDA_REVIEW.x, MESA_REDONDA_REVIEW.y)).toBe(true);
     expect(COLEGAS_REVIEW.length).toBeGreaterThanOrEqual(3);
     for (const c of COLEGAS_REVIEW) expect(contiene(sala.area, c.x, c.y)).toBe(true);
+  });
+});
+
+describe("los objetos propios de cada sala", () => {
+  it("cada sala tiene el suyo, y no se repiten: se nota qué hace cada agente", () => {
+    expect(OBJETOS_SALA).toHaveLength(8);
+    expect(new Set(OBJETOS_SALA.map((o) => o.tipo)).size).toBe(8);
+    OBJETOS_SALA.forEach((o, i) => expect(o.sala).toBe(i));
+  });
+
+  it("están adentro de su sala y no tapan el escritorio", () => {
+    for (const o of OBJETOS_SALA) {
+      const s = SALAS[o.sala];
+      expect(contiene(s.area, o.x, o.y), `sala ${s.numero}`).toBe(true);
+      expect(contiene(s.area, o.x + o.w, o.y + o.h), `sala ${s.numero}`).toBe(true);
+      const tapa = { x: s.escritorio.x - 30, y: s.escritorio.y - 60, w: s.escritorio.w + 60, h: s.escritorio.h + 90 };
+      const seTapan = o.x < tapa.x + tapa.w && tapa.x < o.x + o.w && o.y < tapa.y + tapa.h && tapa.y < o.y + o.h;
+      expect(seTapan, `sala ${s.numero}`).toBe(false);
+    }
   });
 });
