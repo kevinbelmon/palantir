@@ -2,8 +2,9 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import { textosDe } from "../contenido";
 import { AGENTES, type EstadoAgente } from "../flujo";
 
-/** Ancho que ocupa el panel de la derecha: el mapa se corre para no quedar tapado. */
-export const ANCHO_PANEL = 408;
+import { ANCHO_PANEL, estiloColumna } from "./columna";
+
+export { ANCHO_PANEL };
 
 export type MensajeChat = { rol: "agente" | "persona"; texto: string };
 
@@ -93,7 +94,7 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
     <aside
       aria-label={`Agente ${agente.numero}: ${t.nombre}`}
       className="panel aparece"
-      style={{ position: "absolute", right: 14, top: 76, bottom: 124, width: ANCHO_PANEL - 28, display: "flex", flexDirection: "column", padding: "20px 20px 16px", fontSize: 15, lineHeight: 1.55, zIndex: 6 }}
+      style={{ ...estiloColumna, padding: "20px 20px 16px", fontSize: 15, lineHeight: 1.55 }}
     >
       <button onClick={alCerrar} aria-label="Cerrar" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 10, fontSize: 16, lineHeight: 1 }}>
         ✕

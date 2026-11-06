@@ -11,7 +11,8 @@ import { Guia } from "./ui/Guia";
 import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
-import { ANCHO_PANEL, PanelAgente } from "./ui/PanelAgente";
+import { ANCHO_PANEL } from "./ui/columna";
+import { PanelAgente } from "./ui/PanelAgente";
 import { Archivos, BotonArchivos } from "./ui/Archivos";
 import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
@@ -120,6 +121,9 @@ export default function App() {
     setSilenciada(!silenciada);
   };
 
+  // a la derecha se muestra una sola cosa a la vez; lo más reciente que se abrió tiene prioridad
+  const columna = estado.fin ? "final" : estado.documentoAbierto !== null ? "documento" : repoAbierto ? "repo" : archivosAbierto ? "archivos" : seleccion !== null ? "agente" : null;
+
   const alElegir = (el: Elemento) => {
     if (el.tipo === "papeleria") despachar({ tipo: "dejarBrief" });
     else if (el.tipo === "documento" && estado.agentes[el.indice] === "terminado") despachar({ tipo: "abrirDocumento", indice: el.indice });
@@ -178,7 +182,7 @@ export default function App() {
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS, right: seleccion !== null ? ANCHO_PANEL : 0 }}>
+      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS, right: columna !== null ? ANCHO_PANEL : 0 }}>
         <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
       </div>
       <PasoAPaso
@@ -191,7 +195,7 @@ export default function App() {
       />
       <BarraSuperior estado={estado} />
       <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
-      {seleccion !== null && (
+      {columna === "agente" && seleccion !== null && (
         <PanelAgente
           indice={seleccion}
           estado={estado.agentes[seleccion]}
@@ -206,10 +210,10 @@ export default function App() {
           alTerminar={real ? () => despachar({ tipo: "terminarCorrida", indice: seleccion }) : undefined}
         />
       )}
-      {estado.documentoAbierto !== null && (
+      {columna === "documento" && estado.documentoAbierto !== null && (
         <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} real={real ? (local.salidas[String(estado.documentoAbierto)] ?? "") : undefined} />
       )}
-      {estado.fin && (
+      {columna === "final" && (
         <PantallaFinal
           alReiniciar={() => {
             setSeleccion(null);
@@ -220,8 +224,8 @@ export default function App() {
       <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} canciones={CANCIONES} actual={cancion} alElegir={elegirCancion} />
       {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
       <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
-      {archivosAbierto && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
-      {repoAbierto && <PanelRepo estado={local} cliente={cliente} alCambiar={alCambiarLocal} alCerrar={() => setRepoAbierto(false)} />}
+      {columna === "archivos" && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
+      {columna === "repo" && <PanelRepo estado={local} cliente={cliente} alCambiar={alCambiarLocal} alCerrar={() => setRepoAbierto(false)} />}
       {aviso && (
         <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 16, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>
           <span>{aviso}</span>

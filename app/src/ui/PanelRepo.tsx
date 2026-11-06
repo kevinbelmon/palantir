@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Cliente, EstadoLocal } from "../conexion";
+import { estiloColumna } from "./columna";
 
 type Props = { estado: EstadoLocal; cliente: Cliente; alCambiar: (e: EstadoLocal) => void; alCerrar: () => void };
 
@@ -40,8 +41,8 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Tu repositorio" style={{ position: "absolute", inset: 0, zIndex: 8, display: "grid", placeItems: "center", background: "rgba(8, 9, 20, 0.55)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)", padding: 16 }}>
-      <section className="panel aparece" style={{ width: "min(580px, 94vw)", maxHeight: "90vh", overflow: "auto", padding: "28px 30px", background: "rgba(22, 24, 44, 0.92)" }}>
+    <section role="dialog" aria-label="Tu repositorio" className="panel aparece" style={{ ...estiloColumna, display: "block", overflowY: "auto", padding: "22px 20px" }}>
+      <div>
         <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.01em" }}>Tu repositorio</h2>
         <p style={{ margin: "0 0 22px", color: "var(--texto-suave)", fontSize: 14, lineHeight: 1.55 }}>
           Pegá el link de un repositorio tuyo de GitHub. Se instala el modelo, subís tu brief y los agentes corren de verdad con tu Claude. Todo queda publicado ahí.
@@ -85,8 +86,8 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
         <button className="btn btn-suave" onClick={alCerrar}>
           Cerrar
         </button>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 

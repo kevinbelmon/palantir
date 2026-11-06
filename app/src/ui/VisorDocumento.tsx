@@ -1,67 +1,51 @@
 import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
+import { estiloColumna } from "./columna";
 
-type Props = { indice: number; alCerrar: () => void; /** Lo que produjo el agente de verdad en el repo de la persona; si falta, se muestra el ejemplo simplificado. */ real?: string };
+type Props = {
+  indice: number;
+  alCerrar: () => void;
+  /** Lo que produjo el agente de verdad en el repo de la persona; si falta, se muestra el ejemplo simplificado. */
+  real?: string;
+};
 
-/** El documento que dejó un agente, abierto para leer. */
+/** El documento que dejó un agente, en la columna de la derecha (no tapa la oficina). */
 export function VisorDocumento({ indice, alCerrar, real }: Props) {
   const agente = AGENTES[indice];
   const t = textosDe(agente.id);
   const d = t.documento;
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Documento de ${t.nombre}`}
-      style={{
-        position: "absolute",
-        inset: 0,
-        display: "grid",
-        placeItems: "center",
-        background: "rgba(15, 16, 30, 0.62)",
-        padding: 16,
-      }}
-    >
-      <article
-        style={{
-          width: "min(680px, 94vw)",
-          maxHeight: "86vh",
-          overflow: "auto",
-          padding: "26px 32px",
-          borderRadius: 12,
-          background: "#fffdf3",
-          color: "#2a2d4a",
-          boxShadow: "0 18px 60px rgba(0,0,0,0.55)",
-          lineHeight: 1.5,
-          fontSize: 17,
-        }}
-      >
-        <div style={{ fontSize: 13, letterSpacing: 0.6, color: "#7c80a8" }}>
-          DOCUMENTO DE {t.nombre.toUpperCase()} · {agente.comando}
-        </div>
-        <h2 style={{ margin: "4px 0 16px", fontSize: 26, color: "#1e2033" }}>{real === undefined ? d.titulo : "Lo que produjo, de verdad"}</h2>
-        {real !== undefined && <pre style={{ margin: "0 0 14px", whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 16 }}>{real || "El agente terminó sin dejar un mensaje."}</pre>}
-        {real === undefined && d.bloques.map((b) => (
-          <section key={b.encabezado} style={{ marginBottom: 14 }}>
-            <h3 style={{ margin: "0 0 4px", fontSize: 17, color: "#3b3466" }}>{b.encabezado}</h3>
-            <ul style={{ margin: 0, paddingLeft: 22 }}>
-              {b.lineas.map((l) => (
-                <li key={l}>{l}</li>
-              ))}
-            </ul>
-          </section>
-        ))}
-        <p style={{ margin: "18px 0 14px", fontSize: 14, color: "#7c80a8" }}>
+    <aside role="dialog" aria-label={`Documento de ${t.nombre}`} className="panel aparece" style={{ ...estiloColumna, padding: "20px 20px 16px", fontSize: 15, lineHeight: 1.55 }}>
+      <div style={{ fontSize: 12, letterSpacing: "0.12em", color: "var(--texto-suave)" }}>
+        DOCUMENTO DE {t.nombre.toUpperCase()} · {agente.comando}
+      </div>
+      <h2 style={{ margin: "4px 36px 12px 0", fontSize: 20, fontWeight: 750, letterSpacing: "-0.01em", color: "#fff" }}>{real === undefined ? d.titulo : "Lo que produjo, de verdad"}</h2>
+      <button onClick={alCerrar} aria-label="Cerrar el documento" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 10, fontSize: 16, lineHeight: 1 }}>
+        ✕
+      </button>
+
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
+        {real !== undefined && <pre style={{ margin: "0 0 14px", whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "inherit", fontSize: 14.5 }}>{real || "El agente terminó sin dejar un mensaje."}</pre>}
+        {real === undefined &&
+          d.bloques.map((b) => (
+            <section key={b.encabezado} style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
+              <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: "var(--acento)" }}>{b.encabezado}</h3>
+              <ul style={{ margin: 0, paddingLeft: 20, color: "#dfe2f7" }}>
+                {b.lineas.map((l) => (
+                  <li key={l}>{l}</li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--texto-suave)" }}>
           {real === undefined ? "Es una versión simplificada, hecha con el ejemplo de los gastos entre amigos." : "Lo escribió Claude en tu repositorio y ya está subido a GitHub."}
         </p>
-        <button
-          onClick={alCerrar}
-          className="btn"
-        >
-          Cerrar
-        </button>
-      </article>
-    </div>
+      </div>
+
+      <button onClick={alCerrar} className="btn" style={{ marginTop: 12 }}>
+        Cerrar
+      </button>
+    </aside>
   );
 }

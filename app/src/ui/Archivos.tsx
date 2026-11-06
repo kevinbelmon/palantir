@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Cliente, Entrada } from "../conexion";
+import { estiloColumna } from "./columna";
 
 type Props = { cliente: Cliente; alCerrar: () => void };
 
@@ -64,8 +65,8 @@ export function Archivos({ cliente, alCerrar }: Props) {
   const hayReadme = entradas.some((e) => e.nombre.toLowerCase() === "readme.md");
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Archivos del repo" style={{ position: "absolute", inset: 0, zIndex: 8, display: "grid", placeItems: "center", background: "rgba(8, 9, 20, 0.55)", WebkitBackdropFilter: "blur(6px)", backdropFilter: "blur(6px)", padding: 16 }}>
-      <section className="panel aparece" style={{ width: "min(680px, 94vw)", maxHeight: "90vh", overflow: "auto", padding: "26px 28px", background: "rgba(22, 24, 44, 0.92)" }}>
+    <section role="dialog" aria-label="Archivos del repo" className="panel aparece" style={{ ...estiloColumna, display: "block", overflowY: "auto", padding: "22px 20px" }}>
+      <div>
         <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.01em" }}>Archivos del repo</h2>
         <p style={{ margin: "0 0 16px", color: "var(--texto-suave)", fontSize: 14 }}>Creá carpetas y escribí archivos, como un README. Todo lo que guardes se sube a GitHub.</p>
 
@@ -140,8 +141,8 @@ export function Archivos({ cliente, alCerrar }: Props) {
         <button className="btn btn-suave" style={{ marginTop: 18 }} onClick={alCerrar}>
           Cerrar
         </button>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
