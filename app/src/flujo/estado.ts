@@ -18,6 +18,7 @@ export type Accion =
   | { tipo: "cancelarCorrida"; indice: number }
   | { tipo: "abrirDocumento"; indice: number }
   | { tipo: "cerrarDocumento" }
+  | { tipo: "restaurar"; estado: unknown }
   | { tipo: "reiniciar" };
 
 /** Cuánto trabaja un agente antes de terminar: lo justo para leer su globito. */
@@ -33,6 +34,19 @@ export const ESTADO_INICIAL: Estado = {
 function cambiar(e: Estado, indice: number, de: EstadoAgente, a: EstadoAgente): Estado {
   if (e.agentes[indice] !== de) return e;
   return { ...e, agentes: e.agentes.map((estado, i) => (i === indice ? a : estado)) };
+}
+
+const ESTADOS_VALIDOS: readonly EstadoAgente[] = ["deshabilitado", "habilitado", "corriendo", "terminado"];
+
+/** Un avance guardado, revisado: si algo no cuadra se descarta. Un agente que estaba «corriendo» vuelve a esperar la orden. */
+export function restaurado(x: unknown): Estado | null {
+  if (typeof x !== "object" || x === null) return null;
+  const p = x as Record<string, unknown>;
+  if (typeof p.briefDejado !== "boolean" || typeof p.fin !== "boolean" || !Array.isArray(p.agentes) || p.agentes.length !== AGENTES.length) return null;
+  if (!p.agentes.every((a): a is EstadoAgente => ESTADOS_VALIDOS.includes(a as EstadoAgente))) return null;
+  const doc = p.documentoAbierto;
+  if (doc !== null && !(typeof doc === "number" && Number.isInteger(doc) && doc >= 0 && doc < AGENTES.length)) return null;
+  return { briefDejado: p.briefDejado, fin: p.fin, documentoAbierto: doc, agentes: p.agentes.map((a) => (a === "corriendo" ? "habilitado" : a)) };
 }
 
 /** Cada acción devuelve un estado nuevo; nunca modifica el anterior. Lo que no corresponde no hace nada. */
@@ -62,6 +76,8 @@ export function reducir(e: Estado, a: Accion): Estado {
       const recorridoCompleto = e.documentoAbierto === ultimo && e.agentes.every((x) => x === "terminado");
       return { ...e, documentoAbierto: null, fin: recorridoCompleto };
     }
+    case "restaurar":
+      return restaurado(a.estado) ?? e;
     case "reiniciar":
       return ESTADO_INICIAL;
   }

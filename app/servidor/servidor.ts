@@ -1,7 +1,9 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { correrAgente, type Ejecutor, ejecutorClaude } from "./agentes.ts";
 import { crearCarpeta, escribir, leer, listar } from "./archivos.ts";
+import { guardarHistorial, leerHistorial, type Progreso, progresoValido, ultimoRepo } from "./historial.ts";
 import { guardarBrief, prepararRepo, type Repo, urlDeRepo } from "./repo.ts";
 
 export type Opciones = {
@@ -12,7 +14,7 @@ export type Opciones = {
   validarUrl?: (entrada: string) => Repo | null;
 };
 
-type Sesion = { repo: Repo | null; carpeta: string | null; modeloInstalado: boolean; briefSubido: boolean; corriendo: number | null; salidas: Record<number, string>; actividad: Record<number, string[]> };
+type Sesion = { repo: Repo | null; carpeta: string | null; modeloInstalado: boolean; briefSubido: boolean; corriendo: number | null; salidas: Record<number, string>; actividad: Record<number, string[]>; progreso: Progreso | null };
 
 const LOCAL = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const MAX_CUERPO = 64 * 1024;
@@ -56,13 +58,35 @@ function leerJson(req: IncomingMessage): Promise<Record<string, unknown>> {
 export function crearServidor(opciones: Opciones): Server {
   const ejecutor = opciones.ejecutor ?? ejecutorClaude;
   const validar = opciones.validarUrl ?? urlDeRepo;
-  const s: Sesion = { repo: null, carpeta: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {} };
+  const s: Sesion = { repo: null, carpeta: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {}, progreso: null };
+
+  /** Guarda en disco dónde va la persona con este repo, para retomar aunque se reinicie todo. */
+  const persistir = () => {
+    if (s.repo) guardarHistorial(opciones.base, { url: s.repo.url, nombre: s.repo.nombre, briefSubido: s.briefSubido, salidas: s.salidas, actividad: s.actividad, progreso: s.progreso });
+  };
+  /** Carga la sesión de un repo desde su carpeta y su historial. */
+  const retomar = (repo: Repo, carpeta: string) => {
+    const h = leerHistorial(opciones.base, repo.nombre);
+    Object.assign(s, {
+      repo,
+      carpeta,
+      modeloInstalado: true,
+      briefSubido: (h?.briefSubido ?? false) || existsSync(join(carpeta, "drafts", "brief.md")),
+      salidas: h?.salidas ?? {},
+      actividad: h?.actividad ?? {},
+      progreso: h?.progreso ?? null,
+    });
+  };
+  // al encender, se retoma el último repo si su carpeta sigue ahí
+  const ultimo = ultimoRepo(opciones.base);
+  const guardado = ultimo ? leerHistorial(opciones.base, ultimo) : null;
+  if (guardado && existsSync(join(opciones.base, guardado.nombre, ".git"))) retomar({ url: guardado.url, nombre: guardado.nombre }, join(opciones.base, guardado.nombre));
 
   const responder = (res: ServerResponse, codigo: number, cuerpo: unknown) => {
     res.writeHead(codigo, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
     res.end(JSON.stringify(cuerpo));
   };
-  const estado = () => ({ repo: s.repo?.url ?? null, modeloInstalado: s.modeloInstalado, briefSubido: s.briefSubido, corriendo: s.corriendo, salidas: s.salidas, actividad: s.actividad });
+  const estado = () => ({ repo: s.repo?.url ?? null, modeloInstalado: s.modeloInstalado, briefSubido: s.briefSubido, corriendo: s.corriendo, salidas: s.salidas, actividad: s.actividad, progreso: s.progreso });
 
   return createServer(async (req, res) => {
     if (!esLocal(req)) return responder(res, 403, { error: "Solo se atiende desde esta computadora." });
@@ -76,8 +100,19 @@ export function crearServidor(opciones: Opciones): Server {
         if (!repo) return responder(res, 400, { error: "Pegá el link de un repositorio de GitHub, por ejemplo https://github.com/tu-usuario/tu-repo." });
         const carpeta = join(opciones.base, repo.nombre);
         await prepararRepo(repo.url, carpeta);
-        Object.assign(s, { repo, carpeta, modeloInstalado: true, briefSubido: false, salidas: {}, actividad: {} });
+        retomar(repo, carpeta);
+        persistir();
         return responder(res, 200, estado());
+      }
+
+      if (req.method === "POST" && ruta === "/api/progreso") {
+        if (!s.repo) return responder(res, 409, { error: "Primero conectá un repositorio." });
+        const { progreso } = await leerJson(req);
+        const valido = progresoValido(progreso);
+        if (!valido) return responder(res, 400, { error: "El avance no es válido." });
+        s.progreso = valido;
+        persistir();
+        return responder(res, 200, { ok: true });
       }
 
       if (req.method === "POST" && ruta === "/api/brief") {
@@ -85,6 +120,7 @@ export function crearServidor(opciones: Opciones): Server {
         const { texto } = await leerJson(req);
         await guardarBrief(s.carpeta, typeof texto === "string" ? texto : "");
         s.briefSubido = true;
+        persistir();
         return responder(res, 200, estado());
       }
 
@@ -102,6 +138,7 @@ export function crearServidor(opciones: Opciones): Server {
             if (lista.length > 200) lista.shift();
           });
           s.salidas[indice] = r.salida;
+          persistir();
           return responder(res, 200, { ...estado(), salida: r.salida, subido: r.subido });
         } finally {
           s.corriendo = null;

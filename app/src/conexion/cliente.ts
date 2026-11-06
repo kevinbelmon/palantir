@@ -7,11 +7,15 @@ export type EstadoLocal = {
   salidas: Record<string, string>;
   /** Lo que fue haciendo cada agente, en frases simples (la última línea es lo más reciente). */
   actividad: Record<string, string[]>;
+  progreso: ProgresoJuego | null;
 };
+
+/** Dónde va la persona en el juego, para retomar donde dejó. */
+export type ProgresoJuego = { briefDejado: boolean; agentes: readonly string[]; documentoAbierto: number | null; fin: boolean };
 
 export type Entrada = { nombre: string; tipo: "carpeta" | "archivo" };
 
-export const SIN_CONEXION: EstadoLocal = { repo: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {} };
+export const SIN_CONEXION: EstadoLocal = { repo: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {}, progreso: null };
 
 export const AVISO_SIN_PROGRAMA = "No encuentro el programa local. Encendelo en una terminal con «pnpm servidor» y volvé a intentar.";
 
@@ -52,6 +56,7 @@ export function crearCliente(pedir: Pedir = pedirReal) {
     conectarRepo: (url: string) => llamar<EstadoLocal>(pedir, "/api/repo", { url }),
     subirBrief: (texto: string) => llamar<EstadoLocal>(pedir, "/api/brief", { texto }),
     correrAgente: (indice: number) => llamar<EstadoLocal & { salida: string }>(pedir, "/api/agente", { indice }),
+    guardarProgreso: (progreso: ProgresoJuego) => llamar<{ ok: true }>(pedir, "/api/progreso", { progreso }),
     archivos: (ruta: string) => llamar<{ ruta: string; entradas: Entrada[] }>(pedir, `/api/archivos?ruta=${encodeURIComponent(ruta)}`),
     leerArchivo: (ruta: string) => llamar<{ ruta: string; texto: string }>(pedir, `/api/archivo?ruta=${encodeURIComponent(ruta)}`),
     guardarArchivo: (ruta: string, texto: string) => llamar<{ ok: true }>(pedir, "/api/archivo", { ruta, texto }),

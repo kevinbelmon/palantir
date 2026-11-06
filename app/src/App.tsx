@@ -32,6 +32,43 @@ export default function App() {
   const [archivosAbierto, setArchivosAbierto] = useState(false);
   const [aviso, setAviso] = useState("");
   const real = local.briefSubido;
+
+  // al abrir el juego, si el programa local ya tiene un repo (el último que se usó), se retoma donde se dejó
+  useEffect(() => {
+    let vivo = true;
+    cliente
+      .estado()
+      .then((e) => {
+        if (!vivo || !e.repo) return;
+        setLocal(e);
+        if (e.progreso) despachar({ tipo: "restaurar", estado: e.progreso });
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, [cliente]);
+
+  // cada cambio del avance se guarda por repo, para que el juego se acuerde en qué paso está
+  useEffect(() => {
+    if (!local.modeloInstalado) return;
+    const t = setTimeout(() => {
+      cliente.guardarProgreso(estado).catch(() => {});
+    }, 400);
+    return () => clearTimeout(t);
+  }, [estado, local.modeloInstalado, cliente]);
+
+  // al conectar otro repo: se retoma su avance guardado, o se empieza de cero
+  const alCambiarLocal = (e: EstadoLocal) => {
+    if (e.repo !== local.repo) {
+      if (e.progreso) despachar({ tipo: "restaurar", estado: e.progreso });
+      else despachar({ tipo: "reiniciar" });
+      setSeleccion(null);
+      setPasoAbierto(null);
+      setEnfoque(null);
+    }
+    setLocal(e);
+  };
   const [musica] = useState(() => crearReproductor());
   const [silenciada, setSilenciada] = useState(false);
 
@@ -134,7 +171,7 @@ export default function App() {
       {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
       <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
       {archivosAbierto && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
-      {repoAbierto && <PanelRepo estado={local} cliente={cliente} alCambiar={setLocal} alCerrar={() => setRepoAbierto(false)} />}
+      {repoAbierto && <PanelRepo estado={local} cliente={cliente} alCambiar={alCambiarLocal} alCerrar={() => setRepoAbierto(false)} />}
       {aviso && (
         <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 16, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>
           <span>{aviso}</span>
