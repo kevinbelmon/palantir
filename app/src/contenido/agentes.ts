@@ -1,4 +1,5 @@
 import type { AgenteId } from "../flujo";
+import { DOCUMENTOS, type Documento } from "./documentos";
 
 /** Lo que dicen los carteles, las pizarras y los globitos de cada agente. Todo en español simple. */
 export type TextoAgente = {
@@ -12,9 +13,11 @@ export type TextoAgente = {
   paraQueSirve: string;
   /** Lo que dice al terminar. */
   listo: string;
+  /** El documento (simplificado) que deja sobre su escritorio. */
+  documento: Documento;
 };
 
-export const TEXTOS_AGENTES: Record<AgenteId, TextoAgente> = {
+const BASE: Record<AgenteId, Omit<TextoAgente, "documento">> = {
   refine: {
     nombre: "Refine",
     subtitulo: "Pulir el pedido",
@@ -88,6 +91,10 @@ export const TEXTOS_AGENTES: Record<AgenteId, TextoAgente> = {
     listo: "¡Listo! Todo cumple lo pedido. Mirá la verificación final sobre mi escritorio.",
   },
 };
+
+export const TEXTOS_AGENTES = Object.fromEntries(
+  (Object.keys(BASE) as AgenteId[]).map((id) => [id, { ...BASE[id], documento: DOCUMENTOS[id] }]),
+) as Record<AgenteId, TextoAgente>;
 
 export function textosDe(id: AgenteId): TextoAgente {
   return TEXTOS_AGENTES[id];

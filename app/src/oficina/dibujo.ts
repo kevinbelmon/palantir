@@ -2,7 +2,7 @@ import type { EstadoAgente, UbicacionBrief } from "../flujo";
 import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 import type { Camara } from "./camara";
-import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, SALAS, type Rect, type Sala } from "./mundo";
+import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALAS, type Rect, type Sala } from "./mundo";
 import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, PLANTAS, SILLON } from "./decoracion";
 import { PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
@@ -309,6 +309,7 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
   }
 
   if (typeof v.brief === "object" && v.brief.agente === indice) briefEnEscritorio(ctx, sala);
+  if (estado === "terminado") documentoListo(ctx, sala, v.tiempo);
   if (estado === "habilitado") signoDeAviso(ctx, sala, v.tiempo);
   if (estado === "corriendo") globito(ctx, areaGlobito(sala), textos.globito, v.tiempo);
 
@@ -328,6 +329,23 @@ function halo(ctx: Ctx, sala: Sala, t: number) {
   rectRedondo(ctx, e.x - 26, e.y - 74, e.w + 52, e.h + 100, 28);
   ctx.stroke();
   ctx.restore();
+}
+
+/** El documento que dejó el agente al terminar: late un poco para invitar a abrirlo. */
+function documentoListo(ctx: Ctx, sala: Sala, t: number) {
+  const { x, y } = rectDocumento(sala);
+  const pulso = 0.5 + 0.5 * Math.sin(t * 4);
+  ctx.save();
+  ctx.shadowColor = PALETA.resalte;
+  ctx.shadowBlur = 10 + 14 * pulso;
+  rectRedondo(ctx, x, y, 44, 30, 4);
+  rellenar(ctx, PALETA.papel);
+  ctx.restore();
+  ctx.fillStyle = PALETA.check;
+  ctx.fillRect(x + 6, y + 6, 18, 3);
+  ctx.fillStyle = "#b9bde0";
+  ctx.fillRect(x + 6, y + 13, 32, 3);
+  ctx.fillRect(x + 6, y + 20, 24, 3);
 }
 
 /** Signo de admiración que rebota sobre la cabeza: "tocame". */
@@ -392,9 +410,7 @@ function insigniaListo(ctx: Ctx, x: number, y: number) {
 
 /** El brief sobre el escritorio (o la mesa) del agente que lo tiene ahora. */
 function briefEnEscritorio(ctx: Ctx, sala: Sala) {
-  const e = sala.escritorio;
-  const x = sala.tipo === "vidrio" ? MESA_REDONDA_REVIEW.x + 30 : e.x + e.w / 2 + 52;
-  const y = sala.tipo === "vidrio" ? MESA_REDONDA_REVIEW.y - 66 : e.y + 2;
+  const { x, y } = rectBrief(sala);
   rectRedondo(ctx, x, y, 44, 30, 4);
   rellenar(ctx, PALETA.papel);
   ctx.fillStyle = "#b9bde0";

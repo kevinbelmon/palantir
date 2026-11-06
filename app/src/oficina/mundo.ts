@@ -67,3 +67,21 @@ export const SALAS: readonly Sala[] = [
   salaNormal(6, 1300, ABAJO_Y),
   salaDeVidrio(7, 1900, 580),
 ];
+
+const PAPEL = { w: 44, h: 30 } as const;
+
+/** Dónde queda el brief cuando lo tiene el agente de esta sala: sobre su escritorio (o la mesa). */
+export function rectBrief(sala: Sala): Rect {
+  const e = sala.escritorio;
+  return sala.tipo === "vidrio"
+    ? { x: e.x + e.w / 2 + 30, y: e.y + 34, ...PAPEL }
+    : { x: e.x + e.w / 2 + 52, y: e.y + 2, ...PAPEL };
+}
+
+/** Dónde queda el documento que deja el agente al terminar. Es lo que se toca para leerlo. */
+export function rectDocumento(sala: Sala): Rect {
+  const e = sala.escritorio;
+  return sala.tipo === "vidrio"
+    ? { x: e.x + e.w / 2 - 74, y: e.y + 34, ...PAPEL }
+    : { x: e.x + e.w / 2 - 100, y: e.y + 2, ...PAPEL };
+}

@@ -15,7 +15,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       agente 1. Crea: `app/src/flujo/`, brief en `app/src/contenido/`. · US: US-3
 - [x] **T006** — Ordenar correr: con el agente habilitado, animación corta y globito que explica
       qué hace. Toca: `flujo/`, `oficina/`, `ui/`. · US: US-4
-- [ ] **T007** — Leer lo que produjo: documento simplificado de cada agente sobre su escritorio,
+- [x] **T007** — Leer lo que produjo: documento simplificado de cada agente sobre su escritorio,
       que se abre y se cierra. Crea: documentos en `app/src/contenido/`. · US: US-5
 - [ ] **T008** — Avanzar en orden: el brief pasa al siguiente agente, solo ese se habilita y
       ninguno corre solo. Toca: `flujo/`, `oficina/`. · US: US-6

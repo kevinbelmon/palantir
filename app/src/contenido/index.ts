@@ -2,4 +2,6 @@
 export { textosDe, TEXTOS_AGENTES } from "./agentes";
 export type { TextoAgente } from "./agentes";
 export { BRIEF_EJEMPLO } from "./brief";
+export { DOCUMENTOS } from "./documentos";
+export type { BloqueDocumento, Documento } from "./documentos";
 export { mensajeGuia } from "./guia";

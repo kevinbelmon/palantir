@@ -74,3 +74,31 @@ describe("ordenar correr a un agente", () => {
     expect(DURACION_CORRIDA_MS).toBeLessThanOrEqual(8000);
   });
 });
+
+describe("abrir y cerrar el documento de un agente", () => {
+  const corrida = (n: number) => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    e = reducir(e, { tipo: "ordenarCorrer", indice: 0 });
+    return n === 0 ? e : reducir(e, { tipo: "terminarCorrida", indice: 0 });
+  };
+
+  it("al principio no hay ningún documento abierto", () => {
+    expect(ESTADO_INICIAL.documentoAbierto).toBeNull();
+  });
+
+  it("se abre el documento de un agente que terminó", () => {
+    const e = reducir(corrida(1), { tipo: "abrirDocumento", indice: 0 });
+    expect(e.documentoAbierto).toBe(0);
+  });
+
+  it("no se abre el de uno que todavía no terminó", () => {
+    expect(reducir(corrida(0), { tipo: "abrirDocumento", indice: 0 }).documentoAbierto).toBeNull();
+    expect(reducir(corrida(1), { tipo: "abrirDocumento", indice: 4 }).documentoAbierto).toBeNull();
+    expect(reducir(corrida(1), { tipo: "abrirDocumento", indice: 99 }).documentoAbierto).toBeNull();
+  });
+
+  it("se cierra", () => {
+    const abierto = reducir(corrida(1), { tipo: "abrirDocumento", indice: 0 });
+    expect(reducir(abierto, { tipo: "cerrarDocumento" }).documentoAbierto).toBeNull();
+  });
+});

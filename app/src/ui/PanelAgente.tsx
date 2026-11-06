@@ -7,6 +7,8 @@ type Props = {
   briefDejado: boolean;
   alOrdenar: () => void;
   alCerrar: () => void;
+  /** Abre el documento que dejó el agente (solo si ya terminó). */
+  alLeer?: () => void;
 };
 
 const estiloBoton = {
@@ -21,7 +23,7 @@ const estiloBoton = {
 } as const;
 
 /** Lo que se ve al tocar un agente: qué hace, para qué sirve, y qué se le puede ordenar ahora. */
-export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar }: Props) {
+export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer }: Props) {
   const agente = AGENTES[indice];
   const t = textosDe(agente.id);
   const anterior = indice > 0 ? textosDe(AGENTES[indice - 1].id).nombre : null;
@@ -64,7 +66,14 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar }
       )}
       {estado === "corriendo" && <p style={{ margin: 0, color: "#ffd54a", fontWeight: 700 }}>⏳ Trabajando… mirá el globito en su sala.</p>}
       {estado === "terminado" && (
-        <p style={{ margin: 0, color: "#6ee79a", fontWeight: 700 }}>✔ Ya terminó. {t.listo}</p>
+        <>
+          <p style={{ margin: "0 0 10px", color: "#6ee79a", fontWeight: 700 }}>✔ Ya terminó. {t.listo}</p>
+          {alLeer && (
+            <button onClick={alLeer} style={estiloBoton}>
+              📄 Leer lo que produjo
+            </button>
+          )}
+        </>
       )}
       {estado === "deshabilitado" && (
         <p style={{ margin: 0, color: "#f0a0a0" }}>

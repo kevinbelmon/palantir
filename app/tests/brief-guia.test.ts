@@ -30,3 +30,22 @@ describe("la guía mientras un agente trabaja", () => {
     expect(texto).toContain("refine");
   });
 });
+
+describe("la guía cuando un agente terminó", () => {
+  it("le dice que lea el documento sobre su escritorio", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    e = reducir(e, { tipo: "ordenarCorrer", indice: 0 });
+    e = reducir(e, { tipo: "terminarCorrida", indice: 0 });
+    const texto = mensajeGuia(e).toLowerCase();
+    expect(texto).toContain("terminó");
+    expect(texto).toContain("documento");
+  });
+
+  it("mientras lee un documento, la guía se calla", () => {
+    let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+    e = reducir(e, { tipo: "ordenarCorrer", indice: 0 });
+    e = reducir(e, { tipo: "terminarCorrida", indice: 0 });
+    e = reducir(e, { tipo: "abrirDocumento", indice: 0 });
+    expect(mensajeGuia(e)).toBe("");
+  });
+});

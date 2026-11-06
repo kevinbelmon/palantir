@@ -1,5 +1,5 @@
 // Interfaz pública de oficina: el mapa, la cámara y el dibujo.
-export { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, SALAS } from "./mundo";
+export { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALAS } from "./mundo";
 export type { Rect, Sala, TipoSala } from "./mundo";
 export { elementoEn } from "./interaccion";
 export type { Elemento } from "./interaccion";

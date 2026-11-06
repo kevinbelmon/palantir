@@ -6,6 +6,7 @@ import { Ayuda } from "./ui/Ayuda";
 import { Guia } from "./ui/Guia";
 import { Lienzo } from "./ui/Lienzo";
 import { PanelAgente } from "./ui/PanelAgente";
+import { VisorDocumento } from "./ui/VisorDocumento";
 
 export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
@@ -13,6 +14,7 @@ export default function App() {
 
   const alElegir = (el: Elemento) => {
     if (el.tipo === "papeleria") despachar({ tipo: "dejarBrief" });
+    else if (el.tipo === "documento" && estado.agentes[el.indice] === "terminado") despachar({ tipo: "abrirDocumento", indice: el.indice });
     else setSeleccion(el.indice);
   };
 
@@ -35,7 +37,11 @@ export default function App() {
           briefDejado={estado.briefDejado}
           alOrdenar={() => despachar({ tipo: "ordenarCorrer", indice: seleccion })}
           alCerrar={() => setSeleccion(null)}
+          alLeer={() => despachar({ tipo: "abrirDocumento", indice: seleccion })}
         />
+      )}
+      {estado.documentoAbierto !== null && (
+        <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} />
       )}
       <Ayuda />
     </main>

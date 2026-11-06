@@ -5,12 +5,16 @@ export type Estado = {
   briefDejado: boolean;
   /** Estado de cada uno de los 8 agentes, en el orden del ciclo. */
   agentes: readonly EstadoAgente[];
+  /** Qué agente tiene su documento abierto para leer, si hay alguno. */
+  documentoAbierto: number | null;
 };
 
 export type Accion =
   | { tipo: "dejarBrief" }
   | { tipo: "ordenarCorrer"; indice: number }
-  | { tipo: "terminarCorrida"; indice: number };
+  | { tipo: "terminarCorrida"; indice: number }
+  | { tipo: "abrirDocumento"; indice: number }
+  | { tipo: "cerrarDocumento" };
 
 /** Cuánto trabaja un agente antes de terminar: lo justo para leer su globito. */
 export const DURACION_CORRIDA_MS = 4500;
@@ -18,6 +22,7 @@ export const DURACION_CORRIDA_MS = 4500;
 export const ESTADO_INICIAL: Estado = {
   briefDejado: false,
   agentes: AGENTES.map(() => "deshabilitado"),
+  documentoAbierto: null,
 };
 
 function cambiar(e: Estado, indice: number, de: EstadoAgente, a: EstadoAgente): Estado {
@@ -36,6 +41,10 @@ export function reducir(e: Estado, a: Accion): Estado {
       return cambiar(e, a.indice, "habilitado", "corriendo");
     case "terminarCorrida":
       return cambiar(e, a.indice, "corriendo", "terminado");
+    case "abrirDocumento":
+      return e.agentes[a.indice] === "terminado" ? { ...e, documentoAbierto: a.indice } : e;
+    case "cerrarDocumento":
+      return e.documentoAbierto === null ? e : { ...e, documentoAbierto: null };
   }
 }
 
