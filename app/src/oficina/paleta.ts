@@ -1,14 +1,15 @@
 /** Colores de la oficina: tonos suaves, como en la foto de referencia. Todo se dibuja en código. */
 export const PALETA = {
   fondo: "#262a40",
-  edificio: "#9fa2c4",
-  sueloSala: "#dcdeee",
+  edificio: "#b9c5d8",
+  sueloSala: "#a6a9b6",
   sueloLineas: "#cdd0e6",
-  sueloLobby: "#b7b9d6",
-  alfombra: "#8f92bb",
-  pared: "#eef0fa",
-  zocalo: "#a9acd0",
-  muro: "#7c80a8",
+  sueloLobby: "#8c8f9c",
+  alfombra: "#6f78b8",
+  pared: "#f4f3ee",
+  zocalo: "#d8d6cd",
+  muro: "#f4f3ee",
+  ladrilloLinea: "#d3d1c6",
   cartelFondo: "#1e2033",
   cartelTexto: "#ffffff",
   cartelSub: "#aab0d8",
@@ -29,12 +30,15 @@ export const PALETA = {
   sillon: "#3b3466",
   sillonClaro: "#4a4280",
   agua: "#9bd6f2",
-  piel: "#f2c9a0",
+  piel: "#f6d24a",
   vidrio: "rgba(190, 225, 245, 0.28)",
   vidrioBorde: "rgba(170, 215, 240, 0.9)",
   papel: "#fffdf3",
   resalte: "#ffd54a",
 } as const;
+
+/** Los puntos de estado: gris en espera, verde te toca, amarillo trabajando, azul listo. */
+export const COLORES_ESTADO = { gris: "#8b8fb0", verde: "#3ecf6e", amarillo: "#ffd54a", azul: "#5b8cff" } as const;
 
 /** Camisa y pelo de cada agente: así se distinguen a simple vista. */
 export const APARIENCIAS = [

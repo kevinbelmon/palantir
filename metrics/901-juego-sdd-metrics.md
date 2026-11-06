@@ -113,3 +113,42 @@
 - supuestos_declarados: 0
 - cobertura_inicial: 100%
 - iteration_number: 4
+
+### 📊 Reporte de Esfuerzo SDD
+
+**Contexto de ejecución**
+- **feature_id**: 901-juego-sdd
+- **command_origin**: sdd-implement
+- **iteration_number**: 3
+- **timestamp**: 2026-11-06T16:10:00-03:00
+
+**Eficiencia de la IA (DX)**
+- [x] DX_MET_001 **Ciclos de Autocorrección**: 2. Una prueba mía del dock era frágil (buscaba el número pegado al atributo, y el HTML intercala el estilo), y un error de tipos porque el lienzo no se había reescrito (la herramienta rechazó la escritura por haber cambiado el archivo desde la última lectura). Además dos ajustes visuales que encontré mirando capturas, no por tests: el panel del agente quedaba detrás del dock y la guía asomaba por los costados del panel. **DX-001 se cumple en T014 (2 de 3 posibles).**
+- [x] DX_MET_002 **Consultas de Clarificación**: 0.
+- [x] DX_MET_003 **Interacciones Totales**: 1 turno del usuario en esta iteración (la tercera foto de referencia). El resto fue trabajo autónomo.
+
+**Análisis de Retrabajo**
+- [x] DX_MET_004 **Causa Raíz**: Técnica y mía, no de la spec: una prueba demasiado atada al orden de los atributos y una escritura rechazada por archivo desactualizado. La spec no tuvo ambigüedades.
+- [x] DX_MET_005 **Resiliencia**: No se alcanzó ningún límite de rate-limit ni de tokens.
+
+- [x] DX_MET_006 **Token Budget** — **No medido**, por la misma razón que en las iteraciones anteriores: la variante A exige `npx ccusage@latest` (descarga un paquete de npm, no corrido sin OK) y la única sesión en `metrics/sessions.jsonl` cubrió otras features. `session_ids` se omite.
+
+**Rework Ratio (calculado)**
+- **Tareas totales en tasks.md**: 14
+- **DX_MET_001 acumulado (todas las iteraciones de esta feature)**: 5 + 0 + 2 = 7
+- **Entradas en DECISIONS.md para esta feature**: 3 (oficina grande con una sala por agente; oficina con vida y 902 aparte; estilo de bloques, etiquetas y dock)
+- **Rework Ratio estimado**: (7 + 3) ÷ 14 ≈ 0,71
+
+**Verificación**
+- `pnpm test`: 22 archivos, 180 tests, todos en verde. `pnpm typecheck`, `pnpm lint` (sin advertencias) y `pnpm build`: en verde.
+- Capturas en un navegador real (Edge sin ventana): estado inicial y mitad de recorrido. Se ve el piso con tacos, las paredes de ladrillos, los muñecos de bloques, la etiqueta con el comando sobre cada uno, y el dock con los 8 agentes, el contador de tareas y de «te toca». Al tocar un agente del dock, la cámara viaja a su sala y el panel queda por encima del dock.
+- **Sin verificar a ojo:** el botón «Nuevo» con su confirmación («¿Seguro?»), el viaje de cámara con «menos movimiento» activado en el sistema, y las animaciones en movimiento (solo se ven en capturas fijas).
+- **La captura de referencia** (una oficina armada con ladrillos de juguete) no se guardó en el repositorio por ser contenido de terceros; el estilo es propio y no usa marcas, logos ni personajes de otras obras.
+
+## Implement — 2026-11-06T16:10:00-03:00
+- command_origin: sdd-implement
+- tasks_completadas: 14/14
+- tests: PASS
+- lint: PASS
+- build: PASS
+- gate_override: false

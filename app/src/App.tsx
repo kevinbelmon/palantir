@@ -4,10 +4,11 @@ import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./
 import { crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
 import { Ayuda } from "./ui/Ayuda";
+import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
 import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
-import { Lienzo } from "./ui/Lienzo";
+import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { PanelAgente } from "./ui/PanelAgente";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
@@ -15,6 +16,7 @@ import { VisorDocumento } from "./ui/VisorDocumento";
 export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
   const [seleccion, setSeleccion] = useState<number | null>(null);
+  const [enfoque, setEnfoque] = useState<Enfoque | null>(null);
   const [musica] = useState(() => crearReproductor());
   const [silenciada, setSilenciada] = useState(false);
 
@@ -51,9 +53,9 @@ export default function App() {
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} />
+      <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
       <BarraSuperior estado={estado} />
-      <Guia mensaje={mensajeGuia(estado)} />
+      <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
       {seleccion !== null && (
         <PanelAgente
           indice={seleccion}
@@ -76,6 +78,18 @@ export default function App() {
         />
       )}
       <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} />
+      <Dock
+        estado={estado}
+        alElegir={(i) => {
+          setSeleccion(i);
+          setEnfoque({ indice: i, vez: Date.now() });
+        }}
+        alNuevo={() => {
+          setSeleccion(null);
+          setEnfoque(null);
+          despachar({ tipo: "reiniciar" });
+        }}
+      />
       <Ayuda />
     </main>
   );

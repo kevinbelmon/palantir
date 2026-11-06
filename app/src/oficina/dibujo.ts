@@ -1,12 +1,14 @@
 import type { EstadoAgente, UbicacionBrief } from "../flujo";
-import { textosDe } from "../contenido";
+import { etiquetaDeEstado, textoEtiqueta, textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 import type { Camara } from "./camara";
 import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALAS, type Rect, type Sala } from "./mundo";
 import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "./decoracion";
 import { dibujarObjeto } from "./objetos";
 import { estadoDeSegmento, puntoEnRuta, RUTA } from "./ruta";
-import { PALETA } from "./paleta";
+import { ladrillosEn, tacosEn } from "./bloques";
+import { posicionEtiqueta } from "./etiquetas";
+import { APARIENCIAS, COLORES_ESTADO, PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
 import { caja, type Ctx, envolver, FUENTE, rectRedondo, rellenar, sombra, texto } from "./primitivas";
 
@@ -152,25 +154,76 @@ function dibujarEdificio(ctx: Ctx) {
   ctx.stroke();
 }
 
-function baldosas(ctx: Ctx, r: Rect, paso: number, color: string) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
+const PASO_TACO = 28;
+let fichaDeTacos: HTMLCanvasElement | null = null;
+
+/** Un casillero de piso con su taco, que se repite como patrón. Se dibuja una sola vez. */
+function ficha(): HTMLCanvasElement {
+  if (fichaDeTacos) return fichaDeTacos;
+  const c = document.createElement("canvas");
+  c.width = PASO_TACO;
+  c.height = PASO_TACO;
+  const g = c.getContext("2d");
+  if (g) {
+    g.fillStyle = "rgba(0, 0, 0, 0.16)";
+    g.beginPath();
+    g.arc(14.5, 15.5, 9.5, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "rgba(255, 255, 255, 0.22)";
+    g.beginPath();
+    g.arc(13.5, 13.5, 9, 0, Math.PI * 2);
+    g.fill();
+    g.strokeStyle = "rgba(0, 0, 0, 0.12)";
+    g.lineWidth = 1.5;
+    g.stroke();
+    g.fillStyle = "rgba(255, 255, 255, 0.3)";
+    g.beginPath();
+    g.ellipse(11, 11, 3.5, 2.5, -0.6, 0, Math.PI * 2);
+    g.fill();
+  }
+  fichaDeTacos = c;
+  return c;
+}
+
+/** Piso de placa de bloques: un color liso con tacos. */
+function piso(ctx: Ctx, r: Rect, base: string) {
+  ctx.fillStyle = base;
+  ctx.fillRect(r.x, r.y, r.w, r.h);
+  const patron = ctx.createPattern(ficha(), "repeat");
+  if (!patron) return;
+  ctx.save();
   ctx.beginPath();
-  for (let x = r.x + paso; x < r.x + r.w; x += paso) {
-    ctx.moveTo(x, r.y);
-    ctx.lineTo(x, r.y + r.h);
+  ctx.rect(r.x, r.y, r.w, r.h);
+  ctx.clip();
+  ctx.fillStyle = patron;
+  ctx.fillRect(r.x, r.y, r.w, r.h);
+  ctx.restore();
+}
+
+const ladrillosEnCache = new Map<string, Rect[]>();
+function ladrillosCacheados(r: Rect, alto: number, largo: number): Rect[] {
+  const clave = `${r.x},${r.y},${r.w},${r.h},${alto},${largo}`;
+  let l = ladrillosEnCache.get(clave);
+  if (!l) {
+    l = ladrillosEn(r, alto, largo);
+    ladrillosEnCache.set(clave, l);
   }
-  for (let y = r.y + paso; y < r.y + r.h; y += paso) {
-    ctx.moveTo(r.x, y);
-    ctx.lineTo(r.x + r.w, y);
-  }
+  return l;
+}
+
+/** Pared de ladrillos blancos: las juntas de cada hilada, desfasadas. */
+function paredDeLadrillos(ctx: Ctx, r: Rect, alto: number, largo: number) {
+  ctx.fillStyle = PALETA.pared;
+  ctx.fillRect(r.x, r.y, r.w, r.h);
+  ctx.strokeStyle = PALETA.ladrilloLinea;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (const b of ladrillosCacheados(r, alto, largo)) ctx.rect(b.x, b.y, b.w, b.h);
   ctx.stroke();
 }
 
 function dibujarLobby(ctx: Ctx) {
-  ctx.fillStyle = PALETA.sueloLobby;
-  ctx.fillRect(LOBBY.x, LOBBY.y, LOBBY.w, LOBBY.h);
-  baldosas(ctx, LOBBY, 80, "rgba(255,255,255,0.18)");
+  piso(ctx, LOBBY, PALETA.sueloLobby);
 
   // alfombra central
   rectRedondo(ctx, LOBBY.x + 150, LOBBY.y + 60, LOBBY.w - 300, LOBBY.h - 120, 40);
@@ -221,12 +274,12 @@ function pizarra(ctx: Ctx, r: Rect, lineas: readonly string[]) {
   });
 }
 
-/** Muros gruesos con una puerta hacia el lobby. */
+/** Muros de ladrillos blancos, con tacos arriba y una puerta hacia el lobby. */
 function muros(ctx: Ctx, a: Rect, puerta: "abajo" | "arriba" | "izquierda") {
-  const g = 12;
+  const g = 16;
   const hueco = 130;
-  ctx.fillStyle = PALETA.muro;
-  const franja = (x: number, y: number, w: number, h: number) => ctx.fillRect(x, y, w, h);
+  const tiras: Rect[] = [];
+  const franja = (x: number, y: number, w: number, h: number) => tiras.push({ x, y, w, h });
   // arriba
   if (puerta === "arriba") {
     franja(a.x - g / 2, a.y - g / 2, (a.w - hueco) / 2 + g / 2, g);
@@ -244,11 +297,32 @@ function muros(ctx: Ctx, a: Rect, puerta: "abajo" | "arriba" | "izquierda") {
   } else franja(a.x - g / 2, a.y - g / 2, g, a.h + g);
   // derecha
   franja(a.x + a.w - g / 2, a.y - g / 2, g, a.h + g);
+
+  for (const t of tiras) {
+    sombra(ctx, t.x + t.w / 2 + 3, t.y + t.h / 2 + 4, t.w / 2 + 3, t.h / 2 + 3, 0.12);
+    paredDeLadrillos(ctx, t, 8, 30);
+    ctx.fillStyle = "#ffffff";
+    for (const p of tacosEn(t, 16)) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(0,0,0,0.14)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  }
 }
 
 function escritorio(ctx: Ctx, e: Rect, t: number, activo: boolean) {
   sombra(ctx, e.x + e.w / 2, e.y + e.h + 6, e.w / 2, 10);
   caja(ctx, e.x, e.y + 30, e.w, e.h - 30, 28, { frente: PALETA.maderaFrente, tapa: PALETA.maderaTapa, lado: PALETA.maderaLado });
+  // tacos sobre la tapa del escritorio
+  ctx.fillStyle = "rgba(255, 255, 255, 0.32)";
+  for (const p of tacosEn({ x: e.x + 14, y: e.y + 10, w: e.w - 6, h: 20 }, 16)) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
   // monitores
   for (const mx of [e.x + 26, e.x + e.w - 100]) {
     ctx.fillStyle = "#3a3f5f";
@@ -293,11 +367,9 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
   const estado = v.agentes[indice] ?? "deshabilitado";
 
   // suelo y pared del fondo
-  ctx.fillStyle = PALETA.sueloSala;
-  ctx.fillRect(a.x, a.y, a.w, a.h);
-  baldosas(ctx, { x: a.x, y: a.y + PARED, w: a.w, h: a.h - PARED }, 70, PALETA.sueloLineas);
-  ctx.fillStyle = PALETA.pared;
-  ctx.fillRect(a.x, a.y, a.w, PARED);
+  // piso de bloques con tacos y pared del fondo de ladrillos blancos
+  piso(ctx, a, PALETA.sueloSala);
+  paredDeLadrillos(ctx, { x: a.x, y: a.y, w: a.w, h: PARED }, 26, 52);
   ctx.fillStyle = PALETA.zocalo;
   ctx.fillRect(a.x, a.y + PARED - 12, a.w, 12);
 
@@ -332,6 +404,7 @@ function dibujarSala(ctx: Ctx, sala: Sala, indice: number, v: VistaDibujo) {
 
   cartel(ctx, a.x + a.w / 2, a.y - 36, sala.numero, textos.nombre, textos.subtitulo, colorDeSala(indice));
   if (estado === "terminado") insigniaListo(ctx, a.x + a.w / 2 + 170, a.y - 34);
+  etiquetaDeAgente(ctx, sala, indice, estado);
 }
 
 /** Aro amarillo que late alrededor del escritorio del agente que espera la orden. */
@@ -370,15 +443,15 @@ function signoDeAviso(ctx: Ctx, sala: Sala, t: number) {
   const { x, y } = sala.personaje;
   const rebote = Math.sin(t * 5) * 7;
   ctx.beginPath();
-  ctx.arc(x + 70, y - 104 + rebote, 19, 0, Math.PI * 2);
+  ctx.arc(x + 92, y - 104 + rebote, 19, 0, Math.PI * 2);
   rellenar(ctx, PALETA.resalte);
-  texto(ctx, "!", x + 70, y - 96 + rebote, { tam: 28, color: "#1e2033", peso: 900, alinear: "center" });
+  texto(ctx, "!", x + 92, y - 96 + rebote, { tam: 28, color: "#1e2033", peso: 900, alinear: "center" });
 }
 
 /** Dónde va el globito de cada sala: en un lugar libre, al lado del personaje. */
 function areaGlobito(sala: Sala): Rect {
   const a = sala.area;
-  return sala.tipo === "vidrio" ? { x: a.x + 20, y: a.y + 230, w: 262, h: 116 } : { x: a.x + 16, y: a.y + 14, w: 262, h: 112 };
+  return sala.tipo === "vidrio" ? { x: a.x + 20, y: a.y + 130, w: 262, h: 92 } : { x: a.x + 16, y: a.y + 8, w: 262, h: 92 };
 }
 
 function globito(ctx: Ctx, r: Rect, mensaje: string, t: number) {
@@ -396,9 +469,9 @@ function globito(ctx: Ctx, r: Rect, mensaje: string, t: number) {
   ctx.lineTo(r.x + r.w - 2, r.y + r.h - 14);
   rellenar(ctx, "#ffffff");
 
-  ctx.font = `600 14px ${FUENTE}`;
+  ctx.font = `600 13px ${FUENTE}`;
   envolver(ctx, mensaje, r.w - 28).slice(0, 4).forEach((linea, i) => {
-    texto(ctx, linea, r.x + 14, r.y + 24 + i * 18, { tam: 14, color: "#2a2d4a", peso: 600 });
+    texto(ctx, linea, r.x + 14, r.y + 22 + i * 17, { tam: 13, color: "#2a2d4a", peso: 600 });
   });
   for (let i = 0; i < 3; i++) {
     const alfa = 0.25 + 0.75 * Math.max(0, Math.sin(t * 6 - i * 0.9));
@@ -440,11 +513,8 @@ function colorDeSala(indice: number): string {
 
 function dibujarPapeleria(ctx: Ctx, v: VistaDibujo) {
   const a = PAPELERIA;
-  ctx.fillStyle = PALETA.sueloSala;
-  ctx.fillRect(a.x, a.y, a.w, a.h);
-  baldosas(ctx, a, 70, PALETA.sueloLineas);
-  ctx.fillStyle = PALETA.pared;
-  ctx.fillRect(a.x, a.y, a.w, 110);
+  piso(ctx, a, PALETA.sueloSala);
+  paredDeLadrillos(ctx, { x: a.x, y: a.y, w: a.w, h: 110 }, 22, 52);
   ctx.fillStyle = PALETA.zocalo;
   ctx.fillRect(a.x, a.y + 98, a.w, 12);
   muros(ctx, a, "arriba");
@@ -498,7 +568,7 @@ function dibujarPapeleria(ctx: Ctx, v: VistaDibujo) {
 function dibujarRuta(ctx: Ctx, v: VistaDibujo) {
   RUTA.forEach((tramo, i) => {
     const estado = estadoDeSegmento(i, v.agentes);
-    const color = estado === "hecho" ? PALETA.check : estado === "activo" ? PALETA.resalte : "rgba(255,255,255,0.3)";
+    const color = estado === "hecho" ? PALETA.check : estado === "activo" ? PALETA.resalte : "rgba(60, 70, 110, 0.3)";
     ctx.save();
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
@@ -554,4 +624,23 @@ function vineta(ctx: Ctx, v: VistaDibujo) {
   g.addColorStop(1, "rgba(10, 10, 30, 0.4)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, v.ancho, v.alto);
+}
+
+/** La etiqueta que flota sobre cada personaje: su avatar, un punto de estado y el nombre de su comando. */
+function etiquetaDeAgente(ctx: Ctx, sala: Sala, indice: number, estado: EstadoAgente) {
+  const r = posicionEtiqueta(sala);
+  const punto = COLORES_ESTADO[etiquetaDeEstado(estado).color];
+  sombra(ctx, r.x + r.w / 2, r.y + r.h + 4, r.w / 2.2, 4, 0.22);
+  rectRedondo(ctx, r.x, r.y, r.w, r.h, 13);
+  rellenar(ctx, "rgba(255, 255, 255, 0.96)");
+  ctx.beginPath();
+  ctx.arc(r.x + 15, r.y + 13, 9.5, 0, Math.PI * 2);
+  rellenar(ctx, APARIENCIAS[indice % APARIENCIAS.length].camisa);
+  ctx.beginPath();
+  ctx.arc(r.x + 15, r.y + 11, 5, 0, Math.PI * 2);
+  rellenar(ctx, PALETA.piel);
+  ctx.beginPath();
+  ctx.arc(r.x + 33, r.y + 13, 4.5, 0, Math.PI * 2);
+  rellenar(ctx, punto);
+  texto(ctx, textoEtiqueta(indice), r.x + 43, r.y + 17.5, { tam: 11.5, color: "#2a2d4a", peso: 700 });
 }

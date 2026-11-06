@@ -71,6 +71,13 @@ export function progreso(e: Estado): { hechos: number; total: number; actual: nu
   return { hechos, total, actual };
 }
 
+/** Lo que muestra el dock: cuántas tareas faltan y si a la persona le toca hacer algo. */
+export function resumenDock(e: Estado): { tareas: number; teToca: number } {
+  const tareas = e.agentes.filter((a) => a !== "terminado").length;
+  const teToca = !e.briefDejado || e.agentes.some((a) => a === "habilitado") ? 1 : 0;
+  return { tareas, teToca };
+}
+
 /** Dónde está el brief ahora: en la mano, en la papelería, o en el escritorio de quien lo tiene. */
 export function ubicacionBrief(e: Estado): UbicacionBrief {
   if (!e.briefDejado) return "mano";

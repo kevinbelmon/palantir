@@ -21,7 +21,8 @@ export function dibujarPersonaje(ctx: Ctx, cx: number, cy: number, indice: numbe
   ctx.rotate(estado === "habilitado" ? -2.4 + saluda : 0);
   rectRedondo(ctx, -7, 0, 14, 52 + teclea, 6);
   rellenar(ctx, a.camisa);
-  rectRedondo(ctx, -7, 46 + teclea, 14, 12, 5);
+  ctx.beginPath();
+  ctx.arc(0, 52 + teclea, 7.5, 0, Math.PI * 2);
   rellenar(ctx, PALETA.piel);
   ctx.restore();
 
@@ -30,7 +31,8 @@ export function dibujarPersonaje(ctx: Ctx, cx: number, cy: number, indice: numbe
   ctx.translate(cx + 34, cy - 16);
   rectRedondo(ctx, -7, 0, 14, 52 - teclea, 6);
   rellenar(ctx, a.camisa);
-  rectRedondo(ctx, -7, 46 - teclea, 14, 12, 5);
+  ctx.beginPath();
+  ctx.arc(0, 52 - teclea, 7.5, 0, Math.PI * 2);
   rellenar(ctx, PALETA.piel);
   ctx.restore();
 
@@ -43,8 +45,10 @@ export function dibujarPersonaje(ctx: Ctx, cx: number, cy: number, indice: numbe
   // cabeza
   rectRedondo(ctx, cx - 25, cy - 80, 50, 50, 11);
   rellenar(ctx, PALETA.piel);
-  // pelo
+  // pelo, con el taco de arriba de la cabeza
   rectRedondo(ctx, cx - 27, cy - 88, 54, 24, 9);
+  rellenar(ctx, a.pelo);
+  rectRedondo(ctx, cx - 9, cy - 96, 18, 10, 3);
   rellenar(ctx, a.pelo);
   // cara
   ctx.fillStyle = "#1d2133";

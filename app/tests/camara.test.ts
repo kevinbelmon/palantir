@@ -97,3 +97,11 @@ describe("el margen para la barra superior", () => {
     expect(camaraAjustada(1700, 1000)).toEqual(camaraAjustada(1700, 1000, 0));
   });
 });
+
+describe("el margen para el dock de abajo", () => {
+  it("deja el borde de abajo de la oficina por encima del dock", () => {
+    const c = camaraAjustada(1700, 1000, 64, 96);
+    expect(mundoAPantalla(c, 0, 0).y).toBeGreaterThanOrEqual(63.5);
+    expect(mundoAPantalla(c, 0, MUNDO.alto).y).toBeLessThanOrEqual(1000 - 96 + 0.5);
+  });
+});

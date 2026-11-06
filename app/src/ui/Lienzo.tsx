@@ -1,20 +1,59 @@
 import { useEffect, useRef } from "react";
 import type { EstadoAgente, UbicacionBrief } from "../flujo";
-import { arrastrar, camaraAjustada, dibujarOficina, elementoEn, factorRueda, pantallaAMundo, tiempoVisible, zoomEn, type Camara, type Elemento } from "../oficina";
+import {
+  arrastrar,
+  camaraAjustada,
+  camaraEnSala,
+  dibujarOficina,
+  elementoEn,
+  factorRueda,
+  interpolarCamara,
+  pantallaAMundo,
+  SALAS,
+  tiempoVisible,
+  zoomEn,
+  type Camara,
+  type Elemento,
+} from "../oficina";
 import { ALTO_BARRA } from "./BarraSuperior";
+import { ALTO_DOCK } from "./Dock";
 
-type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir: (e: Elemento) => void };
+/** Pedido de llevar la cámara a una sala. `vez` cambia en cada pedido, así se puede repetir el mismo. */
+export type Enfoque = { indice: number; vez: number };
 
-/** El mapa de la oficina: se arrastra con el clic derecho y se acerca o aleja con la rueda. */
-export function Lienzo({ agentes, brief, alElegir }: Props) {
+type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir: (e: Elemento) => void; enfoque: Enfoque | null };
+
+const DURACION_VIAJE_MS = 700;
+
+/** El mapa de la oficina: se arrastra con el clic derecho, se acerca con la rueda y viaja a la sala elegida. */
+export function Lienzo({ agentes, brief, alElegir, enfoque }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const vista = useRef({ agentes, brief });
   const elegir = useRef(alElegir);
+  const camara = useRef<Camara | null>(null);
+  const viaje = useRef<{ desde: Camara; hasta: Camara; inicio: number } | null>(null);
+  const movida = useRef(false); // si la persona ya movió la cámara, no la reacomodamos al cambiar el tamaño
   // el bucle de dibujo lee siempre lo último; las referencias se actualizan después de cada render
   useEffect(() => {
     vista.current = { agentes, brief };
     elegir.current = alElegir;
   });
+
+  // llevar la cámara a una sala (con un viaje suave, o de golpe si el sistema pide menos movimiento)
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!enfoque || !canvas) return;
+    const tamano = { ancho: canvas.clientWidth, alto: canvas.clientHeight };
+    const hasta = camaraEnSala(SALAS[enfoque.indice], tamano, ALTO_BARRA, ALTO_DOCK);
+    const desde = camara.current ?? camaraAjustada(tamano.ancho, tamano.alto, ALTO_BARRA, ALTO_DOCK);
+    movida.current = true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      camara.current = hasta;
+      viaje.current = null;
+    } else {
+      viaje.current = { desde, hasta, inicio: performance.now() };
+    }
+  }, [enfoque]);
 
   useEffect(() => {
     const canvas = ref.current;
@@ -22,8 +61,6 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
     if (!canvas || !ctx) return;
     let raf = 0;
     const inicio = performance.now();
-    let camara: Camara | null = null;
-    let movida = false; // si la persona ya movió la cámara, no la reacomodamos al cambiar el tamaño
     let arrastrando = false;
     let ultimo = { x: 0, y: 0 };
     let inicioClic: { x: number; y: number } | null = null;
@@ -39,7 +76,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
       const dpr = window.devicePixelRatio || 1;
       canvas.width = Math.round(canvas.clientWidth * dpr);
       canvas.height = Math.round(canvas.clientHeight * dpr);
-      if (!movida) camara = camaraAjustada(canvas.clientWidth, canvas.clientHeight, ALTO_BARRA);
+      if (!movida.current) camara.current = camaraAjustada(canvas.clientWidth, canvas.clientHeight, ALTO_BARRA, ALTO_DOCK);
     };
     ajustar();
     const observador = new ResizeObserver(ajustar);
@@ -49,6 +86,7 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
       if (e.button === 0) inicioClic = { x: e.clientX, y: e.clientY };
       if (e.button !== 2) return;
       arrastrando = true;
+      viaje.current = null; // si la persona toma el control, el viaje se corta
       ultimo = { x: e.clientX, y: e.clientY };
       try {
         canvas.setPointerCapture(e.pointerId);
@@ -58,17 +96,17 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
       canvas.style.cursor = "grabbing";
     };
     const alMover = (e: PointerEvent) => {
-      if (!arrastrando || !camara) return;
-      camara = arrastrar(camara, e.clientX - ultimo.x, e.clientY - ultimo.y, tamano());
+      if (!arrastrando || !camara.current) return;
+      camara.current = arrastrar(camara.current, e.clientX - ultimo.x, e.clientY - ultimo.y, tamano());
       ultimo = { x: e.clientX, y: e.clientY };
-      movida = true;
+      movida.current = true;
     };
     const alSoltar = (e: PointerEvent) => {
-      if (e.button === 0 && inicioClic && camara) {
+      if (e.button === 0 && inicioClic && camara.current) {
         const lejos = Math.hypot(e.clientX - inicioClic.x, e.clientY - inicioClic.y) > 6;
         if (!lejos) {
           const caja = canvas.getBoundingClientRect();
-          const punto = pantallaAMundo(camara, e.clientX - caja.left, e.clientY - caja.top);
+          const punto = pantallaAMundo(camara.current, e.clientX - caja.left, e.clientY - caja.top);
           const elemento = elementoEn(punto.x, punto.y);
           if (elemento) elegir.current(elemento);
         }
@@ -80,10 +118,11 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
     };
     const alRodar = (e: WheelEvent) => {
       e.preventDefault();
-      if (!camara) return;
+      if (!camara.current) return;
+      viaje.current = null;
       const caja = canvas.getBoundingClientRect();
-      camara = zoomEn(camara, factorRueda(e.deltaY), e.clientX - caja.left, e.clientY - caja.top, tamano());
-      movida = true;
+      camara.current = zoomEn(camara.current, factorRueda(e.deltaY), e.clientX - caja.left, e.clientY - caja.top, tamano());
+      movida.current = true;
     };
     const sinMenu = (e: Event) => e.preventDefault();
 
@@ -95,12 +134,18 @@ export function Lienzo({ agentes, brief, alElegir }: Props) {
 
     const bucle = (ahora: number) => {
       const { ancho, alto } = tamano();
-      camara ??= camaraAjustada(ancho, alto, ALTO_BARRA);
+      camara.current ??= camaraAjustada(ancho, alto, ALTO_BARRA, ALTO_DOCK);
+      const v = viaje.current;
+      if (v) {
+        const k = (ahora - v.inicio) / DURACION_VIAJE_MS;
+        camara.current = interpolarCamara(v.desde, v.hasta, k);
+        if (k >= 1) viaje.current = null;
+      }
       dibujarOficina(ctx, {
         ancho,
         alto,
         dpr: window.devicePixelRatio || 1,
-        camara,
+        camara: camara.current,
         agentes: vista.current.agentes,
         brief: vista.current.brief,
         tiempo: tiempoVisible((ahora - inicio) / 1000, reducido),

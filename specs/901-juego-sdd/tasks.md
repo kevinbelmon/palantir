@@ -30,7 +30,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
 - [x] **T013** — Una oficina con vida: ruta con flechas del brief, personajes que respiran y
       parpadean, objetos propios en cada sala, barra superior con el paso actual y animaciones que
       se apagan si el sistema lo pide. Toca: `app/src/oficina/`, `flujo/`, `ui/`. · US: US-10
-- [ ] **T014** — Estilo de bloques: piso con tacos, paredes de ladrillos, muebles y personajes de
+- [x] **T014** — Estilo de bloques: piso con tacos, paredes de ladrillos, muebles y personajes de
       bloques; etiqueta con el comando sobre cada personaje; dock con los 8 agentes, tareas que
       faltan y «te toca»; la cámara viaja a la sala al tocar un agente. Toca: `app/src/oficina/`,
       `flujo/`, `contenido/`, `ui/`. · US: US-11

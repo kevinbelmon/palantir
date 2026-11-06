@@ -34,7 +34,7 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
       style={{
         position: "absolute",
         left: "50%",
-        bottom: 70,
+        bottom: 112,
         transform: "translateX(-50%)",
         width: "min(620px, 92vw)",
         padding: "18px 22px",
