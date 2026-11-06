@@ -1,0 +1,19 @@
+meta:
+  generated_by: sdd-generate
+  commit: null
+  updated: 2026-11-06
+
+domains:
+  juego:
+    description: "Juego en el navegador que explica el modelo operativo: oficina, agentes por comando, cámara, música"
+    entities: [Agente, Brief, Documento, Camara]
+    services: [flujo, oficina, contenido, musica]
+    components: [Lienzo, Globito, VisorDocumento, PantallaFinal, BotonSilenciar]
+    storage: none
+    features: [901-juego-sdd]
+    depends_on: []
+    files: {}
+    planned:
+      services: [app/src/flujo/, app/src/oficina/, app/src/contenido/, app/src/musica/]
+      components: [app/src/ui/]
+      tests: [app/tests/]

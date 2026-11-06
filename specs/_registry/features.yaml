@@ -10,4 +10,19 @@ meta:
   repo: sdd-model-v1.1
   proyecto_id: PRY-000
 
-features: []
+features:
+  - id: 901-juego-sdd
+    type: feature
+    status: OPEN
+    domain: juego
+    owner: kbelmonte
+    sprint: null
+    created: 2026-11-06
+    closed: null
+    touches:
+      - app/
+    decisions: []
+    discovery_id: null
+    epic: null
+    release: null
+    size: null
