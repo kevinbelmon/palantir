@@ -5,12 +5,13 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 ## User stories
 
 **US-1 — Ver la oficina**
-- Dado que abro `localhost:5173`, cuando carga el juego, entonces veo una oficina grande desde
-  arriba, en perspectiva, con la papelería, un lobby central y 8 salas chicas en orden; cada sala
+- Dado que abro `localhost:5173`, cuando carga el juego, entonces veo una oficina grande en 3D real,
+  con luces y sombras, con la papelería, un lobby central y 8 salas chicas en orden; cada sala
   tiene su cartel con el comando, su pizarra, su escritorio y su personajito.
 - Las salas 1 a 4 (refine, generate, validate, log) van arriba, la 5 a la 7 (implement, e2e,
   checklist) abajo, y la 8 (review) es una sala de vidrio a la derecha; en el centro está el
   cartel «Spec-Driven Development — Planear primero. Construir después.».
+- Si el navegador no puede mostrar 3D, entonces veo la misma oficina en 2D y se juega igual.
 
 **US-2 — Mover la cámara**
 - Dado que miro la oficina, cuando mantengo el clic derecho y arrastro, entonces el mapa se
@@ -62,16 +63,15 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 
 ## Fuera de scope (v1)
 
-- Puntaje o ranking — no pedido.
-- Guardar la partida — no pedido.
-- Otros idiomas — v1 es solo en español.
-- Celular y pantalla táctil — v1 es solo computadora con mouse.
+- Puntaje, ranking y guardar la partida — no pedidos.
+- Otros idiomas, celular y pantalla táctil — v1 es en español y con mouse.
 - Comandos fuera del camino principal (`/sdd-fix`, `/sdd-health`, `/sdd-scan`…) — "por ahora".
 - Que la persona maneje un personaje o escriba su propio brief — el brief es fijo.
 - Efectos de sonido — solo hay música de fondo.
 - Login, cuentas, servidor o base de datos — el juego corre en el navegador.
 - Menú lateral, repositorio por persona y cuenta de Claude — feature aparte (902).
 - Marcas, logos, nombres o personajes de otras obras — el estilo de bloques es propio.
+- Motores de juego o de física — la única librería de dibujo es Three.js.
 
 ## Measurable Process Outcomes (DX)
 

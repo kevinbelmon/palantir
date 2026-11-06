@@ -25,11 +25,13 @@ Principios no negociables. Si algo choca con ellos, se registra con `/sdd-log` a
     como en la foto de referencia (`drafts/referencia-oficina.png`). La foto es solo una guía.
 13. **Movimiento con permiso.** Las animaciones (ruta, personajes, luces) se apagan si el sistema
     de la persona pide menos movimiento; el juego se entiende igual sin ellas.
+14. **Nunca una pantalla en blanco.** Si el navegador no puede mostrar 3D, se muestra la oficina en
+    2D. Lo 3D se arma solo con formas simples generadas en código, sin modelos ni texturas externas.
 
 ## PROHIBITED
 
-1. **Motores o librerías de juego** (Phaser, Pixi y similares) y **librerías de audio**. Solo
-   React, Vite y, como herramienta de desarrollo, Vitest.
+1. **Motores de juego o de física** (Phaser, Pixi y similares) y **librerías de audio**. Solo
+   React, Vite, Three.js (únicamente para dibujar el mundo en 3D) y, para desarrollo, Vitest.
 2. **Descargar o incluir recursos externos:** imágenes, fuentes, audio, sprites. Tampoco arte,
    nombres, logos ni personajes de otras marcas u obras (Roblox, juguetes de bloques, series):
    todo se dibuja en código, con estilo propio.

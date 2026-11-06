@@ -5,8 +5,9 @@ Modo greenfield. `source_root`: `app/` (el scaffold vive en subcarpeta; `specs/`
 
 ## Stack (versiones fijas al instalar)
 
-React · TypeScript · Vite · Vitest (solo desarrollo, para TDD y `pnpm test`). Gestor: `pnpm`.
-Sin motores de juego, sin librerías de audio, sin recursos externos.
+React · TypeScript · Vite · Three.js (solo para dibujar el mundo en 3D) · Vitest (solo desarrollo,
+para TDD y `pnpm test`). Gestor: `pnpm`. Sin motores de juego ni de física, sin librerías de audio,
+sin recursos externos.
 
 ## Scaffold
 
@@ -22,6 +23,8 @@ pnpm create vite@latest app -- --template react-ts
 flujo/       estado del juego: 8 agentes en orden, brief, desbloqueos, avance (lógica pura)
 oficina/     mapa grande en perspectiva: 8 salas, lobby, papelería, muebles y personajes
              dibujados en el lienzo; animaciones; cámara (desplazar y zoom: cuentas + dibujo)
+escena/      mundo en 3D con Three.js: bloques, personajes, luces, cámara 3D y selección con el mouse
+             (la oficina en 2D de `oficina/` queda de respaldo si el navegador no puede mostrar 3D)
 contenido/   textos, globitos y documentos simplificados de cada agente, y el brief de ejemplo
 musica/      música chill generada con el sonido del navegador (partitura pura + reproductor)
 ui/          componentes React: lienzo, globito, visor de documento, pantalla final, silenciar
@@ -39,6 +42,7 @@ y `oficina/` calculan.
 - Cámara: desplazar con clic derecho arrastrando; zoom con la rueda.
 - Ruta del brief con flechas, vida de los personajes, objetos por sala y barra superior con el paso.
 - Estilo de bloques (tacos y ladrillos), etiquetas con el comando y dock con los 8 agentes.
+- Mundo 3D: piso con tacos, ladrillos, luces y sombras, muñecos y objetos de bloques, cámara 3D.
 - Contenido en español simple para los 8 agentes: globito, qué hace, para qué sirve y documento.
 - Visor de documento, pantalla final con repaso y botón "Jugar de nuevo".
 - Música ambiente chill con botón de silenciar, que arranca tras el primer clic.

@@ -714,3 +714,17 @@ distribución del binario con versión y hash, igual que la capa A.
 **Motivo:** Atender el pedido visual sin copiar contenido de terceros y sin tocar cuentas ni integraciones. Es solo dibujo y una barra de interfaz, comprobable con tests de la lógica pura.
 **Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`.
 **Decidido por:** kbelmonte (pidió el estilo con una referencia; la redacción de esta entrada la hizo Claude)
+
+---
+## 2026-11-06 El mundo pasa a 3D de verdad con Three.js (respaldo en 2D)
+
+**feature_id:** 901-juego-sdd
+**command_origin:** sdd-implement
+**status:** accepted
+**Gap o motivo:** Con la feature cerrada en 14/14 y el estilo de bloques ya hecho, el humano dijo que lo necesita "más real, más realidad". Su referencia es un render en 3D y el juego era un dibujo plano en un lienzo 2D. Se le preguntó qué entendía por realidad y eligió "3D de verdad". Eso choca con dos reglas del proyecto: la constitución prohibía librerías de juego y de dibujo fuera de React y Vite, y el brief decía que lo único que se instala es React y Vite.
+**Alternativas consideradas:** (1) 3D real con Three.js, con la oficina en 2D como respaldo. (2) Más realismo en el lienzo 2D, con proyección isométrica, luces y sombras, sin librerías. (3) Datos y cuentas reales (la feature 902), que no es un tema visual.
+**Por qué se descartaron:** (2) se acerca pero no llega a un render 3D, que es lo que el humano mostró y eligió explícitamente. (3) es otra cosa: no cambia cómo se ve el mundo.
+**Decisión tomada:** Se permite Three.js (versión fija, solo para dibujar el mundo en 3D) y se mantienen prohibidos los motores de juego y de física. Se agrega la task T015. Si el navegador no puede mostrar 3D, se usa la oficina en 2D que ya existe, nunca una pantalla en blanco. El 3D se arma solo con formas simples generadas en código, sin modelos ni texturas externas. Se actualizan `input.md`, la constitución (PROHIBITED 1 y MUST 14), la spec (US-1 y fuera de scope), el plan y las tasks.
+**Motivo:** Es lo que pidió el humano con una opción elegida a conciencia. Mantener el 2D como respaldo evita dejar sin juego a quien no tenga 3D y reutiliza lo ya probado. La dependencia nueva es una sola, con versión fija, sin scripts de instalación y de licencia permisiva; el resto del juego (reglas, textos, dock, música) no cambia.
+**Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`.
+**Decidido por:** kbelmonte (eligió la opción "3D de verdad" en una pregunta; la redacción de esta entrada la hizo Claude)

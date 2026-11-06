@@ -35,6 +35,9 @@ paso. No hay cuentas ni login.
     muebles y personajes de bloques). Sobre cada personaje flota una etiqueta con el nombre de su
     comando y su estado, y abajo hay un dock con los 8 agentes, cuántas tareas faltan y a quién le
     toca. Al tocar un agente, la cámara viaja a su sala.
+12. El mundo se ve en 3D real, con perspectiva, luces y sombras, como un render de bloques; la
+    cámara se desplaza con el clic derecho y se acerca con la rueda. Si el navegador no puede
+    mostrar 3D, se ve la oficina en 2D.
 
 ## OUT OF SCOPE (v1)
 - Puntaje o ranking.
@@ -52,8 +55,9 @@ paso. No hay cuentas ni login.
 ## RESTRICCIONES TÉCNICAS
 - React con TypeScript y Vite, que se levanta con `pnpm dev` en `localhost:5173` (puerto por
   defecto de Vite, configurable).
-- Mapa con el lienzo 2D del navegador, sin motores de juego. Lo único que se instala es React y
-  Vite.
+- El mundo se dibuja en 3D con Three.js (versión fija), sin motores de juego ni de física. Si el
+  navegador no puede mostrar 3D, se usa la oficina en 2D. Lo único que se instala es React, Vite,
+  Three.js y, para las pruebas, Vitest.
 - La música se genera con el sonido del propio navegador: sin archivos de audio ni descargas.
 - Personajes, salas y muebles dibujados por nosotros en el lienzo, con formas simples de bloques y
   estilo propio parecido a Roblox. La foto de referencia es solo una guía: no se incluye en el
@@ -84,4 +88,4 @@ guarda en el repositorio por ser de terceros): piso gris con tacos, paredes de l
 muñecos de bloques, una etiqueta flotante sobre cada uno con su nombre y un punto de estado (verde,
 amarillo), y un dock abajo con el avatar de cada uno, un número rojo cuando algo le espera, un
 botón «Nuevo» y los contadores «Tareas» y «Te toca». Acá las etiquetas llevan el nombre de cada
-comando.
+comando. Pedido posterior: más realidad, así que el mundo pasa a verse en 3D de verdad.
