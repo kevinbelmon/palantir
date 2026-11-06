@@ -9,6 +9,12 @@ describe("la pantalla del juego", () => {
     expect(html).toContain("<canvas");
   });
 
+  it("le explica a la persona cómo mover la cámara, en palabras simples", () => {
+    const texto = html.toLowerCase();
+    expect(texto).toContain("clic derecho");
+    expect(texto).toContain("rueda");
+  });
+
   it("describe la oficina para lectores de pantalla, en español", () => {
     expect(html).toContain("aria-label=");
     expect(html.toLowerCase()).toContain("oficina");

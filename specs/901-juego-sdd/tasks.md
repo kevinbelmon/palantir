@@ -9,7 +9,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       modelo, papelería y 8 personajes de bloques. Crea: `app/src/oficina/`, `app/src/ui/`. · US: US-1
 - [x] **T003** — Decorar la oficina como la foto de referencia: plantas, sillón, bebedero, sala de
       reuniones de vidrio para el review y paleta definida. Toca: `app/src/oficina/`. · US: US-1
-- [ ] **T004** — Mover la cámara: desplazar con clic derecho arrastrando y zoom con la rueda, sobre
+- [x] **T004** — Mover la cámara: desplazar con clic derecho arrastrando y zoom con la rueda, sobre
       una oficina más grande que la pantalla. Crea: cámara en `app/src/oficina/`. · US: US-2
 - [ ] **T005** — Dejar el brief en la papelería: el brief de ejemplo queda ahí y habilita al
       agente 1. Crea: `app/src/flujo/`, brief en `app/src/contenido/`. · US: US-3
