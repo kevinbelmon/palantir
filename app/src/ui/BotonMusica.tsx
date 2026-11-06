@@ -33,12 +33,12 @@ export function BotonMusica({ silenciada, alAlternar, canciones, actual, alElegi
             </svg>
           </button>
           {abierto && (
-            <div role="menu" aria-label="Canciones" className="panel aparece" style={{ position: "absolute", top: 48, right: 0, width: 320, padding: 8, background: "rgba(22, 24, 44, 0.96)" }}>
+            <div role="menu" aria-label="Canciones" className="panel aparece" style={{ position: "absolute", top: 48, right: 0, width: 320, padding: 8 }}>
               {canciones.map((c) => {
                 const sonando = c.id === actual;
                 return (
                   <button key={c.id} role="menuitemradio" aria-checked={sonando} onClick={() => (alElegir(c.id), setAbierto(false))} className="paso" style={{ alignItems: "flex-start", padding: "10px 12px" }}>
-                    <span aria-hidden="true" style={{ flex: "none", marginTop: 4, width: 14, height: 14, borderRadius: 7, border: `2px solid ${sonando ? "var(--acento)" : "var(--texto-suave)"}`, background: sonando ? "var(--acento)" : "transparent", boxShadow: sonando ? "inset 0 0 0 2px #14162a" : "none" }} />
+                    <span aria-hidden="true" style={{ flex: "none", marginTop: 4, width: 14, height: 14, borderRadius: 0, border: `2px solid ${sonando ? "var(--acento)" : "var(--texto-suave)"}`, background: sonando ? "var(--acento)" : "transparent", boxShadow: sonando ? "inset 0 0 0 2px #000" : "none" }} />
                     <span style={{ flex: 1 }}>
                       <span style={{ display: "block", fontSize: 14, fontWeight: 650 }}>{c.nombre}</span>
                       <span style={{ display: "block", fontSize: 12.5, color: "var(--texto-suave)", marginTop: 2, lineHeight: 1.4 }}>{c.descripcion}</span>

@@ -227,7 +227,7 @@ export default function App() {
       {columna === "archivos" && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
       {columna === "repo" && <PanelRepo estado={local} cliente={cliente} alCambiar={alCambiarLocal} alCerrar={() => setRepoAbierto(false)} />}
       {aviso && (
-        <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 16, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>
+        <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 0, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>
           <span>{aviso}</span>
           <button onClick={() => setAviso("")} className="btn btn-suave" style={{ padding: "6px 14px" }}>
             Cerrar

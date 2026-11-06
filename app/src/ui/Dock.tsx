@@ -53,7 +53,7 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
         alignItems: "center",
         gap: 10,
         padding: "10px 16px",
-        borderRadius: 28,
+        borderRadius: 0,
         color: "var(--texto)",
         zIndex: 5,
       }}
@@ -61,9 +61,9 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
       <button
         onClick={nuevo}
         aria-label="Empezar de nuevo"
-        style={{ display: "grid", justifyItems: "center", gap: 2, background: "none", border: "none", color: "#e6e8f5", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+        style={{ display: "grid", justifyItems: "center", gap: 2, background: "none", border: "none", color: "var(--texto)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
       >
-        <span style={{ width: 44, height: 44, borderRadius: 14, background: seguro ? "#ff6b81" : "#3b6cff", display: "grid", placeItems: "center", fontSize: 24, color: "#fff" }}>{seguro ? "?" : "+"}</span>
+        <span style={{ width: 44, height: 44, borderRadius: 0, background: seguro ? "#ff6b81" : "#3b6cff", display: "grid", placeItems: "center", fontSize: 24, color: "#fff" }}>{seguro ? "?" : "+"}</span>
         {seguro ? "¿Seguro?" : "Nuevo"}
       </button>
       <span style={{ width: 1, height: 40, background: "var(--linea)" }} />
@@ -78,13 +78,13 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
             onClick={() => alElegir(i)}
             aria-label={`${nombre}: ${info.texto}`}
             title={`${a.comando} · ${info.texto}`}
-            style={{ position: "relative", display: "grid", justifyItems: "center", gap: 2, background: "none", border: "none", color: "#e6e8f5", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: 0, opacity: e === "deshabilitado" ? 0.7 : 1 }}
+            style={{ position: "relative", display: "grid", justifyItems: "center", gap: 2, background: "none", border: "none", color: "var(--texto)", cursor: "pointer", fontSize: 12, fontWeight: 600, padding: 0, opacity: e === "deshabilitado" ? 0.7 : 1 }}
           >
             <span style={{ position: "relative", display: "block", width: 44, height: 44 }}>
               <Cara indice={i} />
-              <span style={{ position: "absolute", right: -2, top: -2, width: 14, height: 14, borderRadius: 7, background: COLORES_ESTADO[info.color], border: "2px solid #14162a" }} />
+              <span style={{ position: "absolute", right: -2, top: -2, width: 14, height: 14, borderRadius: 0, background: COLORES_ESTADO[info.color], border: "2px solid #000" }} />
               {e === "habilitado" && (
-                <span data-insignia="1" style={{ position: "absolute", left: -6, top: -6, minWidth: 18, height: 18, borderRadius: 9, background: "#ff4d6d", color: "#fff", fontSize: 11, fontWeight: 800, display: "grid", placeItems: "center", border: "2px solid #14162a" }}>
+                <span data-insignia="1" style={{ position: "absolute", left: -6, top: -6, minWidth: 18, height: 18, borderRadius: 0, background: "#ff4d6d", color: "#fff", fontSize: 11, fontWeight: 800, display: "grid", placeItems: "center", border: "2px solid #000" }}>
                   1
                 </span>
               )}
@@ -96,11 +96,11 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
 
       <span style={{ width: 1, height: 40, background: "var(--linea)" }} />
       <div style={{ display: "grid", justifyItems: "center", gap: 2, minWidth: 54, fontSize: 12, fontWeight: 600 }}>
-        <span data-contador="tareas" style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.1)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>{tareas}</span>
+        <span data-contador="tareas" style={{ width: 44, height: 44, borderRadius: 0, background: "var(--superficie-fuerte)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: "var(--texto)" }}>{tareas}</span>
         Tareas
       </div>
       <div style={{ display: "grid", justifyItems: "center", gap: 2, minWidth: 54, fontSize: 12, fontWeight: 600 }}>
-        <span data-contador="teToca" style={{ width: 44, height: 44, borderRadius: 14, background: teToca > 0 ? "#ff4d6d" : "rgba(255,255,255,0.1)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>{teToca}</span>
+        <span data-contador="teToca" style={{ width: 44, height: 44, borderRadius: 0, background: teToca > 0 ? "#ff4d6d" : "var(--superficie-fuerte)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: teToca > 0 ? "#fff" : "var(--texto)" }}>{teToca}</span>
         Te toca
       </div>
     </nav>

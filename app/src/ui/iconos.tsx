@@ -5,10 +5,10 @@ const base = { viewBox: "0 0 24 24", width: 20, height: 20, fill: "none", stroke
 export function Logo({ tam = 36 }: { tam?: number }) {
   return (
     <svg viewBox="0 0 36 36" width={tam} height={tam} aria-hidden="true">
-      <rect x="2" y="2" width="15" height="15" rx="4.5" fill="#5b8cff" />
-      <rect x="19" y="2" width="15" height="15" rx="4.5" fill="#8e6bff" />
-      <rect x="2" y="19" width="15" height="15" rx="4.5" fill="#3ecf6e" />
-      <rect x="19" y="19" width="15" height="15" rx="4.5" fill="#ffd54a" />
+      <rect x="2" y="2" width="15" height="15" rx="0" fill="#5b8cff" />
+      <rect x="19" y="2" width="15" height="15" rx="0" fill="#8e6bff" />
+      <rect x="2" y="19" width="15" height="15" rx="0" fill="#3ecf6e" />
+      <rect x="19" y="19" width="15" height="15" rx="0" fill="#ffd54a" />
     </svg>
   );
 }

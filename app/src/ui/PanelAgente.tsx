@@ -37,7 +37,7 @@ function Texto({ texto }: { texto: string }) {
         p.startsWith("**") && p.endsWith("**") && p.length > 4 ? (
           <strong key={i}>{p.slice(2, -2)}</strong>
         ) : p.startsWith("`") && p.endsWith("`") && p.length > 2 ? (
-          <code key={i} style={{ padding: "1px 6px", borderRadius: 6, background: "rgba(255,255,255,0.1)", fontSize: "0.92em" }}>
+          <code key={i} style={{ padding: "1px 6px", borderRadius: 0, background: "var(--superficie-fuerte)", fontSize: "0.92em" }}>
             {p.slice(1, -1)}
           </code>
         ) : (
@@ -55,11 +55,11 @@ function Hace({ lineas, cuenta, titulo }: { lineas?: readonly string[]; cuenta: 
     <div style={{ margin: "0 0 12px" }}>
       {titulo && <div style={{ fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--texto-suave)", marginBottom: 6 }}>{titulo}</div>}
       {ultimas.length === 0 ? (
-        <p style={{ margin: 0, color: "#c4c8e8" }}>{cuenta}</p>
+        <p style={{ margin: 0, color: "var(--texto-suave)" }}>{cuenta}</p>
       ) : (
-        <ul aria-label="Lo que hace el agente" style={{ listStyle: "none", margin: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 4, fontSize: 13.5, maxHeight: 150, overflow: "auto" }}>
+        <ul aria-label="Lo que hace el agente" style={{ listStyle: "none", margin: 0, padding: "10px 14px", borderRadius: 0, background: "var(--superficie)", display: "flex", flexDirection: "column", gap: 4, fontSize: 13.5, maxHeight: 150, overflow: "auto" }}>
           {ultimas.map((l, i) => (
-            <li key={i} style={{ color: i === ultimas.length - 1 ? "#fff" : "var(--texto-suave)" }}>
+            <li key={i} style={{ color: i === ultimas.length - 1 ? "var(--texto)" : "var(--texto-suave)" }}>
               {l}
             </li>
           ))}
@@ -96,13 +96,13 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
       className="panel aparece"
       style={{ ...estiloColumna, padding: "20px 20px 16px", fontSize: 15, lineHeight: 1.55 }}
     >
-      <button onClick={alCerrar} aria-label="Cerrar" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 10, fontSize: 16, lineHeight: 1 }}>
+      <button onClick={alCerrar} aria-label="Cerrar" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 0, fontSize: 16, lineHeight: 1 }}>
         ✕
       </button>
       <div style={{ fontSize: 12, color: "var(--texto-suave)", letterSpacing: "0.12em" }}>
         AGENTE {agente.numero} · {agente.comando}
       </div>
-      <h2 style={{ margin: "4px 0 10px", fontSize: 22, fontWeight: 750, letterSpacing: "-0.01em", color: "#fff" }}>
+      <h2 style={{ margin: "4px 0 10px", fontSize: 22, fontWeight: 750, letterSpacing: "-0.01em", color: "var(--texto)" }}>
         {t.nombre} <span style={{ fontWeight: 400, fontSize: 15, color: "var(--texto-suave)" }}>· {t.subtitulo}</span>
       </h2>
 
@@ -110,8 +110,8 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
         {!hayChat && (
           <>
             <p style={{ margin: "0 0 6px" }}>{t.queHace}</p>
-            <p style={{ margin: "0 0 14px", color: "#c4c8e8" }}>
-              <strong style={{ color: "#fff" }}>Para qué sirve:</strong> {t.paraQueSirve}
+            <p style={{ margin: "0 0 14px", color: "var(--texto-suave)" }}>
+              <strong style={{ color: "var(--texto)" }}>Para qué sirve:</strong> {t.paraQueSirve}
             </p>
           </>
         )}
@@ -126,8 +126,8 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
                   maxWidth: "92%",
                   padding: "10px 14px",
                   borderRadius: m.rol === "persona" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                  background: m.rol === "persona" ? "linear-gradient(135deg, var(--acento), var(--acento-2))" : "rgba(255,255,255,0.07)",
-                  color: "#fff",
+                  background: m.rol === "persona" ? "var(--acento)" : "var(--superficie)",
+                  color: m.rol === "persona" ? "#fff" : "var(--texto)",
                   fontSize: 14.5,
                   whiteSpace: "pre-wrap",
                   overflowWrap: "anywhere",

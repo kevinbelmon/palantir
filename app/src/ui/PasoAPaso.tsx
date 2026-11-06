@@ -21,7 +21,7 @@ export function PasoAPaso({ estado, abierto, alElegir }: Props) {
           return (
             <li key={a.id}>
               <button onClick={() => alElegir(i)} aria-expanded={abierta} className="paso">
-                <span aria-hidden="true" style={{ flex: "none", width: 30, height: 30, borderRadius: 10, display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800, color, background: `${color}26` }}>
+                <span aria-hidden="true" style={{ flex: "none", width: 30, height: 30, borderRadius: 0, display: "grid", placeItems: "center", fontSize: 13, fontWeight: 800, color, background: `${color}26` }}>
                   {a.numero}
                 </span>
                 <span style={{ flex: 1, minWidth: 0 }}>
@@ -30,10 +30,10 @@ export function PasoAPaso({ estado, abierto, alElegir }: Props) {
                     {t.subtitulo} · {e.texto}
                   </span>
                 </span>
-                <span aria-hidden="true" style={{ flex: "none", width: 9, height: 9, borderRadius: 5, background: COLORES_ESTADO[e.color], boxShadow: e.color === "gris" ? "none" : `0 0 10px ${COLORES_ESTADO[e.color]}` }} />
+                <span aria-hidden="true" style={{ flex: "none", width: 9, height: 9, borderRadius: 0, background: COLORES_ESTADO[e.color], boxShadow: e.color === "gris" ? "none" : `0 0 10px ${COLORES_ESTADO[e.color]}` }} />
               </button>
               {abierta && (
-                <p className="aparece" style={{ margin: "4px 10px 10px 52px", fontSize: 13, lineHeight: 1.5, color: "#cfd3f0" }}>
+                <p className="aparece" style={{ margin: "4px 10px 10px 52px", fontSize: 13, lineHeight: 1.5, color: "var(--texto)" }}>
                   {t.resumen}
                 </p>
               )}

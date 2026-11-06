@@ -28,11 +28,9 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         alignItems: "center",
         gap: 20,
         padding: "0 620px 0 16px",
-        background: "rgba(14, 16, 30, 0.8)",
-        WebkitBackdropFilter: "blur(20px)",
-        backdropFilter: "blur(20px)",
+        background: "#000000",
         borderBottom: "1px solid var(--linea)",
-        color: "#ffffff",
+        color: "var(--texto)",
         zIndex: 5,
       }}
     >
@@ -51,7 +49,7 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
             <span
               key={a.id}
               className={i === actual ? "latido" : undefined}
-              style={{ width: 24, height: 6, borderRadius: 3, background: i < hechos ? "var(--ok)" : i === actual ? "var(--aviso)" : "rgba(255,255,255,0.14)" }}
+              style={{ width: 24, height: 6, borderRadius: 0, background: i < hechos ? "var(--ok)" : i === actual ? "var(--aviso)" : "var(--superficie-fuerte)" }}
             />
           ))}
         </div>

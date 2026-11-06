@@ -86,7 +86,7 @@ export function Archivos({ cliente, alCerrar }: Props) {
 
         {abierto === null ? (
           <>
-            <ul style={{ listStyle: "none", margin: "0 0 16px", padding: 6, borderRadius: 14, background: "rgba(255,255,255,0.04)", maxHeight: 260, overflow: "auto" }}>
+            <ul style={{ listStyle: "none", margin: "0 0 16px", padding: 6, borderRadius: 0, background: "var(--superficie)", maxHeight: 260, overflow: "auto" }}>
               {entradas.length === 0 && <li style={{ padding: "10px 12px", color: "var(--texto-suave)", fontSize: 14 }}>Esta carpeta está vacía.</li>}
               {entradas.map((e) => (
                 <li key={e.nombre}>
@@ -134,7 +134,7 @@ export function Archivos({ cliente, alCerrar }: Props) {
         )}
 
         {error && (
-          <p role="alert" style={{ margin: "14px 0 0", padding: "10px 14px", borderRadius: 12, background: "rgba(255, 143, 163, 0.12)", color: "var(--error)", fontSize: 14 }}>
+          <p role="alert" style={{ margin: "14px 0 0", padding: "10px 14px", borderRadius: 0, background: "rgba(255, 107, 129, 0.14)", color: "var(--error)", fontSize: 14 }}>
             {error}
           </p>
         )}

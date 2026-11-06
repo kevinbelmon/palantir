@@ -12,11 +12,11 @@ export function Guia({ mensaje }: { mensaje: string }) {
         transform: "translateX(-50%)",
         maxWidth: "min(720px, calc(100vw - 760px))",
         padding: "12px 22px",
-        borderRadius: 18,
+        borderRadius: 0,
         fontSize: 16,
         lineHeight: 1.45,
         textAlign: "center",
-        boxShadow: "0 30px 60px -24px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,214,102,0.35)",
+        boxShadow: "0 0 0 1px rgba(255,213,74,0.55)",
       }}
       className="panel aparece"
     >

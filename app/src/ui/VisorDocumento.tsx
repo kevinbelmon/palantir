@@ -17,11 +17,11 @@ export function VisorDocumento({ indice, alCerrar, real }: Props) {
 
   return (
     <aside role="dialog" aria-label={`Documento de ${t.nombre}`} className="panel aparece" style={{ ...estiloColumna, padding: "20px 20px 16px", fontSize: 15, lineHeight: 1.55 }}>
-      <div style={{ fontSize: 12, letterSpacing: "0.12em", color: "var(--texto-suave)" }}>
+      <div style={{ fontSize: 12, letterSpacing: "0.12em", color: "var(--texto-suave)", paddingRight: 42 }}>
         DOCUMENTO DE {t.nombre.toUpperCase()} · {agente.comando}
       </div>
-      <h2 style={{ margin: "4px 36px 12px 0", fontSize: 20, fontWeight: 750, letterSpacing: "-0.01em", color: "#fff" }}>{real === undefined ? d.titulo : "Lo que produjo, de verdad"}</h2>
-      <button onClick={alCerrar} aria-label="Cerrar el documento" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 10, fontSize: 16, lineHeight: 1 }}>
+      <h2 style={{ margin: "4px 36px 12px 0", fontSize: 20, fontWeight: 750, letterSpacing: "-0.01em", color: "var(--texto)" }}>{real === undefined ? d.titulo : "Lo que produjo, de verdad"}</h2>
+      <button onClick={alCerrar} aria-label="Cerrar el documento" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 0, fontSize: 16, lineHeight: 1 }}>
         ✕
       </button>
 
@@ -29,9 +29,9 @@ export function VisorDocumento({ indice, alCerrar, real }: Props) {
         {real !== undefined && <pre style={{ margin: "0 0 14px", whiteSpace: "pre-wrap", overflowWrap: "anywhere", fontFamily: "inherit", fontSize: 14.5 }}>{real || "El agente terminó sin dejar un mensaje."}</pre>}
         {real === undefined &&
           d.bloques.map((b) => (
-            <section key={b.encabezado} style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
+            <section key={b.encabezado} style={{ marginBottom: 14, padding: "12px 14px", borderRadius: 0, background: "var(--superficie)" }}>
               <h3 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 700, color: "var(--acento)" }}>{b.encabezado}</h3>
-              <ul style={{ margin: 0, paddingLeft: 20, color: "#dfe2f7" }}>
+              <ul style={{ margin: 0, paddingLeft: 20, color: "var(--texto)" }}>
                 {b.lineas.map((l) => (
                   <li key={l}>{l}</li>
                 ))}

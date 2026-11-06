@@ -7,9 +7,9 @@ type Props = { estado: EstadoLocal; cliente: Cliente; alCambiar: (e: EstadoLocal
 function Paso({ hecho, texto }: { hecho: boolean; texto: string }) {
   return (
     <li style={{ display: "flex", alignItems: "center", gap: 10, color: hecho ? "var(--texto)" : "var(--texto-suave)" }}>
-      <span aria-hidden="true" style={{ flex: "none", width: 20, height: 20, borderRadius: 10, display: "grid", placeItems: "center", background: hecho ? "var(--ok)" : "rgba(255,255,255,0.08)" }}>
+      <span aria-hidden="true" style={{ flex: "none", width: 20, height: 20, borderRadius: 0, display: "grid", placeItems: "center", background: hecho ? "var(--ok)" : "var(--superficie)" }}>
         {hecho && (
-          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#06210f" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#000000" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
             <path d="M5 12.500l4.500 4.500L19 7.500" />
           </svg>
         )}
@@ -71,12 +71,12 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
         )}
 
         {error && (
-          <p role="alert" style={{ margin: "16px 0 0", padding: "10px 14px", borderRadius: 12, background: "rgba(255, 143, 163, 0.12)", color: "var(--error)", fontSize: 14 }}>
+          <p role="alert" style={{ margin: "16px 0 0", padding: "10px 14px", borderRadius: 0, background: "rgba(255, 107, 129, 0.14)", color: "var(--error)", fontSize: 14 }}>
             {error}
           </p>
         )}
 
-        <ul style={{ listStyle: "none", margin: "22px 0", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, fontSize: 14, borderRadius: 14, background: "rgba(255,255,255,0.04)" }}>
+        <ul style={{ listStyle: "none", margin: "22px 0", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, fontSize: 14, borderRadius: 0, background: "var(--superficie)" }}>
           <Paso hecho={estado.repo !== null} texto={estado.repo ? `Repo conectado: ${estado.repo}` : "Repo conectado"} />
           <Paso hecho={estado.modeloInstalado} texto="Modelo SDD instalado y subido" />
           <Paso hecho={estado.briefSubido} texto="Brief guardado en drafts/ y subido" />
@@ -95,7 +95,7 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
 export function BotonRepo({ conectado, alAbrir }: { conectado: boolean; alAbrir: () => void }) {
   return (
     <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 300, zIndex: 6 }}>
-      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 4, background: conectado ? "var(--ok)" : "#6f76a3", boxShadow: conectado ? "0 0 10px var(--ok)" : "none" }} />
+      <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 0, background: conectado ? "var(--ok)" : "var(--texto-suave)", boxShadow: conectado ? "0 0 10px var(--ok)" : "none" }} />
       {conectado ? "Repo conectado" : "Conectar repo"}
     </button>
   );

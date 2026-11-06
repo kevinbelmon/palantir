@@ -7,17 +7,17 @@ import { estiloColumna } from "./columna";
 export function PantallaFinal({ alReiniciar }: { alReiniciar: () => void }) {
   return (
     <aside role="dialog" aria-label="Terminaste el recorrido" className="panel aparece" style={{ ...estiloColumna, padding: "22px 20px 18px" }}>
-      <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.02em", color: "#fff" }}>¡Terminaste el recorrido!</h2>
-      <p style={{ margin: "0 0 14px", color: "#c4c8e8", fontSize: 14.5 }}>Así viajó el brief por las 8 salas, de una idea suelta a un trabajo revisado:</p>
+      <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.02em", color: "var(--texto)" }}>¡Terminaste el recorrido!</h2>
+      <p style={{ margin: "0 0 14px", color: "var(--texto-suave)", fontSize: 14.5 }}>Así viajó el brief por las 8 salas, de una idea suelta a un trabajo revisado:</p>
       <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 6, flex: 1, minHeight: 0, overflowY: "auto" }}>
         {AGENTES.map((a) => {
           const t = textosDe(a.id);
           return (
-            <li key={a.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "8px 12px", borderRadius: 14, background: "rgba(255,255,255,0.05)" }}>
-              <span style={{ flex: "none", width: 26, height: 26, borderRadius: 9, background: "rgba(124,147,255,0.2)", color: "var(--acento)", fontWeight: 800, fontSize: 13, display: "grid", placeItems: "center" }}>{a.numero}</span>
+            <li key={a.id} style={{ display: "flex", gap: 12, alignItems: "center", padding: "8px 12px", borderRadius: 0, background: "var(--superficie)" }}>
+              <span style={{ flex: "none", width: 26, height: 26, borderRadius: 0, background: "rgba(91,124,255,0.22)", color: "var(--acento)", fontWeight: 800, fontSize: 13, display: "grid", placeItems: "center" }}>{a.numero}</span>
               <span style={{ fontSize: 14 }}>
-                <strong style={{ color: "#fff" }}>{t.nombre}</strong> <span style={{ color: "#aab0d8" }}>· {t.subtitulo}</span>
-                <span style={{ display: "block", fontSize: 13, color: "#c4c8e8" }}>Dejó: {t.documento.titulo}</span>
+                <strong style={{ color: "var(--texto)" }}>{t.nombre}</strong> <span style={{ color: "var(--texto-suave)" }}>· {t.subtitulo}</span>
+                <span style={{ display: "block", fontSize: 13, color: "var(--texto-suave)" }}>Dejó: {t.documento.titulo}</span>
               </span>
             </li>
           );
