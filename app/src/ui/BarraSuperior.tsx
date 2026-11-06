@@ -27,9 +27,11 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         display: "flex",
         alignItems: "center",
         gap: 20,
-        padding: "0 200px 0 16px",
-        background: "rgba(20, 22, 40, 0.97)",
-        borderBottom: "1px solid #3a3f66",
+        padding: "0 340px 0 16px",
+        background: "rgba(14, 16, 30, 0.8)",
+        WebkitBackdropFilter: "blur(20px)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid var(--linea)",
         color: "#ffffff",
         zIndex: 5,
       }}
@@ -37,19 +39,19 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
         <Logo tam={36} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 19, fontWeight: 800, lineHeight: 1.1 }}>Spec-Driven Development</div>
-          <div style={{ fontSize: 13, color: "#aab0d8" }}>Planear primero. Construir después.</div>
+          <div style={{ fontSize: 18, fontWeight: 750, letterSpacing: "-0.01em", lineHeight: 1.1 }}>Spec-Driven Development</div>
+          <div style={{ fontSize: 12.5, color: "var(--texto-suave)", marginTop: 2 }}>Planear primero. Construir después.</div>
         </div>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
-        <span style={{ fontSize: 15, fontWeight: 700, color: "#ffd54a", whiteSpace: "nowrap" }}>{textoDelPaso(estado)}</span>
+        <span style={{ fontSize: 14, fontWeight: 650, color: "var(--aviso)", whiteSpace: "nowrap" }}>{textoDelPaso(estado)}</span>
         <div role="progressbar" aria-label="Avance del recorrido" aria-valuemin={0} aria-valuemax={total} aria-valuenow={hechos} style={{ display: "flex", gap: 4 }}>
           {AGENTES.map((a, i) => (
             <span
               key={a.id}
               className={i === actual ? "latido" : undefined}
-              style={{ width: 22, height: 8, borderRadius: 4, background: i < hechos ? "#3ecf6e" : i === actual ? "#ffd54a" : "rgba(255,255,255,0.18)" }}
+              style={{ width: 24, height: 6, borderRadius: 3, background: i < hechos ? "var(--ok)" : i === actual ? "var(--aviso)" : "rgba(255,255,255,0.14)" }}
             />
           ))}
         </div>

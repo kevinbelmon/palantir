@@ -1,10 +1,10 @@
 import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 
-type Props = { indice: number; alCerrar: () => void };
+type Props = { indice: number; alCerrar: () => void; /** Lo que produjo el agente de verdad en el repo de la persona; si falta, se muestra el ejemplo simplificado. */ real?: string };
 
 /** El documento que dejó un agente, abierto para leer. */
-export function VisorDocumento({ indice, alCerrar }: Props) {
+export function VisorDocumento({ indice, alCerrar, real }: Props) {
   const agente = AGENTES[indice];
   const t = textosDe(agente.id);
   const d = t.documento;
@@ -40,8 +40,9 @@ export function VisorDocumento({ indice, alCerrar }: Props) {
         <div style={{ fontSize: 13, letterSpacing: 0.6, color: "#7c80a8" }}>
           DOCUMENTO DE {t.nombre.toUpperCase()} · {agente.comando}
         </div>
-        <h2 style={{ margin: "4px 0 16px", fontSize: 26, color: "#1e2033" }}>{d.titulo}</h2>
-        {d.bloques.map((b) => (
+        <h2 style={{ margin: "4px 0 16px", fontSize: 26, color: "#1e2033" }}>{real === undefined ? d.titulo : "Lo que produjo, de verdad"}</h2>
+        {real !== undefined && <pre style={{ margin: "0 0 14px", whiteSpace: "pre-wrap", fontFamily: "inherit", fontSize: 16 }}>{real || "El agente terminó sin dejar un mensaje."}</pre>}
+        {real === undefined && d.bloques.map((b) => (
           <section key={b.encabezado} style={{ marginBottom: 14 }}>
             <h3 style={{ margin: "0 0 4px", fontSize: 17, color: "#3b3466" }}>{b.encabezado}</h3>
             <ul style={{ margin: 0, paddingLeft: 22 }}>
@@ -52,11 +53,11 @@ export function VisorDocumento({ indice, alCerrar }: Props) {
           </section>
         ))}
         <p style={{ margin: "18px 0 14px", fontSize: 14, color: "#7c80a8" }}>
-          Es una versión simplificada, hecha con el ejemplo de los gastos entre amigos.
+          {real === undefined ? "Es una versión simplificada, hecha con el ejemplo de los gastos entre amigos." : "Lo escribió Claude en tu repositorio y ya está subido a GitHub."}
         </p>
         <button
           onClick={alCerrar}
-          style={{ padding: "10px 22px", borderRadius: 10, border: "none", background: "#3b3466", color: "#fff", fontSize: 16, fontWeight: 700, cursor: "pointer" }}
+          className="btn"
         >
           Cerrar
         </button>

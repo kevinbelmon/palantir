@@ -43,6 +43,7 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
   return (
     <nav
       aria-label="Los agentes"
+      className="panel"
       style={{
         position: "absolute",
         bottom: 12,
@@ -51,12 +52,9 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
         display: "flex",
         alignItems: "center",
         gap: 10,
-        padding: "9px 14px",
-        borderRadius: 24,
-        background: "rgba(20, 22, 40, 0.94)",
-        border: "1px solid #3a3f66",
-        boxShadow: "0 10px 30px rgba(0,0,0,0.45)",
-        color: "#e6e8f5",
+        padding: "10px 16px",
+        borderRadius: 28,
+        color: "var(--texto)",
         zIndex: 5,
       }}
     >
@@ -68,7 +66,7 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
         <span style={{ width: 44, height: 44, borderRadius: 14, background: seguro ? "#ff6b81" : "#3b6cff", display: "grid", placeItems: "center", fontSize: 24, color: "#fff" }}>{seguro ? "?" : "+"}</span>
         {seguro ? "¿Seguro?" : "Nuevo"}
       </button>
-      <span style={{ width: 1, height: 44, background: "#3a3f66" }} />
+      <span style={{ width: 1, height: 40, background: "var(--linea)" }} />
 
       {AGENTES.map((a, i) => {
         const e = estado.agentes[i];
@@ -96,7 +94,7 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
         );
       })}
 
-      <span style={{ width: 1, height: 44, background: "#3a3f66" }} />
+      <span style={{ width: 1, height: 40, background: "var(--linea)" }} />
       <div style={{ display: "grid", justifyItems: "center", gap: 2, minWidth: 54, fontSize: 12, fontWeight: 600 }}>
         <span data-contador="tareas" style={{ width: 44, height: 44, borderRadius: 14, background: "rgba(255,255,255,0.1)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>{tareas}</span>
         Tareas

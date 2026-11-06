@@ -11,16 +11,7 @@ type Props = {
   alLeer?: () => void;
 };
 
-const estiloBoton = {
-  padding: "10px 18px",
-  borderRadius: 10,
-  border: "none",
-  background: "#ffd54a",
-  color: "#1e2033",
-  fontSize: 16,
-  fontWeight: 700,
-  cursor: "pointer",
-} as const;
+const claseBoton = "btn";
 
 /** Lo que se ve al tocar un agente: qué hace, para qué sirve, y qué se le puede ordenar ahora. */
 export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer }: Props) {
@@ -37,46 +28,43 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
         bottom: 112,
         transform: "translateX(-50%)",
         width: "min(620px, 92vw)",
-        padding: "18px 22px",
-        borderRadius: 16,
-        background: "rgba(30, 32, 51, 0.96)",
-        border: "2px solid #8e92c4",
-        color: "#e6e8f5",
-        fontSize: 16,
-        lineHeight: 1.45,
-        boxShadow: "0 10px 36px rgba(0,0,0,0.45)",
+        padding: "22px 26px",
+        fontSize: 15.5,
+        lineHeight: 1.55,
+        zIndex: 6,
       }}
+      className="panel aparece"
     >
-      <button onClick={alCerrar} aria-label="Cerrar" style={{ position: "absolute", right: 12, top: 8, background: "none", border: "none", color: "#aab0d8", fontSize: 22, cursor: "pointer" }}>
+      <button onClick={alCerrar} aria-label="Cerrar" className="btn btn-suave" style={{ position: "absolute", right: 14, top: 14, width: 32, height: 32, padding: 0, borderRadius: 10, fontSize: 16, lineHeight: 1 }}>
         ✕
       </button>
-      <div style={{ fontSize: 13, color: "#aab0d8", letterSpacing: 0.6 }}>AGENTE {agente.numero} · {agente.comando}</div>
-      <h2 style={{ margin: "2px 0 8px", fontSize: 24, color: "#fff" }}>
+      <div style={{ fontSize: 12, color: "var(--texto-suave)", letterSpacing: "0.12em" }}>AGENTE {agente.numero} · {agente.comando}</div>
+      <h2 style={{ margin: "4px 0 10px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.01em", color: "#fff" }}>
         {t.nombre} <span style={{ fontWeight: 400, fontSize: 16, color: "#aab0d8" }}>· {t.subtitulo}</span>
       </h2>
       <p style={{ margin: "0 0 6px" }}>{t.queHace}</p>
-      <p style={{ margin: "0 0 14px", color: "#c4c8e8" }}>
+      <p style={{ margin: "0 0 16px", color: "#c4c8e8" }}>
         <strong style={{ color: "#fff" }}>Para qué sirve:</strong> {t.paraQueSirve}
       </p>
 
       {estado === "habilitado" && (
-        <button onClick={alOrdenar} style={estiloBoton}>
-          ▶ Ordenar que corra {agente.comando}
+        <button onClick={alOrdenar} className={claseBoton}>
+          Ordenar que corra {agente.comando}
         </button>
       )}
-      {estado === "corriendo" && <p style={{ margin: 0, color: "#ffd54a", fontWeight: 700 }}>⏳ Trabajando… mirá el globito en su sala.</p>}
+      {estado === "corriendo" && <p style={{ margin: 0, color: "var(--aviso)", fontWeight: 650 }}>Trabajando… mirá el globito en su sala.</p>}
       {estado === "terminado" && (
         <>
-          <p style={{ margin: "0 0 10px", color: "#6ee79a", fontWeight: 700 }}>✔ Ya terminó. {t.listo}</p>
+          <p style={{ margin: "0 0 12px", color: "var(--ok)", fontWeight: 650 }}>Ya terminó. {t.listo}</p>
           {alLeer && (
-            <button onClick={alLeer} style={estiloBoton}>
-              📄 Leer lo que produjo
+            <button onClick={alLeer} className={claseBoton}>
+              Leer lo que produjo
             </button>
           )}
         </>
       )}
       {estado === "deshabilitado" && (
-        <p style={{ margin: 0, color: "#f0a0a0" }}>
+        <p style={{ margin: 0, color: "var(--error)" }}>
           {!briefDejado ? "Todavía no: primero dejá el brief en la papelería." : `Todavía no: primero tiene que terminar el agente anterior (${anterior}).`}
         </p>
       )}

@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from "react";
+import { crearCliente, SIN_CONEXION, type EstadoLocal } from "./conexion";
 import { mensajeGuia } from "./contenido";
 import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./flujo";
 import { crearReproductor } from "./musica";
@@ -11,6 +12,7 @@ import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
 import { PanelAgente } from "./ui/PanelAgente";
+import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
@@ -23,6 +25,11 @@ export default function App() {
   const [seleccion, setSeleccion] = useState<number | null>(null);
   const [enfoque, setEnfoque] = useState<Enfoque | null>(null);
   const [pasoAbierto, setPasoAbierto] = useState<number | null>(null);
+  const [cliente] = useState(() => crearCliente());
+  const [local, setLocal] = useState<EstadoLocal>(SIN_CONEXION);
+  const [repoAbierto, setRepoAbierto] = useState(false);
+  const [aviso, setAviso] = useState("");
+  const real = local.briefSubido;
   const [musica] = useState(() => crearReproductor());
   const [silenciada, setSilenciada] = useState(false);
 
@@ -53,9 +60,28 @@ export default function App() {
   const corriendo = estado.agentes.findIndex((a) => a === "corriendo");
   useEffect(() => {
     if (corriendo === -1) return;
-    const t = setTimeout(() => despachar({ tipo: "terminarCorrida", indice: corriendo }), DURACION_CORRIDA_MS);
-    return () => clearTimeout(t);
-  }, [corriendo]);
+    if (!real) {
+      const t = setTimeout(() => despachar({ tipo: "terminarCorrida", indice: corriendo }), DURACION_CORRIDA_MS);
+      return () => clearTimeout(t);
+    }
+    // con un repo conectado el agente corre de verdad: se espera lo que conteste el programa local
+    let vivo = true;
+    cliente
+      .correrAgente(corriendo)
+      .then((r) => {
+        if (!vivo) return;
+        setLocal(r);
+        despachar({ tipo: "terminarCorrida", indice: corriendo });
+      })
+      .catch((e: unknown) => {
+        if (!vivo) return;
+        setAviso(e instanceof Error ? e.message : "Algo salió mal.");
+        despachar({ tipo: "cancelarCorrida", indice: corriendo });
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [corriendo, real, cliente]);
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
@@ -83,7 +109,7 @@ export default function App() {
         />
       )}
       {estado.documentoAbierto !== null && (
-        <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} />
+        <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} real={real ? (local.salidas[String(estado.documentoAbierto)] ?? "") : undefined} />
       )}
       {estado.fin && (
         <PantallaFinal
@@ -94,6 +120,16 @@ export default function App() {
         />
       )}
       <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} />
+      <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
+      {repoAbierto && <PanelRepo estado={local} cliente={cliente} alCambiar={setLocal} alCerrar={() => setRepoAbierto(false)} />}
+      {aviso && (
+        <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 16, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>
+          <span>{aviso}</span>
+          <button onClick={() => setAviso("")} className="btn btn-suave" style={{ padding: "6px 14px" }}>
+            Cerrar
+          </button>
+        </div>
+      )}
       <Dock
         estado={estado}
         alElegir={(i) => {

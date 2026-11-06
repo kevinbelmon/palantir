@@ -1,5 +1,6 @@
 :root {
-  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, Roboto, Arial, sans-serif;
+  font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
   color: #1f2236;
   background: #1b1d2e;
 }
@@ -30,5 +31,164 @@ body,
 @media (prefers-reduced-motion: reduce) {
   .latido {
     animation: none;
+  }
+}
+
+/* ---- Estilo de la interfaz: plano, con vidrio esmerilado, bordes casi invisibles y movimientos suaves ---- */
+:root {
+  --acento: #7c93ff;
+  --acento-2: #a77bff;
+  --texto: #eef0fb;
+  --texto-suave: #9fa6cf;
+  --vidrio: rgba(18, 20, 36, 0.74);
+  --linea: rgba(255, 255, 255, 0.09);
+  --ok: #4be08a;
+  --aviso: #ffd666;
+  --error: #ff8fa3;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+.panel {
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border: 1px solid var(--linea);
+  border-radius: 22px;
+  box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--texto);
+}
+
+.btn {
+  appearance: none;
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: linear-gradient(135deg, var(--acento), var(--acento-2));
+  box-shadow: 0 8px 20px -8px rgba(124, 147, 255, 0.7);
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.btn-suave {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  color: var(--texto);
+}
+.btn-suave:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+.btn-aviso {
+  background: var(--aviso);
+  color: #231d05;
+  box-shadow: 0 8px 20px -8px rgba(255, 214, 102, 0.6);
+}
+
+.pastilla {
+  appearance: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--linea);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--texto);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.pastilla:hover {
+  background: rgba(40, 44, 76, 0.85);
+  transform: translateY(-1px);
+}
+
+.campo {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--linea);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--texto);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+.campo::placeholder {
+  color: #6f76a3;
+}
+.campo:focus {
+  border-color: var(--acento);
+  background: rgba(124, 147, 255, 0.08);
+  box-shadow: 0 0 0 4px rgba(124, 147, 255, 0.18);
+}
+
+.paso {
+  appearance: none;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--texto);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.paso:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.paso[aria-expanded="true"] {
+  background: rgba(124, 147, 255, 0.14);
+}
+
+:focus-visible {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+}
+.aparece {
+  animation: aparecer 0.22s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aparece {
+    animation: none;
+  }
+  .btn,
+  .pastilla,
+  .paso,
+  .campo {
+    transition: none;
   }
 }

@@ -15,6 +15,7 @@ export type Accion =
   | { tipo: "dejarBrief" }
   | { tipo: "ordenarCorrer"; indice: number }
   | { tipo: "terminarCorrida"; indice: number }
+  | { tipo: "cancelarCorrida"; indice: number }
   | { tipo: "abrirDocumento"; indice: number }
   | { tipo: "cerrarDocumento" }
   | { tipo: "reiniciar" };
@@ -49,6 +50,9 @@ export function reducir(e: Estado, a: Accion): Estado {
       // el brief pasa al siguiente agente: solo ese se habilita, y espera la orden
       return cambiar(terminado, a.indice + 1, "deshabilitado", "habilitado");
     }
+    case "cancelarCorrida":
+      // la corrida real falló: el agente vuelve a esperar la orden, sin avanzar el brief
+      return cambiar(e, a.indice, "corriendo", "habilitado");
     case "abrirDocumento":
       return e.agentes[a.indice] === "terminado" ? { ...e, documentoAbierto: a.indice } : e;
     case "cerrarDocumento": {
