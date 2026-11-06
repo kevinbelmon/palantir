@@ -2,7 +2,7 @@ import { useEffect, useReducer, useState } from "react";
 import { crearCliente, SIN_CONEXION, type EstadoLocal } from "./conexion";
 import { mensajeGuia } from "./contenido";
 import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./flujo";
-import { crearReproductor } from "./musica";
+import { CANCIONES, cancionPorId, crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
 import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
@@ -20,6 +20,17 @@ import { VisorDocumento } from "./ui/VisorDocumento";
 
 /** La oficina en 3D; si el navegador no puede mostrar 3D, el mapa plano de siempre. */
 const Mapa = soportaWebGL() ? Lienzo3D : Lienzo;
+
+const CLAVE_CANCION = "sdd-juego-cancion";
+
+/** La canción que eligió la persona la última vez (si el navegador lo permite). */
+function cancionGuardada(): string {
+  try {
+    return localStorage.getItem(CLAVE_CANCION) ?? "";
+  } catch {
+    return "";
+  }
+}
 
 export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
@@ -70,7 +81,12 @@ export default function App() {
     }
     setLocal(e);
   };
-  const [musica] = useState(() => crearReproductor());
+  const [musica] = useState(() => {
+    const m = crearReproductor();
+    m.cambiar(cancionGuardada());
+    return m;
+  });
+  const [cancion, setCancion] = useState(() => cancionPorId(cancionGuardada()).id);
   const [silenciada, setSilenciada] = useState(false);
 
   // la música arranca con el primer clic (o tecla) de la persona: antes, el navegador no la deja sonar
@@ -84,6 +100,20 @@ export default function App() {
       musica.detener();
     };
   }, [musica]);
+
+  const elegirCancion = (id: string) => {
+    musica.cambiar(id);
+    setCancion(id);
+    try {
+      localStorage.setItem(CLAVE_CANCION, id);
+    } catch {
+      /* sin almacenamiento: la elección vale hasta cerrar la página */
+    }
+    if (silenciada) {
+      musica.silenciar(false);
+      setSilenciada(false);
+    }
+  };
 
   const alternarMusica = () => {
     musica.silenciar(!silenciada);
@@ -187,7 +217,7 @@ export default function App() {
           }}
         />
       )}
-      <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} />
+      <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} canciones={CANCIONES} actual={cancion} alElegir={elegirCancion} />
       {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
       <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
       {archivosAbierto && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}

@@ -93,7 +93,7 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
 /** El botón de arriba, junto al de música, que abre «Tu repositorio». */
 export function BotonRepo({ conectado, alAbrir }: { conectado: boolean; alAbrir: () => void }) {
   return (
-    <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 176, zIndex: 6 }}>
+    <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 300, zIndex: 6 }}>
       <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 4, background: conectado ? "var(--ok)" : "#6f76a3", boxShadow: conectado ? "0 0 10px var(--ok)" : "none" }} />
       {conectado ? "Repo conectado" : "Conectar repo"}
     </button>

@@ -1,4 +1,4 @@
-import { acordeDelCompas, bajoDelCompas, DURACION_COMPAS, frecuencia, golpesDeAcorde, melodiaDelCompas, ritmoDelCompas } from "./partitura";
+import { acordeDelCompas, bajoDelCompas, type Cancion, cancionPorId, duracionDelCompas, frecuencia, melodiaDelCompas, ritmoDelCompas, texturaDelCompas } from "./partitura";
 
 // Lo mínimo que usamos del sonido del navegador. `AudioContext` lo cumple tal cual;
 // en los tests se reemplaza por uno de mentira, así no hace falta placa de audio.
@@ -42,6 +42,7 @@ export function crearReproductor(fabrica: () => ContextoDeAudio = () => new Audi
   let compas = 0;
   let proximo = 0;
   let silenciada = false;
+  let cancion: Cancion = cancionPorId(null);
 
   /** Una nota con forma de «subir y bajar»: `ataque` es lo que tarda en llegar a su volumen. */
   function nota(destino: FiltroDeAudio | null, tipo: string, midi: number, inicio: number, duracion: number, volumen: number, ataque: number) {
@@ -77,13 +78,14 @@ export function crearReproductor(fabrica: () => ContextoDeAudio = () => new Audi
   }
 
   function programarCompas(n: number, t0: number) {
-    const acorde = acordeDelCompas(n);
+    const c = cancion;
+    const acorde = acordeDelCompas(n, c);
     // un colchón suave de acordes que se queda sonando todo el compás
-    for (const midi of acorde) nota(tonos, "sine", midi, t0, DURACION_COMPAS + 0.5, 0.032, 0.9);
-    for (const a of golpesDeAcorde(n)) nota(tonos, "triangle", a.midi, t0 + a.tiempo, a.duracion, 0.02, 0.015);
-    for (const b of bajoDelCompas(n)) nota(tonos, "sine", b.midi, t0 + b.tiempo, b.duracion, 0.11, 0.02);
-    for (const m of melodiaDelCompas(n)) nota(tonos, "triangle", m.midi, t0 + m.tiempo, m.duracion, 0.05, 0.04);
-    for (const r of ritmoDelCompas()) {
+    for (const midi of acorde) nota(tonos, "sine", midi, t0, duracionDelCompas(c) + 0.5, 0.032, 0.9);
+    for (const a of texturaDelCompas(n, c)) nota(tonos, "triangle", a.midi, t0 + a.tiempo, a.duracion, 0.02, 0.015);
+    for (const b of bajoDelCompas(n, c)) nota(tonos, "sine", b.midi, t0 + b.tiempo, b.duracion, 0.11, 0.02);
+    for (const m of melodiaDelCompas(n, c)) nota(tonos, "triangle", m.midi, t0 + m.tiempo, m.duracion, 0.05, c.ataqueMelodia);
+    for (const r of ritmoDelCompas(c)) {
       const t = t0 + r.tiempo;
       if (r.instrumento === "bombo") golpe("sine", 135, 45, t, 0.26, 0.4 * r.fuerza);
       else if (r.instrumento === "caja") {
@@ -97,12 +99,12 @@ export function crearReproductor(fabrica: () => ContextoDeAudio = () => new Audi
     if (!ctx) return;
     while (proximo < ctx.currentTime + ANTICIPO) {
       programarCompas(compas, proximo);
-      proximo += DURACION_COMPAS;
+      proximo += duracionDelCompas(cancion);
       compas++;
     }
   }
 
-  return {
+  const reproductor = {
     /** Arranca la música. Se puede llamar muchas veces: solo crea el sonido la primera. */
     iniciar() {
       if (ctx) {
@@ -115,7 +117,7 @@ export function crearReproductor(fabrica: () => ContextoDeAudio = () => new Audi
       maestra.connect(ctx.destination);
       tonos = ctx.createBiquadFilter();
       tonos.type = "lowpass";
-      tonos.frequency.value = 1500;
+      tonos.frequency.value = cancion.brillo;
       tonos.connect(maestra);
       percusion = ctx.createBiquadFilter();
       percusion.type = "lowpass";
@@ -141,7 +143,16 @@ export function crearReproductor(fabrica: () => ContextoDeAudio = () => new Audi
       tonos = null;
       percusion = null;
     },
+    /** Cambia de canción. Si ya está sonando, la nueva empieza de cero enseguida, sin mezclarse con la anterior. */
+    cambiar(id: string) {
+      cancion = cancionPorId(id);
+      if (!ctx) return;
+      reproductor.detener();
+      reproductor.iniciar();
+    },
+    cancionActual: () => cancion.id,
     estaActivo: () => ctx !== null,
     estaSilenciado: () => silenciada,
   };
+  return reproductor;
 }

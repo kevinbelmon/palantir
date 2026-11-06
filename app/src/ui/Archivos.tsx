@@ -148,7 +148,7 @@ export function Archivos({ cliente, alCerrar }: Props) {
 /** El botón de arriba que abre los archivos del repo (solo con un repo conectado). */
 export function BotonArchivos({ alAbrir }: { alAbrir: () => void }) {
   return (
-    <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 336, zIndex: 6 }}>
+    <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 460, zIndex: 6 }}>
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M3 7a2 2 0 0 1 2-2h4l2 2.500h8a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
       </svg>
