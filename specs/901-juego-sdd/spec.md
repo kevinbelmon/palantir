@@ -47,6 +47,12 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 - Dado cualquier agente, cuando leo su globito y su documento, entonces entiendo qué hizo sin
   saber programar: dice qué hace, para qué sirve y qué produjo, sin jerga sin explicar.
 
+**US-10 — Una oficina con vida**
+- Dado que miro la oficina, cuando el brief avanza, entonces una ruta con flechas muestra por dónde
+  viaja (lo hecho en verde, lo que sigue en amarillo), los personajes se mueven aunque nadie los
+  toque y una barra superior dice en qué paso voy.
+- Dado que mi sistema pide menos movimiento, cuando abro el juego, entonces nada se anima.
+
 ## Fuera de scope (v1)
 
 - Puntaje o ranking — no pedido.
@@ -57,6 +63,7 @@ Usuario: una persona que no programa. Mueve la cámara, deja el brief y ordena c
 - Que la persona maneje un personaje o escriba su propio brief — el brief es fijo.
 - Efectos de sonido — solo hay música de fondo.
 - Login, cuentas, servidor o base de datos — el juego corre en el navegador.
+- Menú lateral, repositorio por persona y cuenta de Claude — feature aparte (902).
 
 ## Measurable Process Outcomes (DX)
 

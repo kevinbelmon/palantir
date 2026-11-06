@@ -23,6 +23,8 @@ Principios no negociables. Si algo choca con ellos, se registra con `/sdd-log` a
 11. **Puerto fijo:** `localhost:5173` con `pnpm dev`. Si está ocupado, falla con un aviso claro.
 12. **Una sala por agente**, con cartel, pizarra y escritorio, alrededor de un lobby central,
     como en la foto de referencia (`drafts/referencia-oficina.png`). La foto es solo una guía.
+13. **Movimiento con permiso.** Las animaciones (ruta, personajes, luces) se apagan si el sistema
+    de la persona pide menos movimiento; el juego se entiende igual sin ellas.
 
 ## PROHIBITED
 

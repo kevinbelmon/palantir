@@ -28,6 +28,9 @@ paso. No hay cuentas ni login.
 8. Suena una música tranquila y chill de fondo, generada por el propio juego. Arranca con el
    primer clic y tiene un botón para silenciarla.
 9. `pnpm test` en verde y `pnpm audit:sdd` sin FAIL.
+10. La oficina tiene vida: una ruta con flechas marca por dónde viaja el brief, los personajes se
+    mueven aunque nadie los toque y una barra superior muestra en qué paso va la persona. Si el
+    sistema pide menos movimiento, todo queda quieto.
 
 ## OUT OF SCOPE (v1)
 - Puntaje o ranking.
@@ -38,6 +41,8 @@ paso. No hay cuentas ni login.
 - Que la persona maneje un personaje o escriba su propio brief.
 - Efectos de sonido: solo hay música de fondo.
 - Login, cuentas, servidor o base de datos.
+- Menú lateral (Mi Juego, Analytics, Configuración), repositorio por persona y cuenta de Claude:
+  son una feature aparte (902), que se refina después.
 
 ## RESTRICCIONES TÉCNICAS
 - React con TypeScript y Vite, que se levanta con `pnpm dev` en `localhost:5173` (puerto por
@@ -64,5 +69,9 @@ documento simplificado que se puede abrir → el brief pasa al agente siguiente 
 agente 8 → pantalla final. Documentos de cada agente, simplificados con el ejemplo: refine (el
 brief pulido), generate (los documentos de especificación), validate (reporte de huecos), log (el
 registro de la decisión), implement (código y tests), e2e (evidencia de las pruebas), checklist
-(lista de verificación) y review (verificación final). Referencia visual: la foto en
-`drafts/referencia-oficina.png`; los colores y detalles los define `/sdd-generate`.
+(lista de verificación) y review (verificación final). Referencia visual: las fotos en
+`drafts/referencia-oficina.png` y `drafts/referencia-oficina-2.png`; los colores y detalles los define
+`/sdd-generate`. La oficina tiene vida: una ruta con flechas muestra por dónde viaja el brief (lo
+hecho en verde, lo que sigue en amarillo), los personajes respiran y parpadean, cada sala tiene
+objetos propios de lo que hace su agente, y una barra superior muestra el título y el paso en que va
+la persona.

@@ -686,3 +686,17 @@ distribución del binario con versión y hash, igual que la capa A.
 **Motivo:** Replicar lo que el humano mostró sin romper las reglas del proyecto (recursos propios, sin imágenes externas) y mantener la ambigüedad en 0 antes de implementar.
 **Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`; se agregó `drafts/referencia-oficina.png` como referencia.
 **Decidido por:** kbelmonte (delegó el criterio de esta entrada a Claude: "elegí vos")
+
+---
+## 2026-11-06 Oficina con vida ahora; repositorio por persona y cuenta de Claude como feature aparte (902)
+
+**feature_id:** 901-juego-sdd
+**command_origin:** sdd-implement
+**status:** accepted
+**Gap o motivo:** Con la feature ya implementada (12/12), el humano mostró una segunda foto de referencia, mucho más rica (ruta con flechas, globitos por sala, barra superior, menú lateral y un panel "Tu Repositorio" con GitHub y Claude conectados), y pidió dos cosas: que el juego se vea más real, y que cada persona tenga un repositorio propio con el modelo clonado y su cuenta de Claude conectada, de verdad, en una página publicada y probada en local. Lo segundo choca con lo que la constitución y la spec prohíben hoy (cuentas, servidor, dependencias nuevas).
+**Alternativas consideradas:** (1) Hacer todo junto dentro de 901-juego-sdd. (2) Solo la parte visual dentro de 901 y el repositorio por persona como feature nueva, refinada con `/sdd-refine`. (3) Todo simulado, sin cuentas reales.
+**Por qué se descartaron:** (1) mezcla un cambio visual con integraciones reales (GitHub, tokens de Claude, un servidor) que necesitan su propia spec, decisiones de seguridad y pruebas; rompería la constitución de 901. (3) el humano pidió explícitamente que sea real.
+**Decisión tomada:** Dentro de 901: nueva US-10 y T013, una oficina con vida (ruta con flechas del brief, personajes que respiran y parpadean, objetos propios en cada sala, barra superior con el paso actual) y principio 13 de la constitución (las animaciones se apagan si el sistema pide menos movimiento). Menú lateral, repositorio por persona y cuenta de Claude quedan fuera de 901 y pasan a una feature 902, que se refina después. Se guardó la segunda foto en `drafts/referencia-oficina-2.png`.
+**Motivo:** Cumplir lo que el humano pidió con el menor riesgo: lo visual no toca cuentas ni credenciales y se puede hacer con TDD ahora; las integraciones reales merecen su propio ciclo del modelo.
+**Artefactos modificados:** `input.md`, `specs/901-juego-sdd/constitution.md`, `spec.md`, `plan.md`, `tasks.md`; se agregó `drafts/referencia-oficina-2.png`.
+**Decidido por:** kbelmonte (delegó el criterio de esta entrada a Claude: "3 elegí vos")
