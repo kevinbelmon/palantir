@@ -8,10 +8,15 @@ import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
 import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
+import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
+import { Lienzo3D } from "./ui/Lienzo3D";
 import { PanelAgente } from "./ui/PanelAgente";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
+
+/** La oficina en 3D; si el navegador no puede mostrar 3D, el mapa plano de siempre. */
+const Mapa = soportaWebGL() ? Lienzo3D : Lienzo;
 
 export default function App() {
   const [estado, despachar] = useReducer(reducir, ESTADO_INICIAL);
@@ -53,7 +58,7 @@ export default function App() {
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+      <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
       <BarraSuperior estado={estado} />
       <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
       {seleccion !== null && (

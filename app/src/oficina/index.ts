@@ -3,7 +3,8 @@ export { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, puertaDeSala, rectBrief, rectD
 export { estadoDeSegmento, longitudDeSegmento, puntoEnRuta, RUTA } from "./ruta";
 export type { EstadoTramo, Punto, Tramo } from "./ruta";
 export { parpadeo, respiracion, tiempoVisible } from "./animacion";
-export { ladrillosEn, tacosEn } from "./bloques";
+export { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
+export type { LadoDeMuro, TiraDeMuro } from "./bloques";
 export { posicionEtiqueta } from "./etiquetas";
 export { camaraEnSala, interpolarCamara } from "./enfoque";
 export { APARIENCIAS, COLORES_ESTADO } from "./paleta";

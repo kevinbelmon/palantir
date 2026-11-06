@@ -159,3 +159,41 @@
 - supuestos_declarados: 0
 - cobertura_inicial: 100%
 - iteration_number: 5
+
+### 📊 Reporte de Esfuerzo SDD
+
+**Contexto de ejecución**
+- **feature_id**: 901-juego-sdd
+- **command_origin**: sdd-implement
+- **iteration_number**: 4
+- **timestamp**: 2026-11-06T19:30:00-03:00
+
+**Eficiencia de la IA (DX)**
+- [x] DX_MET_001 **Ciclos de Autocorrección**: 6. Uno de compilación (importé `PALETA` y unos tipos desde el lugar equivocado). Cinco ajustes visuales que salieron de mirar capturas, no de las pruebas: los carteles de varias salas tapaban a las salas vecinas o a sus pizarras, la etiqueta del comando se cortaba, el pelo parecía un sombrero, los papeles del escritorio quedaban detrás de los monitores, y al tocar la cabeza de un muñeco el clic caía en el piso de atrás.
+- [x] DX_MET_002 **Consultas de Clarificación**: 0.
+- [x] DX_MET_003 **Interacciones Totales**: 1 turno del usuario en esta iteración («pero más real lo necesito»), más la elección de «3D de verdad». El resto fue trabajo autónomo.
+
+**Análisis de Retrabajo**
+- [x] DX_MET_004 **Causa Raíz**: Técnica y mía, no de la spec: el 3D no se puede probar con pruebas unitarias, así que los defectos de colocación solo aparecieron al mirar el resultado.
+- [x] DX_MET_005 **Resiliencia**: No se alcanzó ningún límite de rate-limit ni de tokens.
+- [x] DX_MET_006 **Token Budget** — **No medido**, por la misma razón que antes (exige `npx ccusage@latest`, que descarga un paquete, no corrido sin OK). `session_ids` se omite.
+
+**Rework Ratio (calculado)**
+- **Tareas totales en tasks.md**: 15
+- **DX_MET_001 acumulado**: 5 + 0 + 2 + 6 = 13
+- **Entradas en DECISIONS.md para esta feature**: 4
+- **Rework Ratio estimado**: (13 + 4) ÷ 15 ≈ 1,13
+
+**Verificación**
+- `pnpm test`: 24 archivos, 201 tests, en verde. `pnpm typecheck`, `pnpm lint` (sin advertencias) y `pnpm build`: en verde. El build avisa que el paquete pasa los 500 kB por incluir Three.js; no es un error.
+- Lo nuevo de la escena 3D (dibujo con WebGL) **no tiene pruebas unitarias**: se verificó en Edge sin ventana con WebGL por software. La cámara 3D, la proyección y el clic al piso sí tienen pruebas.
+- Recorrido completo en 3D desde el navegador: dejar el brief, correr los 8 agentes uno por uno (8 de 8 terminaron), y el dock lleva la cámara a la sala. Se ven el piso con tacos, las paredes de ladrillos, sombras, muñecos que teclean y saludan, la ruta que se pinta de verde, el papel que viaja, los globitos, el tilde y el signo «!».
+- **Sin verificar a ojo:** el respaldo en 2D en un navegador sin WebGL (lo cubren las pruebas existentes, que corren sin WebGL), «menos movimiento» activado en el sistema, el zoom con la rueda en 3D y el arrastre con el clic derecho (la cuenta está probada, el gesto no se probó en el navegador).
+
+## Implement — 2026-11-06T19:30:00-03:00
+- command_origin: sdd-implement
+- tasks_completadas: 15/15
+- tests: PASS
+- lint: PASS
+- build: PASS
+- gate_override: false

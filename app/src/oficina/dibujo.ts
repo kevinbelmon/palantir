@@ -6,7 +6,7 @@ import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALA
 import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "./decoracion";
 import { dibujarObjeto } from "./objetos";
 import { estadoDeSegmento, puntoEnRuta, RUTA } from "./ruta";
-import { ladrillosEn, tacosEn } from "./bloques";
+import { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
 import { posicionEtiqueta } from "./etiquetas";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "./paleta";
 import { dibujarPersonaje } from "./personajes";
@@ -276,27 +276,7 @@ function pizarra(ctx: Ctx, r: Rect, lineas: readonly string[]) {
 
 /** Muros de ladrillos blancos, con tacos arriba y una puerta hacia el lobby. */
 function muros(ctx: Ctx, a: Rect, puerta: "abajo" | "arriba" | "izquierda") {
-  const g = 16;
-  const hueco = 130;
-  const tiras: Rect[] = [];
-  const franja = (x: number, y: number, w: number, h: number) => tiras.push({ x, y, w, h });
-  // arriba
-  if (puerta === "arriba") {
-    franja(a.x - g / 2, a.y - g / 2, (a.w - hueco) / 2 + g / 2, g);
-    franja(a.x + (a.w + hueco) / 2, a.y - g / 2, (a.w - hueco) / 2 + g / 2, g);
-  } else franja(a.x - g / 2, a.y - g / 2, a.w + g, g);
-  // abajo
-  if (puerta === "abajo") {
-    franja(a.x - g / 2, a.y + a.h - g / 2, (a.w - hueco) / 2 + g / 2, g);
-    franja(a.x + (a.w + hueco) / 2, a.y + a.h - g / 2, (a.w - hueco) / 2 + g / 2, g);
-  } else franja(a.x - g / 2, a.y + a.h - g / 2, a.w + g, g);
-  // izquierda
-  if (puerta === "izquierda") {
-    franja(a.x - g / 2, a.y - g / 2, g, (a.h - hueco) / 2 + g / 2);
-    franja(a.x - g / 2, a.y + (a.h + hueco) / 2, g, (a.h - hueco) / 2 + g / 2);
-  } else franja(a.x - g / 2, a.y - g / 2, g, a.h + g);
-  // derecha
-  franja(a.x + a.w - g / 2, a.y - g / 2, g, a.h + g);
+  const tiras = tirasDeMuro(a, puerta).map((x) => x.rect);
 
   for (const t of tiras) {
     sombra(ctx, t.x + t.w / 2 + 3, t.y + t.h / 2 + 4, t.w / 2 + 3, t.h / 2 + 3, 0.12);

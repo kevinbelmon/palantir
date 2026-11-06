@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ladrillosEn, tacosEn } from "../src/oficina";
+import { ladrillosEn, tacosEn, tirasDeMuro } from "../src/oficina";
 
 const area = { x: 10, y: 20, w: 100, h: 60 };
 
@@ -63,5 +63,36 @@ describe("los ladrillos de una pared", () => {
       expect(b.x + b.w).toBeLessThanOrEqual(pared.x + pared.w + 0.001);
       expect(b.y + b.h).toBeLessThanOrEqual(pared.y + pared.h + 0.001);
     }
+  });
+});
+
+describe("las tiras de pared de una sala", () => {
+  const sala = { x: 100, y: 100, w: 560, h: 420 };
+
+  it("son cinco, con la puerta del lado que se pide", () => {
+    for (const puerta of ["abajo", "arriba", "izquierda"] as const) {
+      expect(tirasDeMuro(sala, puerta)).toHaveLength(5);
+    }
+  });
+
+  it("dejan un hueco de 130 de ancho en el lado de la puerta", () => {
+    const sur = tirasDeMuro(sala, "abajo").filter((t) => t.lado === "sur");
+    expect(sur).toHaveLength(2);
+    const [izq, der] = [...sur].sort((a, b) => a.rect.x - b.rect.x);
+    expect(der.rect.x - (izq.rect.x + izq.rect.w)).toBeCloseTo(130);
+  });
+
+  it("nadie tapa el centro de la puerta, y el resto de los lados está cerrado", () => {
+    const tapa = (x: number, y: number, puerta: "abajo" | "arriba" | "izquierda") =>
+      tirasDeMuro(sala, puerta).some(({ rect: r }) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+    expect(tapa(sala.x + sala.w / 2, sala.y + sala.h, "abajo")).toBe(false);
+    expect(tapa(sala.x + sala.w / 2, sala.y, "abajo")).toBe(true);
+    expect(tapa(sala.x, sala.y + sala.h / 2, "izquierda")).toBe(false);
+    expect(tapa(sala.x + sala.w, sala.y + sala.h / 2, "izquierda")).toBe(true);
+  });
+
+  it("marcan a qué lado pertenece cada tira (norte, sur, oeste y este)", () => {
+    const lados = new Set(tirasDeMuro(sala, "abajo").map((t) => t.lado));
+    expect([...lados].sort()).toEqual(["este", "norte", "oeste", "sur"]);
   });
 });
