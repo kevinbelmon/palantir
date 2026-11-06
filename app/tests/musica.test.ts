@@ -20,7 +20,12 @@ describe("la partitura", () => {
   });
 
   it("todas las notas son graves o medias, nada agudo ni chillón", () => {
-    for (const acorde of PROGRESION) for (const n of acorde) expect(n).toBeGreaterThanOrEqual(36), expect(n).toBeLessThanOrEqual(72);
+    for (const acorde of PROGRESION) {
+      for (const n of acorde) {
+        expect(n).toBeGreaterThanOrEqual(36);
+        expect(n).toBeLessThanOrEqual(72);
+      }
+    }
   });
 
   it("al terminar la progresión vuelve a empezar", () => {

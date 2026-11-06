@@ -8,9 +8,12 @@ type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir
 export function Lienzo({ agentes, brief, alElegir }: Props) {
   const ref = useRef<HTMLCanvasElement>(null);
   const vista = useRef({ agentes, brief });
-  vista.current = { agentes, brief };
   const elegir = useRef(alElegir);
-  elegir.current = alElegir;
+  // el bucle de dibujo lee siempre lo último; las referencias se actualizan después de cada render
+  useEffect(() => {
+    vista.current = { agentes, brief };
+    elegir.current = alElegir;
+  });
 
   useEffect(() => {
     const canvas = ref.current;

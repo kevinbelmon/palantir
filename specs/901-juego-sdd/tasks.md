@@ -25,5 +25,5 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       clic y se puede silenciar. Crea: `app/src/musica/`. · US: US-8
 - [x] **T011** — Textos simples: revisar que cada agente diga qué hace, para qué sirve y qué
       produjo, sin jerga sin explicar (con test sobre el contenido). Toca: `contenido/`. · US: US-9
-- [ ] **T012** — Cierre: `pnpm test` en verde, `pnpm audit:sdd` sin FAIL y recorrido completo
+- [x] **T012** — Cierre: `pnpm test` en verde, `pnpm audit:sdd` sin FAIL y recorrido completo
       del juego en `localhost:5173`. · US: —

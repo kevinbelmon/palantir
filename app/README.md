@@ -1,32 +1,44 @@
-# React + TypeScript + Vite
+# La oficina del modelo operativo
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Un juego en el navegador para que cualquier persona, sin saber programar, entienda el paso a paso
+del modelo operativo (SDD Model v1.1). Una oficina con 8 agentes, uno por comando del camino
+principal; el brief viaja de sala en sala y la persona le ordena a cada agente que corra.
 
-Currently, two official plugins are available:
+## Cómo se usa
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```
+pnpm install
+pnpm dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Abrí `http://localhost:5173`. Música y todo lo demás se activan con el primer clic.
+
+- **Mover la oficina:** mantené el clic derecho y arrastrá. **Acercar o alejar:** la rueda.
+- **Jugar:** dejá el brief en la papelería, tocá al agente 1, ordenale correr, leé lo que produjo, y seguí con el siguiente.
+
+El puerto 5173 es fijo. Si otra aplicación lo está usando, el juego **no arranca** y avisa
+(`Port 5173 is already in use`): cerrá esa aplicación o elegí otro puerto con `pnpm dev --port 5180`.
+
+## Para quien desarrolla
+
+| Comando | Qué hace |
+|---|---|
+| `pnpm test` | corre todos los tests |
+| `pnpm typecheck` | revisa los tipos |
+| `pnpm lint` | revisa el estilo del código |
+| `pnpm build` | arma la versión final en `dist/` |
+
+Solo se usa React, Vite y, para las pruebas, Vitest. No hay motores de juego, ni librerías de audio,
+ni imágenes, fuentes o sonidos externos: la oficina, los personajes y la música se generan en código.
+
+## Cómo está organizado (`src/`)
+
+| Carpeta | Qué tiene |
+|---|---|
+| `flujo/` | el estado del juego: los 8 agentes, el brief y qué se habilita en cada paso |
+| `oficina/` | el mapa, el dibujo en el lienzo, la cámara y qué hay bajo el mouse |
+| `contenido/` | todos los textos: globitos, documentos, guía y el brief de ejemplo |
+| `musica/` | la música chill: partitura y reproductor |
+| `ui/` | los componentes de la pantalla |
+
+Los textos que lee la persona están en `contenido/` y un test revisa que no tengan jerga técnica.

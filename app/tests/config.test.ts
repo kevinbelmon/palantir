@@ -10,3 +10,10 @@ describe("configuración de Vite", () => {
     expect(config.server?.strictPort).toBe(true);
   });
 });
+
+describe("la dirección donde escucha", () => {
+  it("usa la dirección IPv4 de esta computadora, así detecta un puerto ocupado de verdad", () => {
+    // Con "localhost" Vite puede escuchar en IPv6 y convivir en silencio con otra app en IPv4.
+    expect(config.server?.host).toBe("127.0.0.1");
+  });
+});
