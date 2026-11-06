@@ -7,14 +7,37 @@ type Props = {
   briefDejado: boolean;
   alOrdenar: () => void;
   alCerrar: () => void;
+  /** Lo que el agente fue haciendo de verdad (frases simples), si corre en un repo conectado. */
+  actividad?: readonly string[];
   /** Abre el documento que dejó el agente (solo si ya terminó). */
   alLeer?: () => void;
 };
 
 const claseBoton = "btn";
 
+/** Las últimas cosas que hizo el agente. Sin registro real, muestra lo que cuenta su globito. */
+function Hace({ lineas, cuenta, titulo }: { lineas?: readonly string[]; cuenta: string; titulo?: string }) {
+  const ultimas = (lineas ?? []).slice(-8);
+  return (
+    <div style={{ margin: "0 0 14px" }}>
+      {titulo && <div style={{ fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--texto-suave)", marginBottom: 6 }}>{titulo}</div>}
+      {ultimas.length === 0 ? (
+        <p style={{ margin: 0, color: "#c4c8e8" }}>{cuenta}</p>
+      ) : (
+        <ul aria-label="Lo que hace el agente" style={{ listStyle: "none", margin: 0, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", gap: 4, fontSize: 14, maxHeight: 190, overflow: "auto" }}>
+          {ultimas.map((l, i) => (
+            <li key={i} style={{ color: i === ultimas.length - 1 ? "#fff" : "var(--texto-suave)" }}>
+              {l}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 /** Lo que se ve al tocar un agente: qué hace, para qué sirve, y qué se le puede ordenar ahora. */
-export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer }: Props) {
+export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer, actividad }: Props) {
   const agente = AGENTES[indice];
   const t = textosDe(agente.id);
   const anterior = indice > 0 ? textosDe(AGENTES[indice - 1].id).nombre : null;
@@ -52,10 +75,16 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
           Ordenar que corra {agente.comando}
         </button>
       )}
-      {estado === "corriendo" && <p style={{ margin: 0, color: "var(--aviso)", fontWeight: 650 }}>Trabajando… mirá el globito en su sala.</p>}
+      {estado === "corriendo" && (
+        <div>
+          <p style={{ margin: "0 0 8px", color: "var(--aviso)", fontWeight: 650 }}>Trabajando… esto es lo que está haciendo:</p>
+          <Hace lineas={actividad} cuenta={t.globito} />
+        </div>
+      )}
       {estado === "terminado" && (
         <>
           <p style={{ margin: "0 0 12px", color: "var(--ok)", fontWeight: 650 }}>Ya terminó. {t.listo}</p>
+          {actividad && actividad.length > 0 && <Hace lineas={actividad} titulo="Lo que hizo" cuenta={t.globito} />}
           {alLeer && (
             <button onClick={alLeer} className={claseBoton}>
               Leer lo que produjo

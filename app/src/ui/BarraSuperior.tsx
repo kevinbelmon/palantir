@@ -27,7 +27,7 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         display: "flex",
         alignItems: "center",
         gap: 20,
-        padding: "0 340px 0 16px",
+        padding: "0 480px 0 16px",
         background: "rgba(14, 16, 30, 0.8)",
         WebkitBackdropFilter: "blur(20px)",
         backdropFilter: "blur(20px)",

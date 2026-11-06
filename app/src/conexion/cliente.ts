@@ -5,9 +5,13 @@ export type EstadoLocal = {
   briefSubido: boolean;
   corriendo: number | null;
   salidas: Record<string, string>;
+  /** Lo que fue haciendo cada agente, en frases simples (la última línea es lo más reciente). */
+  actividad: Record<string, string[]>;
 };
 
-export const SIN_CONEXION: EstadoLocal = { repo: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {} };
+export type Entrada = { nombre: string; tipo: "carpeta" | "archivo" };
+
+export const SIN_CONEXION: EstadoLocal = { repo: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {} };
 
 export const AVISO_SIN_PROGRAMA = "No encuentro el programa local. Encendelo en una terminal con «pnpm servidor» y volvé a intentar.";
 
@@ -48,6 +52,10 @@ export function crearCliente(pedir: Pedir = pedirReal) {
     conectarRepo: (url: string) => llamar<EstadoLocal>(pedir, "/api/repo", { url }),
     subirBrief: (texto: string) => llamar<EstadoLocal>(pedir, "/api/brief", { texto }),
     correrAgente: (indice: number) => llamar<EstadoLocal & { salida: string }>(pedir, "/api/agente", { indice }),
+    archivos: (ruta: string) => llamar<{ ruta: string; entradas: Entrada[] }>(pedir, `/api/archivos?ruta=${encodeURIComponent(ruta)}`),
+    leerArchivo: (ruta: string) => llamar<{ ruta: string; texto: string }>(pedir, `/api/archivo?ruta=${encodeURIComponent(ruta)}`),
+    guardarArchivo: (ruta: string, texto: string) => llamar<{ ok: true }>(pedir, "/api/archivo", { ruta, texto }),
+    crearCarpeta: (ruta: string) => llamar<{ ok: true }>(pedir, "/api/carpeta", { ruta }),
   };
 }
 

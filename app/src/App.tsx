@@ -12,6 +12,7 @@ import { soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
 import { PanelAgente } from "./ui/PanelAgente";
+import { Archivos, BotonArchivos } from "./ui/Archivos";
 import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
 import { PantallaFinal } from "./ui/PantallaFinal";
@@ -28,6 +29,7 @@ export default function App() {
   const [cliente] = useState(() => crearCliente());
   const [local, setLocal] = useState<EstadoLocal>(SIN_CONEXION);
   const [repoAbierto, setRepoAbierto] = useState(false);
+  const [archivosAbierto, setArchivosAbierto] = useState(false);
   const [aviso, setAviso] = useState("");
   const real = local.briefSubido;
   const [musica] = useState(() => crearReproductor());
@@ -66,6 +68,13 @@ export default function App() {
     }
     // con un repo conectado el agente corre de verdad: se espera lo que conteste el programa local
     let vivo = true;
+    // mientras el agente trabaja, se le pregunta cada tanto qué va haciendo
+    const seguimiento = setInterval(() => {
+      cliente
+        .estado()
+        .then((e) => vivo && setLocal((previo) => ({ ...previo, actividad: e.actividad })))
+        .catch(() => {});
+    }, 1500);
     cliente
       .correrAgente(corriendo)
       .then((r) => {
@@ -80,6 +89,7 @@ export default function App() {
       });
     return () => {
       vivo = false;
+      clearInterval(seguimiento);
     };
   }, [corriendo, real, cliente]);
 
@@ -106,6 +116,7 @@ export default function App() {
           alOrdenar={() => despachar({ tipo: "ordenarCorrer", indice: seleccion })}
           alCerrar={() => setSeleccion(null)}
           alLeer={() => despachar({ tipo: "abrirDocumento", indice: seleccion })}
+          actividad={real ? local.actividad[String(seleccion)] : undefined}
         />
       )}
       {estado.documentoAbierto !== null && (
@@ -120,7 +131,9 @@ export default function App() {
         />
       )}
       <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} />
+      {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
       <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
+      {archivosAbierto && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
       {repoAbierto && <PanelRepo estado={local} cliente={cliente} alCambiar={setLocal} alCerrar={() => setRepoAbierto(false)} />}
       {aviso && (
         <div role="alert" className="panel aparece" style={{ position: "absolute", top: 76, left: "50%", transform: "translateX(-50%)", zIndex: 9, maxWidth: 560, padding: "12px 14px 12px 20px", borderRadius: 16, color: "var(--error)", fontSize: 14.5, display: "flex", gap: 14, alignItems: "center" }}>

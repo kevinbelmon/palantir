@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { join } from "node:path";
 import { correrAgente, type Ejecutor, ejecutorClaude } from "./agentes.ts";
+import { crearCarpeta, escribir, leer, listar } from "./archivos.ts";
 import { guardarBrief, prepararRepo, type Repo, urlDeRepo } from "./repo.ts";
 
 export type Opciones = {
@@ -11,7 +12,7 @@ export type Opciones = {
   validarUrl?: (entrada: string) => Repo | null;
 };
 
-type Sesion = { repo: Repo | null; carpeta: string | null; modeloInstalado: boolean; briefSubido: boolean; corriendo: number | null; salidas: Record<number, string> };
+type Sesion = { repo: Repo | null; carpeta: string | null; modeloInstalado: boolean; briefSubido: boolean; corriendo: number | null; salidas: Record<number, string>; actividad: Record<number, string[]> };
 
 const LOCAL = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const MAX_CUERPO = 64 * 1024;
@@ -55,13 +56,13 @@ function leerJson(req: IncomingMessage): Promise<Record<string, unknown>> {
 export function crearServidor(opciones: Opciones): Server {
   const ejecutor = opciones.ejecutor ?? ejecutorClaude;
   const validar = opciones.validarUrl ?? urlDeRepo;
-  const s: Sesion = { repo: null, carpeta: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {} };
+  const s: Sesion = { repo: null, carpeta: null, modeloInstalado: false, briefSubido: false, corriendo: null, salidas: {}, actividad: {} };
 
   const responder = (res: ServerResponse, codigo: number, cuerpo: unknown) => {
     res.writeHead(codigo, { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" });
     res.end(JSON.stringify(cuerpo));
   };
-  const estado = () => ({ repo: s.repo?.url ?? null, modeloInstalado: s.modeloInstalado, briefSubido: s.briefSubido, corriendo: s.corriendo, salidas: s.salidas });
+  const estado = () => ({ repo: s.repo?.url ?? null, modeloInstalado: s.modeloInstalado, briefSubido: s.briefSubido, corriendo: s.corriendo, salidas: s.salidas, actividad: s.actividad });
 
   return createServer(async (req, res) => {
     if (!esLocal(req)) return responder(res, 403, { error: "Solo se atiende desde esta computadora." });
@@ -75,7 +76,7 @@ export function crearServidor(opciones: Opciones): Server {
         if (!repo) return responder(res, 400, { error: "Pegá el link de un repositorio de GitHub, por ejemplo https://github.com/tu-usuario/tu-repo." });
         const carpeta = join(opciones.base, repo.nombre);
         await prepararRepo(repo.url, carpeta);
-        Object.assign(s, { repo, carpeta, modeloInstalado: true, briefSubido: false, salidas: {} });
+        Object.assign(s, { repo, carpeta, modeloInstalado: true, briefSubido: false, salidas: {}, actividad: {} });
         return responder(res, 200, estado());
       }
 
@@ -93,12 +94,36 @@ export function crearServidor(opciones: Opciones): Server {
         const { indice } = await leerJson(req);
         if (typeof indice !== "number" || !Number.isInteger(indice)) return responder(res, 400, { error: "Falta qué agente correr." });
         s.corriendo = indice;
+        s.actividad[indice] = [];
         try {
-          const r = await correrAgente(s.carpeta, indice, ejecutor);
+          const r = await correrAgente(s.carpeta, indice, ejecutor, (frase) => {
+            const lista = (s.actividad[indice] ??= []);
+            lista.push(frase);
+            if (lista.length > 200) lista.shift();
+          });
           s.salidas[indice] = r.salida;
           return responder(res, 200, { ...estado(), salida: r.salida, subido: r.subido });
         } finally {
           s.corriendo = null;
+        }
+      }
+
+      if (ruta.startsWith("/api/archivo") || ruta === "/api/carpeta") {
+        if (!s.carpeta) return responder(res, 409, { error: "Primero conectá un repositorio." });
+        const consulta = new URL(req.url ?? "", "http://local").searchParams.get("ruta") ?? "";
+        if (req.method === "GET" && ruta === "/api/archivos") return responder(res, 200, { ruta: consulta, entradas: listar(s.carpeta, consulta) });
+        if (req.method === "GET" && ruta === "/api/archivo") return responder(res, 200, { ruta: consulta, texto: leer(s.carpeta, consulta) });
+        if (req.method === "POST" && ruta === "/api/archivo") {
+          const { ruta: destino, texto } = await leerJson(req);
+          if (typeof destino !== "string" || typeof texto !== "string") return responder(res, 400, { error: "Faltan el nombre y el contenido del archivo." });
+          await escribir(s.carpeta, destino, texto);
+          return responder(res, 200, { ok: true });
+        }
+        if (req.method === "POST" && ruta === "/api/carpeta") {
+          const { ruta: destino } = await leerJson(req);
+          if (typeof destino !== "string") return responder(res, 400, { error: "Falta el nombre de la carpeta." });
+          await crearCarpeta(s.carpeta, destino);
+          return responder(res, 200, { ok: true });
         }
       }
 
