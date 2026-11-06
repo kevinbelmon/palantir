@@ -102,3 +102,44 @@ describe("abrir y cerrar el documento de un agente", () => {
     expect(reducir(abierto, { tipo: "cerrarDocumento" }).documentoAbierto).toBeNull();
   });
 });
+
+describe("avanzar en orden", () => {
+  const correr = (e: ReturnType<typeof reducir>, i: number) =>
+    reducir(reducir(e, { tipo: "ordenarCorrer", indice: i }), { tipo: "terminarCorrida", indice: i });
+  const inicio = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
+
+  it("al terminar un agente, el brief pasa al siguiente y solo ese se habilita", () => {
+    const e = correr(inicio, 0);
+    expect(e.agentes[0]).toBe("terminado");
+    expect(e.agentes[1]).toBe("habilitado");
+    expect(e.agentes.slice(2).every((a) => a === "deshabilitado")).toBe(true);
+    expect(ubicacionBrief(e)).toEqual({ agente: 1 });
+  });
+
+  it("el siguiente queda esperando la orden: no corre solo", () => {
+    expect(correr(inicio, 0).agentes[1]).not.toBe("corriendo");
+  });
+
+  it("no se puede saltear a un agente: el 3 no corre si el 2 no terminó", () => {
+    const e = correr(inicio, 0);
+    expect(reducir(e, { tipo: "ordenarCorrer", indice: 2 })).toEqual(e);
+  });
+
+  it("recorriendo los 8 en orden, el brief va de escritorio en escritorio", () => {
+    let e = inicio;
+    for (let i = 0; i < AGENTES.length; i++) {
+      expect(e.agentes[i]).toBe("habilitado");
+      expect(ubicacionBrief(e)).toEqual(i === 0 ? "papeleria" : { agente: i });
+      e = correr(e, i);
+    }
+    expect(e.agentes.every((a) => a === "terminado")).toBe(true);
+  });
+
+  it("al terminar el último no se habilita nada más", () => {
+    let e = inicio;
+    for (let i = 0; i < AGENTES.length; i++) e = correr(e, i);
+    expect(e.agentes).toHaveLength(AGENTES.length);
+    expect(e.agentes.some((a) => a === "habilitado" || a === "corriendo")).toBe(false);
+    expect(ubicacionBrief(e)).toEqual({ agente: AGENTES.length - 1 });
+  });
+});

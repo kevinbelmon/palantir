@@ -31,21 +31,37 @@ describe("la guía mientras un agente trabaja", () => {
   });
 });
 
-describe("la guía cuando un agente terminó", () => {
-  it("le dice que lea el documento sobre su escritorio", () => {
+describe("la guía cuando terminó el último agente", () => {
+  const recorrido = () => {
     let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
-    e = reducir(e, { tipo: "ordenarCorrer", indice: 0 });
-    e = reducir(e, { tipo: "terminarCorrida", indice: 0 });
-    const texto = mensajeGuia(e).toLowerCase();
+    for (let i = 0; i < 8; i++) {
+      e = reducir(e, { tipo: "ordenarCorrer", indice: i });
+      e = reducir(e, { tipo: "terminarCorrida", indice: i });
+    }
+    return e;
+  };
+
+  it("le dice que lea el documento sobre su escritorio", () => {
+    const texto = mensajeGuia(recorrido()).toLowerCase();
     expect(texto).toContain("terminó");
+    expect(texto).toContain("review");
     expect(texto).toContain("documento");
   });
 
   it("mientras lee un documento, la guía se calla", () => {
+    const e = reducir(recorrido(), { tipo: "abrirDocumento", indice: 0 });
+    expect(mensajeGuia(e)).toBe("");
+  });
+});
+
+describe("la guía al pasar al siguiente agente", () => {
+  it("le dice que ahora le toca al agente 2 y que puede leer el documento del anterior", () => {
     let e = reducir(ESTADO_INICIAL, { tipo: "dejarBrief" });
     e = reducir(e, { tipo: "ordenarCorrer", indice: 0 });
     e = reducir(e, { tipo: "terminarCorrida", indice: 0 });
-    e = reducir(e, { tipo: "abrirDocumento", indice: 0 });
-    expect(mensajeGuia(e)).toBe("");
+    const texto = mensajeGuia(e).toLowerCase();
+    expect(texto).toContain("agente 2");
+    expect(texto).toContain("generate");
+    expect(texto).toContain("documento");
   });
 });

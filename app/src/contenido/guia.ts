@@ -17,7 +17,8 @@ export function mensajeGuia(e: Estado): string {
   if (habilitado !== -1) {
     const agente = AGENTES[habilitado];
     const nombre = TEXTOS_AGENTES[agente.id].nombre;
-    return `Ahora le toca al agente ${agente.numero} (${nombre}). Hacé clic en su escritorio y ordenale correr.`;
+    const anterior = habilitado > 0 ? ` Antes, si querés, leé el documento que dejó el agente ${habilitado} sobre su escritorio.` : "";
+    return `Ahora le toca al agente ${agente.numero} (${nombre}). Hacé clic en su escritorio y ordenale correr.${anterior}`;
   }
   const terminado = e.agentes.findLastIndex((a) => a === "terminado");
   if (terminado !== -1) {

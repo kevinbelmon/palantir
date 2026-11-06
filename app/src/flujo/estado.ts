@@ -39,8 +39,12 @@ export function reducir(e: Estado, a: Accion): Estado {
     }
     case "ordenarCorrer":
       return cambiar(e, a.indice, "habilitado", "corriendo");
-    case "terminarCorrida":
-      return cambiar(e, a.indice, "corriendo", "terminado");
+    case "terminarCorrida": {
+      const terminado = cambiar(e, a.indice, "corriendo", "terminado");
+      if (terminado === e) return e;
+      // el brief pasa al siguiente agente: solo ese se habilita, y espera la orden
+      return cambiar(terminado, a.indice + 1, "deshabilitado", "habilitado");
+    }
     case "abrirDocumento":
       return e.agentes[a.indice] === "terminado" ? { ...e, documentoAbierto: a.indice } : e;
     case "cerrarDocumento":

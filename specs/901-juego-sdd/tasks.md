@@ -17,7 +17,7 @@ Cada task es un corte vertical. TDD: tests primero. Sin nombres de funciones.
       qué hace. Toca: `flujo/`, `oficina/`, `ui/`. · US: US-4
 - [x] **T007** — Leer lo que produjo: documento simplificado de cada agente sobre su escritorio,
       que se abre y se cierra. Crea: documentos en `app/src/contenido/`. · US: US-5
-- [ ] **T008** — Avanzar en orden: el brief pasa al siguiente agente, solo ese se habilita y
+- [x] **T008** — Avanzar en orden: el brief pasa al siguiente agente, solo ese se habilita y
       ninguno corre solo. Toca: `flujo/`, `oficina/`. · US: US-6
 - [ ] **T009** — Pantalla final con el repaso de los pasos y botón "Jugar de nuevo" que reinicia.
       Crea: pantalla final en `app/src/ui/`. · US: US-7
