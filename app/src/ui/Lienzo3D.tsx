@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { textosDe } from "../contenido";
 import { AGENTES, type EstadoAgente, type UbicacionBrief } from "../flujo";
 import { elementoEn, factorRueda, SALAS, tiempoVisible, type Elemento } from "../oficina";
@@ -97,7 +98,15 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
+    // cine: curva de tonos filmica y reflejos de un interior, para que los materiales (mármol, madera, vidrio) brillen de verdad
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.9;
+    const generador = new THREE.PMREMGenerator(renderer);
+    const entorno = generador.fromScene(new RoomEnvironment(), 0.04).texture;
+    generador.dispose();
     const mundo = construirMundo();
+    mundo.escena.environment = entorno;
+    mundo.escena.environmentIntensity = 0.45;
     mundoRef.current = mundo;
     mundo.ponerModo(modoRef.current);
     const lente = new THREE.PerspectiveCamera((FOV_VERTICAL * 180) / Math.PI, 1, 20, 30000);
@@ -312,6 +321,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
       document.exitPointerLock?.();
       mundoRef.current = null;
       mundo.liberar();
+      entorno.dispose();
       renderer.dispose();
     };
   }, []);

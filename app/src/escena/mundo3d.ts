@@ -68,7 +68,7 @@ export function construirMundo(): Mundo3D {
   escena.add(raiz);
 
   // luces: cielo suave y un sol que tira sombras
-  const cielo = new THREE.HemisphereLight("#ffffff", "#8e94bd", 1.05);
+  const cielo = new THREE.HemisphereLight("#ffffff", "#8e94bd", 0.62);
   const ambiente = new THREE.AmbientLight("#fff3e0", 0);
   escena.add(cielo, ambiente);
   const sol = new THREE.DirectionalLight("#fff4e0", 1.6);
@@ -402,9 +402,10 @@ export function construirMundo(): Mundo3D {
     techo.visible = dentro;
     interior.visible = dentro;
     // adentro hay más luz pareja (los ambientes cerrados reciben poco cielo) y menos sol; los carteles dejan de verse a través de las paredes
-    cielo.intensity = dentro ? 1.25 : 1.05;
-    ambiente.intensity = dentro ? 0.55 : 0;
-    sol.intensity = dentro ? 0.7 : 1.6;
+    cielo.intensity = dentro ? 0.5 : 0.8;
+    ambiente.intensity = dentro ? 0.12 : 0;
+    sol.intensity = dentro ? 1.1 : 1.6;
+    escena.fog = dentro ? new THREE.Fog("#e9e4da", 900, 3200) : null;
     caminando = dentro;
     for (const s of sprites) {
       s.material.depthTest = dentro;
