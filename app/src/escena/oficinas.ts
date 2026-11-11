@@ -56,10 +56,11 @@ export function decorarSala(raiz: THREE.Group, sala: Sala, indice: number): void
   const matMarco = plastico(acento, { roughness: 0.35 });
   for (const p of marco.postes) {
     const c = centro(p);
-    caja(raiz, p.w, ALTO_MARCO, p.h, matMarco, c.x, ALTO_MARCO / 2, c.z);
+    // un poco más grueso que la pared: si no, sus caras quedan en el mismo plano que las de la pared y titilan
+    caja(raiz, p.w + 4, ALTO_MARCO, p.h + 4, matMarco, c.x, ALTO_MARCO / 2, c.z);
   }
   const d = centro(marco.dintel);
-  caja(raiz, marco.dintel.w, 14, marco.dintel.h, matMarco, d.x, ALTO_MARCO + 7, d.z);
+  caja(raiz, marco.dintel.w + 4, 14, marco.dintel.h + 4, matMarco, d.x, ALTO_MARCO + 7, d.z);
 
   // ventana en la pared del fondo
   const v = ventanaDeSala(sala);

@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { LOBBY, PAPELERIA, SALAS, MUNDO, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { colorDePiso } from "./identidad";
+import { ALTO_MARCO, colorDePiso } from "./identidad";
 import { conRepeticion, texturaBaldosas, texturaCemento, texturaParquet, texturaPiedra, texturaYeso } from "./materiales";
 import { LADRILLO } from "./texturas";
 
@@ -117,6 +117,14 @@ export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: 
       for (const t of tirasDeMuro(area, puerta, 16)) {
         const vidrio = esVidrio && t.lado !== "norte";
         muro(t.rect, completo ? alturaCompleta : ALTURA[t.lado], vidrio ? matVidrio : matPared);
+      }
+      // al recorrer por adentro, sobre el marco de la puerta la pared sigue hasta el techo (si no queda un hueco abierto)
+      if (completo && !esVidrio && puerta !== "izquierda") {
+        const hueco = 130;
+        const g = 16;
+        const dintel = { x: area.x + (area.w - hueco) / 2, y: puerta === "arriba" ? area.y - g / 2 : area.y + area.h - g / 2, w: hueco, h: g };
+        const base = ALTO_MARCO + 14;
+        grupo.add(caja(dintel.w, alturaCompleta - base, dintel.h, matPared, dintel.x + dintel.w / 2, base + (alturaCompleta - base) / 2, dintel.y + dintel.h / 2));
       }
     }
     for (const r of perimetro) muro(r, completo ? alturaCompleta : 36, matPiedra);
