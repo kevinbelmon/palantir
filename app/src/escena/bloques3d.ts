@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { LOBBY, PAPELERIA, SALAS, MUNDO, tacosEn, tirasDeMuro, type Rect, type Sala } from "../oficina";
 import { PALETA } from "../oficina/paleta";
+import { colorDePiso } from "./identidad";
 import { LADRILLO, texturaLadrillos } from "./texturas";
 
 export const PASO_TACO = 28;
@@ -56,18 +57,12 @@ const dentro = (r: Rect, x: number, y: number, margen = 0) => x > r.x - margen &
 
 /** La placa gris de bloques: el suelo del edificio, los pisos de las salas y el lobby, con sus tacos. */
 export function crearPisos(raiz: THREE.Group): void {
-  const suelo = new THREE.Mesh(new THREE.PlaneGeometry(9000, 6000), new THREE.MeshStandardMaterial({ color: PALETA.fondo, roughness: 1 }));
-  suelo.rotation.x = -Math.PI / 2;
-  suelo.position.set(MUNDO.ancho / 2, -40, MUNDO.alto / 2);
-  suelo.receiveShadow = true;
-  raiz.add(suelo);
-
   const losa: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
   const matLosa = plastico(PALETA.edificio, { roughness: 0.5 });
   raiz.add(caja(losa.w, 40, losa.h, matLosa, losa.x + losa.w / 2, -20.5, losa.y + losa.h / 2));
 
   const zonas: { r: Rect; color: string }[] = [
-    ...SALAS.map((s) => ({ r: s.area, color: PALETA.sueloSala })),
+    ...SALAS.map((s, i) => ({ r: s.area, color: colorDePiso(i) })),
     { r: LOBBY, color: PALETA.sueloLobby },
     { r: PAPELERIA, color: PALETA.sueloSala },
   ];

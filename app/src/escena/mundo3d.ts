@@ -7,6 +7,8 @@ import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, S
 import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
 import { crearMuros, crearPisos, plastico, tacosInstanciados } from "./bloques3d";
+import { COLORES_SALA } from "./identidad";
+import { crearExterior, crearRecepcion, decorarSala } from "./oficinas";
 import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
@@ -18,7 +20,6 @@ export type Mundo3D = {
   liberar: () => void;
 };
 
-const COLORES_SALA = ["#5b8cff", "#8e6bff", "#3ecf6e", "#f2a33a", "#ff6b81", "#2ec4b6", "#e3b72a", "#7d82b8"];
 const ALTURA_CARTEL = 215;
 const Y_RUTA = 8;
 
@@ -65,8 +66,11 @@ export function construirMundo(): Mundo3D {
   sol.shadow.normalBias = 1.5;
   escena.add(sol, sol.target);
 
+  crearExterior(raiz);
   crearPisos(raiz);
   crearMuros(raiz);
+  crearRecepcion(raiz);
+  SALAS.forEach((sala, i) => decorarSala(raiz, sala, i));
 
   // ---- lobby: alfombra, cartel central, sillón, bebedero, mesa baja
   const alfombra = { x: LOBBY.x + 150, y: LOBBY.y + 60, w: LOBBY.w - 300, h: LOBBY.h - 120 };
@@ -171,7 +175,7 @@ export function construirMundo(): Mundo3D {
     haloMalla.rotation.x = -Math.PI / 2;
     haloMalla.visible = false;
     const ch = centro(halo);
-    raiz.add(colocar(haloMalla, ch.x, 9, ch.z));
+    raiz.add(colocar(haloMalla, ch.x, 17, ch.z));
 
     const rotulo = sprite(texturaRotulo(sala.numero, textos.nombre, textos.subtitulo, COLORES_SALA[i]), 340, 66);
     raiz.add(colocar(rotulo, a.x + a.w / 2, arriba ? ALTURA_CARTEL : a.y > 1000 ? 175 : 70, arriba ? a.y + 8 : a.y > 1000 ? a.y - 46 : a.y - 34));
