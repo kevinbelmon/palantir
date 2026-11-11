@@ -10,6 +10,7 @@ import {
   camara3dInicial,
   construirMundo,
   FOV_VERTICAL,
+  entradaDeSala,
   girarJugador,
   interpolar3d,
   JUGADOR_INICIAL,
@@ -68,6 +69,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
   const modoRef = useRef<ModoDeVista>(modo);
   const jugador = useRef<Jugador>(JUGADOR_INICIAL);
   const jugadorUsado = useRef(false);
+  const enfoqueRef = useRef<Enfoque | null>(enfoque);
   const [hud, setHud] = useState("");
   const [bloqueado, setBloqueado] = useState(false);
   useEffect(() => {
@@ -76,6 +78,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
   });
 
   useEffect(() => {
+    enfoqueRef.current = enfoque;
     const canvas = ref.current;
     if (!enfoque || !canvas) return;
     const tamano = { ancho: canvas.clientWidth, alto: canvas.clientHeight };
@@ -318,6 +321,8 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const canvas = ref.current;
     if (!canvas) return;
     if (modo === "persona") {
+      // si hay un agente elegido, se entra por su puerta; si no, se sigue desde donde se estaba
+      if (!jugadorUsado.current && enfoqueRef.current) jugador.current = entradaDeSala(SALAS[enfoqueRef.current.indice]);
       jugadorUsado.current = true;
       return;
     }

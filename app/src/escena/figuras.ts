@@ -1,12 +1,20 @@
 import * as THREE from "three";
-import { tacosEn, type Rect } from "../oficina";
-import { APARIENCIAS, PALETA } from "../oficina/paleta";
+import type { Rect } from "../oficina";
 import type { TipoObjeto } from "../oficina/decoracion";
-import { plastico, tacosInstanciados } from "./bloques3d";
-import { texturaCara, texturaPantalla } from "./texturas";
+import { APARIENCIAS, PALETA } from "../oficina/paleta";
+import { plastico } from "./bloques3d";
+import { mezclarHex } from "./identidad";
+import { conRepeticion, texturaCaraReal, texturaMadera } from "./materiales";
+import { texturaPantalla } from "./texturas";
 
-const PANTALON = "#2b2f4a";
+const PANTALON = "#2c3042";
+const CALZADO = "#2a211c";
 const GRIS_APAGADO = "#8b8fb0";
+const PIELES = ["#f0c6a0", "#dfae86", "#c68b61", "#8f5d3d", "#f3d3b6", "#d6a278", "#a86f4a", "#6e4630"];
+const IRIS = ["#4a7bb0", "#5a3b25", "#3f7a52", "#6b4a2a", "#4a7bb0", "#2f2a28", "#6a8a5a", "#5a3b25"];
+
+/** Dónde quedan las articulaciones del cuerpo (la animación las usa para respirar, teclear y saludar). */
+export const ANCLAS = { torsoY: 78, cabezaY: 125, hombroY: 104, hombroX: 18.5 } as const;
 
 type Pieza = { malla: THREE.Mesh; normal: THREE.Material; apagado: THREE.Material };
 
@@ -16,23 +24,22 @@ export type Munyeco = {
   cabeza: THREE.Group;
   brazoI: THREE.Group;
   brazoD: THREE.Group;
-  cara: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  cara: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>;
   abiertos: THREE.Texture;
   cerrados: THREE.Texture;
   piezas: Pieza[];
 };
 
-const mezclar = (a: string, b: string, k: number) => `#${new THREE.Color(a).lerp(new THREE.Color(b), k).getHexString()}`;
-
-/** Un muñeco de bloques sentado: cabeza redonda con taco, torso, brazos con manos y piernas. Mira hacia +z. */
+/** Una persona sentada, con proporciones reales: cabeza, cuello, torso, brazos con codo y mano, piernas y zapatos. Mira hacia +z. */
 export function crearMunyeco(indice: number): Munyeco {
   const a = APARIENCIAS[indice % APARIENCIAS.length];
+  const piel = PIELES[indice % PIELES.length];
   const grupo = new THREE.Group();
   const piezas: Pieza[] = [];
 
-  const pieza = (geo: THREE.BufferGeometry, color: string, x: number, y: number, z: number, padre: THREE.Object3D = grupo) => {
-    const normal = plastico(color);
-    const apagado = plastico(mezclar(color, GRIS_APAGADO, 0.55));
+  const pieza = (geo: THREE.BufferGeometry, color: string, x: number, y: number, z: number, padre: THREE.Object3D = grupo, rugosidad = 0.62) => {
+    const normal = new THREE.MeshStandardMaterial({ color, roughness: rugosidad });
+    const apagado = new THREE.MeshStandardMaterial({ color: mezclarHex(color, GRIS_APAGADO, 0.55), roughness: rugosidad });
     const malla = new THREE.Mesh(geo, normal);
     malla.position.set(x, y, z);
     malla.castShadow = true;
@@ -41,49 +48,71 @@ export function crearMunyeco(indice: number): Munyeco {
     piezas.push({ malla, normal, apagado });
     return malla;
   };
+  const acostada = (m: THREE.Mesh) => ((m.rotation.x = Math.PI / 2), m);
 
-  // cadera y piernas
-  pieza(new THREE.BoxGeometry(54, 16, 34), PANTALON, 0, 50, 0);
-  pieza(new THREE.BoxGeometry(24, 18, 36), PANTALON, -14, 50, 22);
-  pieza(new THREE.BoxGeometry(24, 18, 36), PANTALON, 14, 50, 22);
-  const torso = pieza(new THREE.BoxGeometry(56, 58, 30), a.camisa, 0, 87, 0);
+  // piernas: muslos hacia adelante, canillas hacia abajo, zapatos
+  pieza(new THREE.SphereGeometry(14.5, 20, 14), PANTALON, 0, 50, 0).scale.set(1.15, 0.7, 1.0);
+  for (const lado of [-1, 1]) {
+    acostada(pieza(new THREE.CapsuleGeometry(7.6, 30, 6, 14), PANTALON, lado * 8.6, 51, 18));
+    pieza(new THREE.CapsuleGeometry(6, 32, 6, 14), PANTALON, lado * 8.6, 28, 38);
+    pieza(new THREE.BoxGeometry(10, 7, 23), CALZADO, lado * 8.6, 4.5, 44).geometry.translate(0, 0, 0);
+  }
+
+  // torso con camisa, cuello y cabeza
+  const torso = pieza(new THREE.CapsuleGeometry(13.5, 24, 8, 18), a.camisa, 0, ANCLAS.torsoY, 0);
+  torso.scale.set(1.18, 1, 0.78);
+  pieza(new THREE.CylinderGeometry(4.8, 5.4, 9, 14), piel, 0, 112, 0);
 
   const brazo = (lado: number) => {
-    const p = new THREE.Group();
-    p.position.set(lado * 38, 112, 0);
-    grupo.add(p);
-    pieza(new THREE.BoxGeometry(14, 44, 16), a.camisa, 0, -22, 0, p);
-    pieza(new THREE.SphereGeometry(8.5, 14, 10), PALETA.piel, 0, -50, 0, p);
-    return p;
+    const hombro = new THREE.Group();
+    hombro.position.set(lado * ANCLAS.hombroX, ANCLAS.hombroY, 0);
+    grupo.add(hombro);
+    pieza(new THREE.SphereGeometry(5.6, 14, 10), a.camisa, 0, 0, 0, hombro);
+    pieza(new THREE.CapsuleGeometry(4.8, 17, 6, 12), a.camisa, 0, -13, 0, hombro);
+    const codo = new THREE.Group();
+    codo.position.set(0, -26, 0);
+    codo.rotation.x = -0.5;
+    hombro.add(codo);
+    pieza(new THREE.SphereGeometry(4.4, 12, 10), a.camisa, 0, 0, 0, codo);
+    pieza(new THREE.CapsuleGeometry(4, 15, 6, 12), a.camisa, 0, -12.5, 0, codo);
+    pieza(new THREE.SphereGeometry(4.5, 14, 10), piel, 0, -26.5, 0.4, codo).scale.set(0.9, 1.15, 1.0);
+    return hombro;
   };
   const brazoI = brazo(-1);
   const brazoD = brazo(1);
 
   const cabeza = new THREE.Group();
-  cabeza.position.set(0, 142, 0);
+  cabeza.position.set(0, ANCLAS.cabezaY, 0);
   grupo.add(cabeza);
-  pieza(new THREE.CylinderGeometry(24, 24, 44, 28), PALETA.piel, 0, 0, 0, cabeza);
-  pieza(new THREE.CylinderGeometry(24.6, 24.6, 9, 28), a.pelo, 0, 19, 0, cabeza);
-  pieza(new THREE.CylinderGeometry(8, 8, 8, 16), a.pelo, 0, 28, 0, cabeza);
-  pieza(new THREE.BoxGeometry(46, 30, 8), a.pelo, 0, 5, -20, cabeza);
+  const cr = pieza(new THREE.SphereGeometry(12, 30, 22), piel, 0, 0, 0, cabeza, 0.55);
+  cr.scale.set(0.84, 1.06, 0.95);
+  for (const lado of [-1, 1]) pieza(new THREE.SphereGeometry(2.6, 10, 8), piel, lado * 10.2, -0.5, -0.5, cabeza).scale.set(0.5, 1, 0.8);
+  pieza(new THREE.SphereGeometry(2.2, 12, 10), mezclarHex(piel, "#a05a3c", 0.12), 0, -2.2, 11.4, cabeza, 0.5).scale.set(0.9, 1, 0.9);
 
-  const abiertos = texturaCara(true);
-  const cerrados = texturaCara(false);
-  const cara = new THREE.Mesh(new THREE.PlaneGeometry(30, 22), new THREE.MeshBasicMaterial({ map: abiertos, transparent: true }));
-  cara.position.set(0, -1, 23.6);
+  // pelo: casquete (largo y forma según la persona) y, a veces, melena hacia atrás
+  const estilo = indice % 4;
+  const casquete = pieza(new THREE.SphereGeometry(12.9, 30, 20, 0, Math.PI * 2, 0, estilo === 3 ? 1.1 : 1.34), a.pelo, 0, 0.5, -0.6, cabeza, 0.8);
+  casquete.scale.set(0.86, 1.08, 0.98);
+  if (estilo >= 1) pieza(new THREE.SphereGeometry(11, 20, 14), a.pelo, 0, -2, -5.5, cabeza, 0.8).scale.set(0.95, 1.05, 0.8);
+  if (estilo === 2) pieza(new THREE.CapsuleGeometry(8.5, 14, 6, 14), a.pelo, 0, -12, -7, cabeza, 0.8).scale.set(1.15, 1, 0.7);
+
+  const abiertos = texturaCaraReal(true, a.pelo, IRIS[indice % IRIS.length]);
+  const cerrados = texturaCaraReal(false, a.pelo, IRIS[indice % IRIS.length]);
+  const cara = new THREE.Mesh(new THREE.PlaneGeometry(17.5, 13.1), new THREE.MeshStandardMaterial({ map: abiertos, transparent: true, roughness: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }));
+  cara.position.set(0, -0.2, 11.55);
   cabeza.add(cara);
 
   return { grupo, torso, cabeza, brazoI, brazoD, cara, abiertos, cerrados, piezas };
 }
 
-/** Los muñecos "apagados" (agentes que todavía no les toca) se ven desteñidos. */
+/** Los muñecos «apagados» (agentes que todavía no les toca) se ven desteñidos. */
 export function apagarMunyeco(m: Munyeco, apagado: boolean) {
   for (const p of m.piezas) p.malla.material = apagado ? p.apagado : p.normal;
 }
 
 export type Escritorio = { grupo: THREE.Group; pantallas: THREE.Texture[] };
 
-/** Escritorio de bloques con tacos arriba, dos pantallas, teclado y taza. `e` es el rectángulo del plano. */
+/** Escritorio de oficina: tablero de madera con vetas, dos cajoneras, monitores de frente a la persona, teclado, mouse y taza. */
 export function crearEscritorio(e: Rect): Escritorio {
   const grupo = new THREE.Group();
   const pantallas: THREE.Texture[] = [];
@@ -97,45 +126,91 @@ export function crearEscritorio(e: Rect): Escritorio {
   };
   const cx = e.x + e.w / 2;
   const cz = e.y + 52;
-  caja(e.w, 60, 84, plastico(PALETA.maderaFrente, { roughness: 0.55 }), cx, 30, cz);
-  caja(e.w + 8, 6, 92, plastico(PALETA.maderaTapa, { roughness: 0.5 }), cx, 63, cz);
-  grupo.add(tacosInstanciados(tacosEn({ x: e.x + 4, y: e.y + 6, w: e.w - 8, h: 92 }, 16), 66, plastico(PALETA.maderaTapa), 4.5, 4));
+  const veta = texturaMadera("#bd8d55");
+  const tablero = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, e.w, 90, 150), roughness: 0.42 });
+  const costado = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, 90, 60, 150), color: "#c9a479", roughness: 0.55 });
+  const metal = plastico("#9aa0ab", { roughness: 0.3, metalness: 0.6 });
+  caja(e.w + 8, 5, 92, tablero, cx, 63.5, cz);
+  // dos cajoneras con sus cajones y manijas
+  for (const lado of [-1, 1]) {
+    const x = lado === -1 ? e.x + 34 : e.x + e.w - 34;
+    caja(62, 61, 82, costado, x, 30.5, cz);
+    for (let i = 0; i < 3; i++) {
+      caja(54, 17, 1.5, plastico("#b58e5e", { roughness: 0.5 }), x, 12 + i * 20, cz - 41.5);
+      caja(18, 2.4, 2.4, metal, x, 12 + i * 20, cz - 43);
+    }
+  }
+  caja(e.w - 130, 36, 2, costado, cx, 40, cz + 38);
 
-  const marco = plastico(PALETA.monitorMarco, { roughness: 0.3 });
+  // monitores: la pantalla mira a la persona (hacia -z); desde la puerta se ve el respaldo
+  const marco = plastico("#15171f", { roughness: 0.4 });
   for (const [i, mx] of [e.x + 26, e.x + e.w - 100].entries()) {
     const x = mx + 38;
-    const z = e.y + 34;
-    caja(14, 22, 10, plastico("#3a3f5f"), x, 77, z);
-    caja(76, 56, 8, marco, x, 116, z);
+    const z = e.y + 64;
+    const monitor = new THREE.Group();
+    monitor.position.set(x, 0, z);
+    monitor.rotation.y = Math.PI + (i === 0 ? -0.18 : 0.18);
+    grupo.add(monitor);
+    const parte = (g: THREE.BufferGeometry, mat: THREE.Material, px: number, py: number, pz: number) => {
+      const m = new THREE.Mesh(g, mat);
+      m.position.set(px, py, pz);
+      m.castShadow = true;
+      monitor.add(m);
+      return m;
+    };
+    parte(new THREE.CylinderGeometry(15, 17, 2.5, 24), marco, 0, 67.2, 0);
+    parte(new THREE.BoxGeometry(5, 26, 4), marco, 0, 81, -1);
+    parte(new THREE.BoxGeometry(76, 46, 3.4), marco, 0, 108, 0);
     const tex = texturaPantalla(i === 0 ? PALETA.monitorPantalla : PALETA.monitorPantalla2);
     tex.repeat.set(1, 0.18);
     pantallas.push(tex);
-    const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(66, 44), new THREE.MeshBasicMaterial({ map: tex }));
-    pantalla.position.set(x, 116, z + 4.2);
-    grupo.add(pantalla);
+    const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(70, 40), new THREE.MeshBasicMaterial({ map: tex }));
+    pantalla.position.set(0, 108, 1.8);
+    monitor.add(pantalla);
   }
-  caja(88, 4, 26, plastico("#3a3f5f"), cx, 68, e.y + 72);
-  const taza = new THREE.Mesh(new THREE.CylinderGeometry(9, 9, 14, 18), plastico("#ffffff"));
-  taza.position.set(e.x + e.w - 130, 73, e.y + 68);
+
+  // teclado, mouse y taza, del lado de la persona
+  caja(46, 2.2, 15, plastico("#23262f", { roughness: 0.5 }), cx, 67.6, e.y + 30);
+  for (let fila = 0; fila < 3; fila++) caja(40, 0.8, 3.2, plastico("#3b3f4c", { roughness: 0.6 }), cx, 69, e.y + 25.5 + fila * 4.8);
+  const raton = new THREE.Mesh(new THREE.SphereGeometry(4.2, 14, 10), plastico("#23262f", { roughness: 0.4 }));
+  raton.scale.set(0.8, 0.5, 1.2);
+  raton.position.set(cx + 38, 68.2, e.y + 30);
+  grupo.add(raton);
+  const taza = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 3.6, 8.5, 20), plastico("#ffffff", { roughness: 0.25 }));
+  taza.position.set(e.x + e.w - 78, 70.5, e.y + 28);
   taza.castShadow = true;
   grupo.add(taza);
   return { grupo, pantallas };
 }
 
+/** Silla de oficina: asiento y respaldo de tela, apoyabrazos, columna y base de cinco patas con ruedas. Mira hacia +z. */
 export function crearSilla(): THREE.Group {
   const g = new THREE.Group();
-  const mat = plastico(PALETA.sillaColor);
-  const parte = (w: number, h: number, d: number, x: number, y: number, z: number) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  const tela = new THREE.MeshStandardMaterial({ color: "#2a2e3a", roughness: 0.92 });
+  const plasticoNegro = plastico("#15171f", { roughness: 0.45 });
+  const parte = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
+    const m = new THREE.Mesh(geo, mat);
     m.position.set(x, y, z);
     m.castShadow = true;
     m.receiveShadow = true;
     g.add(m);
+    return m;
   };
-  parte(76, 10, 66, 0, 40, 6);
-  parte(76, 76, 12, 0, 84, -26);
-  parte(10, 36, 10, 0, 18, 6);
-  parte(56, 6, 56, 0, 4, 6);
+  parte(new THREE.BoxGeometry(46, 8, 44), tela, 0, 42, 4).geometry.translate(0, 0, 0);
+  const respaldo = parte(new THREE.BoxGeometry(44, 52, 7), tela, 0, 76, -20);
+  respaldo.rotation.x = -0.12;
+  for (const lado of [-1, 1]) {
+    parte(new THREE.BoxGeometry(4, 3, 26), plasticoNegro, lado * 26, 62, 2);
+    parte(new THREE.BoxGeometry(3, 18, 3), plasticoNegro, lado * 26, 52, -8);
+  }
+  parte(new THREE.CylinderGeometry(3, 3, 24, 12), plasticoNegro, 0, 26, 4);
+  parte(new THREE.CylinderGeometry(5, 7, 5, 14), plasticoNegro, 0, 13, 4);
+  for (let i = 0; i < 5; i++) {
+    const ang = (i / 5) * Math.PI * 2;
+    const pata = parte(new THREE.BoxGeometry(5, 3, 24), plasticoNegro, Math.sin(ang) * 11, 8, 4 + Math.cos(ang) * 11);
+    pata.rotation.y = ang;
+    parte(new THREE.SphereGeometry(3, 10, 8), plasticoNegro, Math.sin(ang) * 22, 3, 4 + Math.cos(ang) * 22);
+  }
   return g;
 }
 

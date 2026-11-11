@@ -1,6 +1,5 @@
 import { LOBBY, type Rect, type Sala } from "../oficina";
 import { MESA_REDONDA_REVIEW } from "../oficina/decoracion";
-import { PALETA } from "../oficina/paleta";
 
 /** El color que identifica a cada agente: su camisa, su cartel, su alfombra y el marco de su puerta. */
 export const COLORES_SALA = ["#5b8cff", "#8e6bff", "#3ecf6e", "#f2a33a", "#ff6b81", "#2ec4b6", "#e3b72a", "#7d82b8"] as const;
@@ -25,7 +24,7 @@ export function mezclarHex(a: string, b: string, k: number): string {
 
 /** El piso de cada sala lleva un toque del color de su agente, para que cada oficina se vea propia. */
 export function colorDePiso(indice: number): string {
-  return mezclarHex(PALETA.sueloSala, COLORES_SALA[indice], 0.22);
+  return mezclarHex("#ffffff", COLORES_SALA[indice], 0.2);
 }
 
 /** El marco de la puerta de la sala: dos postes y un dintel, justo sobre el hueco que dejan las paredes. */
@@ -51,6 +50,16 @@ export function marcoDePuerta(sala: Sala): { postes: [Rect, Rect]; dintel: Rect 
     ],
     dintel: { x: cx - HUECO / 2 - GROSOR, y, w: HUECO + GROSOR * 2, h: GROSOR },
   };
+}
+
+/** La placa con el nombre de la oficina, al lado de su puerta y del lado de afuera. `giroY` hace que mire hacia el pasillo. */
+export function placaDePuerta(sala: Sala): { x: number; z: number; giroY: number; altura: number } {
+  const a = sala.area;
+  const afuera = GROSOR / 2 + 0.6;
+  const lado = HUECO / 2 + GROSOR + 40;
+  if (sala.tipo === "vidrio") return { x: a.x - afuera, z: a.y + a.h / 2 - lado, giroY: -Math.PI / 2, altura: 130 };
+  const cx = a.x + a.w / 2;
+  return a.y < LOBBY.y ? { x: cx + lado, z: a.y + a.h + afuera, giroY: 0, altura: 130 } : { x: cx - lado, z: a.y - afuera, giroY: Math.PI, altura: 130 };
 }
 
 /** La alfombra de la oficina: debajo del escritorio y la silla (o de la mesa de reuniones). */

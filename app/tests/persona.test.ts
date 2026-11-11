@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LOBBY, MUNDO, SALAS } from "../src/oficina";
-import { candidatos, girarJugador, JUGADOR_INICIAL, moverJugador, objetivoDeInteraccion, obstaculos, RADIO_JUGADOR, salaDe, tocaRect, type Jugador } from "../src/escena/persona";
+import { candidatos, entradaDeSala, girarJugador, JUGADOR_INICIAL, moverJugador, objetivoDeInteraccion, obstaculos, RADIO_JUGADOR, salaDe, tocaRect, type Jugador } from "../src/escena/persona";
 
 const parado = (x: number, z: number, yaw = 0): Jugador => ({ x, z, yaw, pitch: 0 });
 const nadie = Array(8).fill(false);
@@ -95,6 +95,25 @@ describe("paredes y muebles", () => {
     let j = parado(s.escritorio.x + 150, s.escritorio.y + 200, 0);
     for (let i = 0; i < 80; i++) j = moverJugador(j, { adelante: 1, lateral: 0, correr: false }, 0.05);
     expect(j.z).toBeGreaterThan(s.escritorio.y + 90);
+  });
+});
+
+describe("entrar a una oficina", () => {
+  it("aparece adentro de la sala, libre de muebles y paredes, y no queda en otra sala", () => {
+    SALAS.forEach((s, i) => {
+      const j = entradaDeSala(s);
+      expect(salaDe(j), `sala ${i + 1}`).toBe(i);
+      expect(obstaculos().some((c) => tocaRect(j.x, j.z, RADIO_JUGADOR, c)), `sala ${i + 1}`).toBe(false);
+    });
+  });
+
+  it("mira hacia adentro de la sala: hacia su centro y no hacia la puerta", () => {
+    for (const sala of SALAS) {
+      const jug = entradaDeSala(sala);
+      const mira = { x: -Math.sin(jug.yaw), z: -Math.cos(jug.yaw) };
+      const alCentro = { x: sala.area.x + sala.area.w / 2 - jug.x, z: sala.area.y + sala.area.h / 2 - jug.z };
+      expect(mira.x * alCentro.x + mira.z * alCentro.z, `sala ${sala.numero}`).toBeGreaterThan(0);
+    }
   });
 });
 

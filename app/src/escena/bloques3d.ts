@@ -1,8 +1,8 @@
 import * as THREE from "three";
-import { LOBBY, PAPELERIA, SALAS, MUNDO, tacosEn, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { PALETA } from "../oficina/paleta";
+import { LOBBY, PAPELERIA, SALAS, MUNDO, tirasDeMuro, type Rect, type Sala } from "../oficina";
 import { colorDePiso } from "./identidad";
-import { LADRILLO, texturaLadrillos } from "./texturas";
+import { conRepeticion, texturaBaldosas, texturaCemento, texturaParquet, texturaPiedra, texturaYeso } from "./materiales";
+import { LADRILLO } from "./texturas";
 
 export const PASO_TACO = 28;
 const RADIO_TACO = 9;
@@ -53,42 +53,43 @@ const caja = (w: number, h: number, d: number, material: THREE.Material, x: numb
   return m;
 };
 
-const dentro = (r: Rect, x: number, y: number, margen = 0) => x > r.x - margen && x < r.x + r.w + margen && y > r.y - margen && y < r.y + r.h + margen;
+/** Los pisos del edificio: parquet en las oficinas y la papelería, mármol en el lobby y cemento pulido en los pasillos. */
+export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
+  const texturas: THREE.Texture[] = [];
+  const nueva = (t: THREE.Texture) => (texturas.push(t), t);
+  const parquet = nueva(texturaParquet("#b88a5a"));
+  const baldosas = nueva(texturaBaldosas());
+  const cemento = nueva(texturaCemento());
 
-/** La placa gris de bloques: el suelo del edificio, los pisos de las salas y el lobby, con sus tacos. */
-export function crearPisos(raiz: THREE.Group): void {
+  const piso = (r: Rect, grosor: number, y: number, base: THREE.Texture, escala: number, extra: Partial<THREE.MeshStandardMaterialParameters>, tinte = "#ffffff") => {
+    const mapa = nueva(conRepeticion(base, r.w, r.h, escala));
+    const mat = new THREE.MeshStandardMaterial({ map: mapa, color: tinte, ...extra });
+    raiz.add(caja(r.w, grosor, r.h, mat, r.x + r.w / 2, y, r.y + r.h / 2));
+  };
+
   const losa: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
-  const matLosa = plastico(PALETA.edificio, { roughness: 0.5 });
-  raiz.add(caja(losa.w, 40, losa.h, matLosa, losa.x + losa.w / 2, -20.5, losa.y + losa.h / 2));
+  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.7 });
 
-  const zonas: { r: Rect; color: string }[] = [
-    ...SALAS.map((s, i) => ({ r: s.area, color: colorDePiso(i) })),
-    { r: LOBBY, color: PALETA.sueloLobby },
-    { r: PAPELERIA, color: PALETA.sueloSala },
-  ];
-  for (const { r, color } of zonas) {
-    const mat = plastico(color, { roughness: 0.45 });
-    raiz.add(caja(r.w, 20, r.h, mat, r.x + r.w / 2, -10, r.y + r.h / 2));
-    const matTaco = plastico(color, { roughness: 0.32 });
-    raiz.add(tacosInstanciados(tacosEn(r, PASO_TACO), 0, matTaco));
-  }
-
-  // tacos de los pasillos (donde no hay sala, lobby ni papelería)
-  const pasillos = tacosEn(losa, PASO_TACO).filter((p) => !zonas.some(({ r }) => dentro(r, p.x, p.y, 10)));
-  raiz.add(tacosInstanciados(pasillos, 0, plastico(PALETA.edificio, { roughness: 0.32 })));
+  // el piso de cada oficina lleva un toque del color de su agente
+  SALAS.forEach((s, i) => piso(s.area, 20, -10, parquet, 160, { roughness: 0.42 }, colorDePiso(i)));
+  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.22 });
+  piso(PAPELERIA, 20, -10, parquet, 160, { roughness: 0.42 });
+  return { liberar: () => texturas.forEach((t) => t.dispose()) };
 }
 
 const ALTURA = { norte: 170, sur: 40, oeste: 110, este: 110 } as const;
 
 /**
- * Paredes con tacos arriba; la sala de vidrio tiene paredes transparentes. Se arman dos juegos: el «de corte»
+ * Paredes pintadas con zócalo; la sala de vidrio tiene paredes transparentes. Se arman dos juegos: el «de corte»
  * (bajas, para mirar desde arriba) y el «completo» (a la altura del techo, para recorrer por adentro).
  */
 export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: THREE.Group; completo: THREE.Group; liberar: () => void } {
-  const texLadrillos = texturaLadrillos();
-  const matLadrillo = plastico("#ffffff", { map: texLadrillos, roughness: 0.42 });
+  const yeso = texturaYeso("#f2efe8");
+  const matPared = new THREE.MeshStandardMaterial({ map: yeso, roughness: 0.88 });
+  const piedra = texturaPiedra();
+  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, roughness: 0.9 });
+  const matZocalo = plastico("#d8d2c4", { roughness: 0.5 });
   const matVidrio = new THREE.MeshStandardMaterial({ color: "#bfe1f5", transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0, depthWrite: false });
-  const matTaco = plastico("#ffffff", { roughness: 0.3 });
 
   const puertaDe = (s: Sala): "abajo" | "arriba" | "izquierda" => (s.tipo === "vidrio" ? "izquierda" : s.area.y < LOBBY.y ? "abajo" : "arriba");
   const cerramientos: [Rect, "abajo" | "arriba" | "izquierda", boolean][] = [...SALAS.map((s): [Rect, "abajo" | "arriba" | "izquierda", boolean] => [s.area, puertaDe(s), s.tipo === "vidrio"]), [PAPELERIA, "arriba", false]];
@@ -102,25 +103,23 @@ export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: 
 
   const armar = (completo: boolean): THREE.Group => {
     const grupo = new THREE.Group();
-    const tacosDeArriba: { x: number; y: number; alto: number }[] = [];
-    const muro = (r: Rect, alto: number, material: THREE.Material, conTacos: boolean) => {
+    const muro = (r: Rect, alto: number, material: THREE.Material) => {
       const m = new THREE.Mesh(geometriaDeLadrillos(r.w, alto, r.h), material);
       m.position.set(r.x + r.w / 2, alto / 2, r.y + r.h / 2);
-      m.castShadow = material === matLadrillo;
+      m.castShadow = material === matPared || material === matPiedra;
       m.receiveShadow = true;
       grupo.add(m);
-      if (conTacos && !completo) for (const p of tacosEn(r, 16)) tacosDeArriba.push({ x: p.x, y: p.y, alto });
+      if (material === matPared && alto > 60) grupo.add(caja(r.w + 3, 10, r.h + 3, matZocalo, r.x + r.w / 2, 5, r.y + r.h / 2));
+      // moldura de yeso en el borde del techo, solo al recorrer por adentro
+      if (completo && material !== matVidrio) grupo.add(caja(r.w + 5, 9, r.h + 5, matZocalo, r.x + r.w / 2, alto - 4.5, r.y + r.h / 2));
     };
     for (const [area, puerta, esVidrio] of cerramientos) {
       for (const t of tirasDeMuro(area, puerta, 16)) {
         const vidrio = esVidrio && t.lado !== "norte";
-        muro(t.rect, completo ? alturaCompleta : ALTURA[t.lado], vidrio ? matVidrio : matLadrillo, !vidrio);
+        muro(t.rect, completo ? alturaCompleta : ALTURA[t.lado], vidrio ? matVidrio : matPared);
       }
     }
-    for (const r of perimetro) muro(r, completo ? alturaCompleta : 36, matLadrillo, true);
-    for (const alto of [...new Set(tacosDeArriba.map((t) => t.alto))]) {
-      grupo.add(tacosInstanciados(tacosDeArriba.filter((t) => t.alto === alto), alto, matTaco, 5.5, 5));
-    }
+    for (const r of perimetro) muro(r, completo ? alturaCompleta : 36, matPiedra);
     raiz.add(grupo);
     return grupo;
   };
@@ -133,7 +132,8 @@ export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: 
     corte,
     completo,
     liberar: () => {
-      texLadrillos.dispose();
+      yeso.dispose();
+      piedra.dispose();
     },
   };
 }

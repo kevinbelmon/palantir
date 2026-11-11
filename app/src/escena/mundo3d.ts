@@ -6,11 +6,13 @@ import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, parpadeo, puntoEnRuta, rectBri
 import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
 import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
-import { crearMuros, crearPisos, plastico, tacosInstanciados } from "./bloques3d";
+import { crearMuros, crearPisos, plastico } from "./bloques3d";
 import { COLORES_SALA } from "./identidad";
+import { conRepeticion, texturaAlfombra } from "./materiales";
+import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
 import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
 import { ALTURA_TECHO, type Jugador } from "./persona";
-import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
+import { ANCLAS, apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
 /** Cómo se mira el mundo: desde arriba, como una maqueta, o caminando por adentro. */
@@ -64,7 +66,8 @@ export function construirMundo(): Mundo3D {
 
   // luces: cielo suave y un sol que tira sombras
   const cielo = new THREE.HemisphereLight("#ffffff", "#8e94bd", 1.05);
-  escena.add(cielo);
+  const ambiente = new THREE.AmbientLight("#fff3e0", 0);
+  escena.add(cielo, ambiente);
   const sol = new THREE.DirectionalLight("#fff4e0", 1.6);
   sol.position.set(MUNDO.ancho / 2 - 700, 1500, MUNDO.alto / 2 - 500);
   sol.target.position.set(MUNDO.ancho / 2, 0, MUNDO.alto / 2);
@@ -80,12 +83,21 @@ export function construirMundo(): Mundo3D {
   const muros = crearMuros(raiz, ALTURA_TECHO);
   const techo = crearTecho(raiz, ALTURA_TECHO);
   crearRecepcion(raiz);
-  SALAS.forEach((sala, i) => decorarSala(raiz, sala, i));
+  // lo que solo se ve al caminar por adentro (techo alto, columnas, araña, cuadros, placas)
+  const interior = new THREE.Group();
+  interior.visible = false;
+  raiz.add(interior);
+  SALAS.forEach((sala, i) => {
+    decorarSala(raiz, sala, i);
+    amueblarSala(raiz, interior, sala, i);
+  });
+  const lobby = decorarLobby(raiz, interior);
+  const jardin = crearJardin(raiz);
 
   // ---- lobby: alfombra, cartel central, sillón, bebedero, mesa baja
   const alfombra = { x: LOBBY.x + 150, y: LOBBY.y + 60, w: LOBBY.w - 300, h: LOBBY.h - 120 };
   const ca = centro(alfombra);
-  raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(alfombra.w, 3, alfombra.h), plastico(PALETA.alfombra, { roughness: 0.6 })), ca.x, 8.5, ca.z));
+  raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(alfombra.w, 3, alfombra.h), new THREE.MeshStandardMaterial({ map: conRepeticion(texturaAlfombra(PALETA.alfombra), alfombra.w, alfombra.h, 90), roughness: 0.95 })), ca.x, 1.5, ca.z));
   const cartelCentral = new THREE.Mesh(
     new THREE.PlaneGeometry(CARTEL_CENTRAL.area.w, CARTEL_CENTRAL.area.h),
     new THREE.MeshBasicMaterial({ map: texturaCartelCentral(CARTEL_CENTRAL.titulo, CARTEL_CENTRAL.lema), transparent: true }),
@@ -112,8 +124,6 @@ export function construirMundo(): Mundo3D {
   raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(mesa.w, 56, mesa.h - 10), patas), cm.x, 28, cm.z));
   raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(mesa.w + 8, 6, mesa.h), plastico(PALETA.maderaTapa, { roughness: 0.5 })), cm.x, 59, cm.z));
   raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(150, 6, 70), plastico("#5a5f86")), cm.x, 65, cm.z));
-  const ranuras = [-110, -50, 10, 70, 130].map((dx) => ({ x: cm.x + dx, y: mesa.y + 8 }));
-  raiz.add(tacosInstanciados(ranuras, 62, plastico(PALETA.maderaTapa), 5, 4));
   const rotuloPapeleria = sprite(texturaCartelChico("Papelería", "Dejá acá el brief"), 230, 58);
   raiz.add(colocar(rotuloPapeleria, pa.x + pa.w / 2 + 85, 70, pa.y - 34));
 
@@ -135,6 +145,9 @@ export function construirMundo(): Mundo3D {
     documento: Papel;
     leds: THREE.MeshStandardMaterial[];
   };
+  /** Los carteles de arriba de cada sala: sirven para mirar desde arriba y estorban al caminar por adentro. */
+  const rotulos: THREE.Sprite[] = [];
+  let caminando = false;
   const puestos: PuestoSala[] = SALAS.map((sala: Sala, i) => {
     const textos = textosDe(AGENTES[i].id);
     const a = sala.area;
@@ -156,9 +169,9 @@ export function construirMundo(): Mundo3D {
     }
 
     const silla = crearSilla();
-    raiz.add(colocar(silla, px, 0, py));
+    raiz.add(colocar(silla, px, 0, py + 20));
     const munyeco = crearMunyeco(i);
-    raiz.add(colocar(munyeco.grupo, px, 0, py));
+    raiz.add(colocar(munyeco.grupo, px, 0, py + 20));
 
     let pantallas: THREE.Texture[] = [];
     let halo = sala.escritorio;
@@ -188,6 +201,7 @@ export function construirMundo(): Mundo3D {
     raiz.add(colocar(haloMalla, ch.x, 17, ch.z));
 
     const rotulo = sprite(texturaRotulo(sala.numero, textos.nombre, textos.subtitulo, COLORES_SALA[i]), 340, 66);
+    rotulos.push(rotulo);
     raiz.add(colocar(rotulo, a.x + a.w / 2, arriba ? ALTURA_CARTEL : a.y > 1000 ? 175 : 70, arriba ? a.y + 8 : a.y > 1000 ? a.y - 46 : a.y - 34));
     const insignia = sprite(texturaInsignia(), 38, 38);
     raiz.add(colocar(insignia, a.x + a.w / 2 + 196, arriba ? ALTURA_CARTEL : a.y > 1000 ? 175 : 70, arriba ? a.y + 8 : a.y > 1000 ? a.y - 46 : a.y - 34));
@@ -206,7 +220,7 @@ export function construirMundo(): Mundo3D {
 
     const documento = crearPapel(44, 30);
     const rd = rectDocumento(sala);
-    raiz.add(colocar(documento.grupo, rd.x + rd.w / 2, esVidrio ? 70 : 69, esVidrio ? rd.y + rd.h / 2 : sala.escritorio.y + 68));
+    raiz.add(colocar(documento.grupo, rd.x + rd.w / 2, esVidrio ? 70 : 69, esVidrio ? rd.y + rd.h / 2 : sala.escritorio.y + 78));
     documento.grupo.visible = false;
 
     return { munyeco, pantallas, pizarra, halo: haloMalla, haloMat, signo, globito, insignia, etiqueta, etiquetaEstado: null, documento, leds };
@@ -264,14 +278,15 @@ export function construirMundo(): Mundo3D {
 
   function actualizar(agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) {
     const pulso = 0.5 + 0.5 * Math.sin(t * 4);
+    jardin.actualizar(t);
 
     puestos.forEach((p, i) => {
       const estado = agentes[i] ?? "deshabilitado";
       const m = p.munyeco;
       const r = respiracion(t, i);
-      m.torso.position.y = 87 + r * 0.5;
-      m.cabeza.position.y = 142 + r;
-      m.brazoI.position.y = m.brazoD.position.y = 112 + r * 0.5;
+      m.torso.position.y = ANCLAS.torsoY + r * 0.5;
+      m.cabeza.position.y = ANCLAS.cabezaY + r;
+      m.brazoI.position.y = m.brazoD.position.y = ANCLAS.hombroY + r * 0.5;
       const teclea = estado === "corriendo" ? Math.sin(t * 14) * 0.22 : 0;
       m.brazoI.rotation.x = -0.62 + teclea;
       m.brazoD.rotation.x = -0.62 - teclea;
@@ -288,8 +303,9 @@ export function construirMundo(): Mundo3D {
       p.signo.visible = estado === "habilitado";
       p.signo.position.y = 235 + Math.sin(t * 5) * 9;
       p.globito.visible = estado === "corriendo";
-      p.globito.scale.setScalar(1 + (estado === "corriendo" ? Math.sin(t * 3) * 0.015 : 0));
-      p.insignia.visible = estado === "terminado";
+      p.globito.scale.set(262, 100, 1).multiplyScalar((1 + (estado === "corriendo" ? Math.sin(t * 3) * 0.015 : 0)) * (caminando ? 0.45 : 1));
+      p.insignia.visible = estado === "terminado" && !caminando;
+      p.etiqueta.visible = !caminando;
       p.documento.grupo.visible = estado === "terminado";
       p.documento.material.emissiveIntensity = 0.15 + 0.5 * pulso;
       p.documento.grupo.position.y = 72 + pulso * 3;
@@ -317,7 +333,7 @@ export function construirMundo(): Mundo3D {
     } else {
       const sala = SALAS[brief.agente];
       const rb = rectBrief(sala);
-      colocar(hoja, rb.x + rb.w / 2, sala.tipo === "vidrio" ? 70 : 69, sala.tipo === "vidrio" ? rb.y + rb.h / 2 : sala.escritorio.y + 68);
+      colocar(hoja, rb.x + rb.w / 2, sala.tipo === "vidrio" ? 70 : 69, sala.tipo === "vidrio" ? rb.y + rb.h / 2 : sala.escritorio.y + 78);
       hoja.scale.setScalar(0.52);
       briefPapel.material.emissiveIntensity = 0;
     }
@@ -364,7 +380,11 @@ export function construirMundo(): Mundo3D {
 
   const sprites: THREE.Sprite[] = [];
   escena.traverse((o) => {
-    if ((o as THREE.Sprite).isSprite) sprites.push(o as THREE.Sprite);
+    if ((o as THREE.Sprite).isSprite) {
+      const s = o as THREE.Sprite;
+      s.userData.escala0 = s.scale.clone();
+      sprites.push(s);
+    }
   });
 
   function ponerModo(modo: ModoDeVista) {
@@ -372,10 +392,19 @@ export function construirMundo(): Mundo3D {
     muros.corte.visible = !dentro;
     muros.completo.visible = dentro;
     techo.visible = dentro;
-    // adentro, el cielo y el sol pesan menos y los carteles dejan de verse a través de las paredes
-    cielo.intensity = dentro ? 0.75 : 1.05;
-    sol.intensity = dentro ? 1.0 : 1.6;
-    for (const s of sprites) s.material.depthTest = dentro;
+    interior.visible = dentro;
+    // adentro hay más luz pareja (los ambientes cerrados reciben poco cielo) y menos sol; los carteles dejan de verse a través de las paredes
+    cielo.intensity = dentro ? 1.25 : 1.05;
+    ambiente.intensity = dentro ? 0.55 : 0;
+    sol.intensity = dentro ? 0.7 : 1.6;
+    caminando = dentro;
+    for (const s of sprites) {
+      s.material.depthTest = dentro;
+      // de cerca los avisos («!», globitos) serían enormes: se achican; los carteles de arriba se esconden
+      s.scale.copy(s.userData.escala0 as THREE.Vector3).multiplyScalar(dentro ? 0.45 : 1);
+    }
+    for (const r of rotulos) r.visible = !dentro;
+    for (const p of puestos) p.etiqueta.visible = !dentro;
   }
 
   function colocarJugador(j: Jugador | null) {
@@ -397,6 +426,7 @@ export function construirMundo(): Mundo3D {
       }
     });
     sol.shadow.map?.dispose();
+    lobby.liberar();
     guiones.dispose();
     for (const p of puestos) {
       p.munyeco.abiertos.dispose();

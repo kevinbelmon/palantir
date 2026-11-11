@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { LOBBY, puertaDeSala, SALAS } from "../src/oficina";
-import { alfombraDeSala, colorDePiso, COLORES_SALA, marcoDePuerta, mezclarHex, relojDeSala, ventanaDeSala } from "../src/escena/identidad";
+import { alfombraDeSala, colorDePiso, COLORES_SALA, marcoDePuerta, mezclarHex, placaDePuerta, relojDeSala, ventanaDeSala } from "../src/escena/identidad";
 
 const solapa = (a: { x: number; w: number }, b: { x: number; w: number }) => a.x < b.x + b.w && b.x < a.x + a.w;
 
@@ -37,6 +37,31 @@ describe("la identidad de cada oficina", () => {
         expect(dintel.w).toBeCloseTo(130 + 32);
         // sobre la pared de su lado: sur para las de arriba, norte para las de abajo
         expect(izq.y + izq.h / 2).toBeCloseTo(s.area.y < LOBBY.y ? s.area.y + s.area.h : s.area.y);
+      }
+    }
+  });
+
+  it("la placa de cada puerta queda del lado de afuera, junto al marco y sobre la pared", () => {
+    for (const s of SALAS) {
+      const p = placaDePuerta(s);
+      const a = s.area;
+      expect(p.altura).toBeGreaterThan(100);
+      expect(p.altura).toBeLessThan(170);
+      if (s.tipo === "vidrio") {
+        expect(p.x).toBeLessThan(a.x);
+        expect(p.z).toBeGreaterThan(a.y);
+        expect(p.z).toBeLessThan(puertaDeSala(s).y - 65);
+        expect(p.giroY).toBeCloseTo(-Math.PI / 2);
+      } else if (a.y < LOBBY.y) {
+        expect(p.z).toBeGreaterThan(a.y + a.h);
+        expect(p.giroY).toBe(0);
+        expect(p.x).toBeGreaterThan(puertaDeSala(s).x + 65);
+        expect(p.x).toBeLessThan(a.x + a.w);
+      } else {
+        expect(p.z).toBeLessThan(a.y);
+        expect(p.giroY).toBeCloseTo(Math.PI);
+        expect(p.x).toBeLessThan(puertaDeSala(s).x - 65);
+        expect(p.x).toBeGreaterThan(a.x);
       }
     }
   });

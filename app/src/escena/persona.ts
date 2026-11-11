@@ -1,5 +1,6 @@
 import { type Elemento, LOBBY, MUNDO, PAPELERIA, rectDocumento, SALAS, tirasDeMuro, type Rect, type Sala } from "../oficina";
 import { BEBEDERO, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
+import { obstaculosDeMuebles } from "./distribucion";
 import { marcoDePuerta } from "./identidad";
 
 /** Dónde está la persona que recorre la oficina y hacia dónde mira. `yaw` 0 mira al norte (hacia arriba en el plano). */
@@ -53,6 +54,7 @@ export function obstaculos(): Rect[] {
   lista.push(MESA_PAPELERIA, rect(PAPELERIA.x + 40, PAPELERIA.y + 20, 190, 50));
   for (const o of OBJETOS_SALA) lista.push(rect(o.x, o.y + o.h - 45, o.w, 45));
   for (const p of PLANTAS) lista.push(rect(p.x - 20, p.y - 20, 40, 40));
+  lista.push(...obstaculosDeMuebles());
   return lista;
 }
 
@@ -95,6 +97,14 @@ export function moverJugador(j: Jugador, e: Entrada, dt: number, paredes: readon
 /** Mira con el mouse: `dx` y `dy` en píxeles. No deja dar vueltas de campana hacia arriba ni hacia abajo. */
 export function girarJugador(j: Jugador, dx: number, dy: number, sensibilidad = 0.0024): Jugador {
   return { ...j, yaw: j.yaw - dx * sensibilidad, pitch: Math.max(-1.2, Math.min(1.2, j.pitch - dy * sensibilidad)) };
+}
+
+/** Aparece adentro de una oficina, un poco después de su puerta y mirando hacia adentro. */
+export function entradaDeSala(sala: Sala): Jugador {
+  const a = sala.area;
+  if (sala.tipo === "vidrio") return { x: a.x + 80, z: a.y + a.h / 2, yaw: -Math.PI / 2, pitch: 0 };
+  const cx = a.x + a.w / 2;
+  return a.y < LOBBY.y ? { x: cx, z: a.y + a.h - 38, yaw: 0, pitch: 0 } : { x: cx, z: a.y + 60, yaw: Math.PI, pitch: 0 };
 }
 
 /** La sala donde está parada la persona, o `null` si está en el lobby o en un pasillo. */

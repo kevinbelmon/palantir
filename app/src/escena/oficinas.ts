@@ -1,7 +1,8 @@
 import * as THREE from "three";
-import { MUNDO, tacosEn, type Rect, type Sala } from "../oficina";
+import { MUNDO, type Rect, type Sala } from "../oficina";
 import { PALETA } from "../oficina/paleta";
-import { plastico, tacosInstanciados } from "./bloques3d";
+import { plastico } from "./bloques3d";
+import { conRepeticion, texturaAlfombra } from "./materiales";
 import { alfombraDeSala, ALTO_MARCO, COLORES_SALA, marcoDePuerta, mezclarHex, relojDeSala, ventanaDeSala } from "./identidad";
 
 const centro = (r: Rect) => ({ x: r.x + r.w / 2, z: r.y + r.h / 2 });
@@ -46,9 +47,9 @@ export function decorarSala(raiz: THREE.Group, sala: Sala, indice: number): void
   // alfombra del color de su agente, con tacos
   const al = alfombraDeSala(sala);
   const ca = centro(al);
-  const colorAlfombra = mezclarHex(PALETA.sueloSala, acento, 0.72);
-  caja(raiz, al.w, 3, al.h, plastico(colorAlfombra, { roughness: 0.6 }), ca.x, 8.5, ca.z, false);
-  raiz.add(tacosInstanciados(tacosEn(al, 28), 10, plastico(mezclarHex(colorAlfombra, "#ffffff", 0.14), { roughness: 0.45 }), 8, 5));
+  const colorAlfombra = mezclarHex("#8a8f9c", acento, 0.62);
+  const fibra = conRepeticion(texturaAlfombra(colorAlfombra), al.w, al.h, 90);
+  caja(raiz, al.w, 3, al.h, new THREE.MeshStandardMaterial({ map: fibra, roughness: 0.95 }), ca.x, 1.5, ca.z, false);
 
   // marco de la puerta, para que se vea la entrada de cada oficina
   const marco = marcoDePuerta(sala);
@@ -138,7 +139,6 @@ export function crearRecepcion(raiz: THREE.Group): void {
   const z = 975;
   caja(raiz, 300, 62, 56, plastico(PALETA.maderaFrente, { roughness: 0.55 }), x, 31, z);
   caja(raiz, 316, 7, 72, plastico("#f4f3ee", { roughness: 0.35 }), x, 65.5, z);
-  raiz.add(tacosInstanciados(tacosEn({ x: x - 150, y: z - 30, w: 300, h: 60 }, 24), 69, plastico("#f4f3ee"), 6, 4));
   caja(raiz, 64, 36, 6, plastico(PALETA.monitorMarco), x - 70, 92, z - 6);
   caja(raiz, 54, 28, 2, new THREE.MeshBasicMaterial({ color: PALETA.monitorPantalla }), x - 70, 92, z - 2.5, false);
   const florero = new THREE.Mesh(new THREE.CylinderGeometry(9, 7, 22, 16), plastico("#9bd6f2"));
