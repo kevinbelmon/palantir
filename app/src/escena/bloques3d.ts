@@ -57,7 +57,7 @@ const caja = (w: number, h: number, d: number, material: THREE.Material, x: numb
 export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
   const texturas: THREE.Texture[] = [];
   const nueva = (t: THREE.Texture) => (texturas.push(t), t);
-  const parquet = nueva(texturaParquet("#b88a5a"));
+  const parquet = nueva(texturaParquet("#5c3f2a"));
   const baldosas = nueva(texturaBaldosas());
   const cemento = nueva(texturaCemento());
 
@@ -68,11 +68,11 @@ export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
   };
 
   const losa: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
-  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.7 });
+  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.7 }, "#5a5d68");
 
   // el piso de cada oficina lleva un toque del color de su agente
   SALAS.forEach((s, i) => piso(s.area, 20, -10, parquet, 160, { roughness: 0.42 }, colorDePiso(i)));
-  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.22 });
+  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.2 }, "#6b6e7c");
   piso(PAPELERIA, 20, -10, parquet, 160, { roughness: 0.42 });
   return { liberar: () => texturas.forEach((t) => t.dispose()) };
 }
@@ -84,11 +84,11 @@ const ALTURA = { norte: 170, sur: 40, oeste: 110, este: 110 } as const;
  * (bajas, para mirar desde arriba) y el «completo» (a la altura del techo, para recorrer por adentro).
  */
 export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: THREE.Group; completo: THREE.Group; liberar: () => void } {
-  const yeso = texturaYeso("#f2efe8");
+  const yeso = texturaYeso("#2c2f3a");
   const matPared = new THREE.MeshStandardMaterial({ map: yeso, roughness: 0.88 });
   const piedra = texturaPiedra();
-  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, roughness: 0.9 });
-  const matZocalo = plastico("#d8d2c4", { roughness: 0.5 });
+  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, color: "#6a6f80", roughness: 0.9 });
+  const matZocalo = plastico("#12131a", { roughness: 0.45 });
   const matVidrio = new THREE.MeshStandardMaterial({ color: "#bfe1f5", transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0, depthWrite: false });
 
   const puertaDe = (s: Sala): "abajo" | "arriba" | "izquierda" => (s.tipo === "vidrio" ? "izquierda" : s.area.y < LOBBY.y ? "abajo" : "arriba");

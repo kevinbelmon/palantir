@@ -8,6 +8,10 @@ export type Jugador = { x: number; z: number; yaw: number; pitch: number };
 
 /** La altura de los ojos y el radio del cuerpo, en unidades del mundo (un escritorio mide 66). */
 export const ALTURA_OJOS = 140;
+/** Al caminar por adentro la casa se ve tantas veces más grande (el plano y los choques no cambian: crece todo parejo). */
+export const ESCALA_CASA = 1.8;
+/** Altura de los ojos ya en la escala de la casa: la persona queda chica frente a techos y puertas altos. */
+export const OJOS_EN_CASA = ALTURA_OJOS * ESCALA_CASA * 0.8;
 export const RADIO_JUGADOR = 26;
 /** Alto de los techos cuando se recorre por adentro. */
 export const ALTURA_TECHO = 235;

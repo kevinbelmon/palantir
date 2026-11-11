@@ -66,7 +66,7 @@ export function decorarSala(raiz: THREE.Group, sala: Sala, indice: number): void
   const zPared = a.y + 8;
   const cx = v.x + v.w / 2;
   const cy = v.base + v.alto / 2;
-  const marcoVentana = plastico("#f4f3ee", { roughness: 0.4 });
+  const marcoVentana = plastico("#1b1d26", { roughness: 0.4 });
   const cielo = new THREE.Mesh(new THREE.PlaneGeometry(v.w - 12, v.alto - 12), new THREE.MeshBasicMaterial({ map: texturaCielo() }));
   cielo.position.set(cx, cy, zPared + 0.6);
   raiz.add(cielo);
@@ -115,7 +115,7 @@ export function decorarSala(raiz: THREE.Group, sala: Sala, indice: number): void
 /** El techo del edificio, con paneles de luz. Solo se ve al recorrerlo por adentro (desde arriba taparía todo). */
 export function crearTecho(raiz: THREE.Group, altura: number): THREE.Group {
   const grupo = new THREE.Group();
-  const losa = new THREE.Mesh(new THREE.PlaneGeometry(MUNDO.ancho - 80, MUNDO.alto - 80), new THREE.MeshStandardMaterial({ color: "#f3f1ec", roughness: 0.95, side: THREE.DoubleSide }));
+  const losa = new THREE.Mesh(new THREE.PlaneGeometry(MUNDO.ancho - 80, MUNDO.alto - 80), new THREE.MeshStandardMaterial({ color: "#20222b", roughness: 0.95, side: THREE.DoubleSide }));
   losa.rotation.x = Math.PI / 2;
   losa.position.set(MUNDO.ancho / 2, altura, MUNDO.alto / 2);
   losa.receiveShadow = false;
@@ -138,7 +138,7 @@ export function crearRecepcion(raiz: THREE.Group): void {
   const x = 1400;
   const z = 1075;
   caja(raiz, 300, 62, 56, plastico(PALETA.maderaFrente, { roughness: 0.55 }), x, 31, z);
-  caja(raiz, 316, 7, 72, plastico("#f4f3ee", { roughness: 0.35 }), x, 65.5, z);
+  caja(raiz, 316, 7, 72, plastico("#1b1d26", { roughness: 0.35 }), x, 65.5, z);
   caja(raiz, 64, 36, 6, plastico(PALETA.monitorMarco), x - 70, 92, z - 6);
   caja(raiz, 54, 28, 2, new THREE.MeshBasicMaterial({ color: PALETA.monitorPantalla }), x - 70, 92, z - 2.5, false);
   const florero = new THREE.Mesh(new THREE.CylinderGeometry(9, 7, 22, 16), plastico("#9bd6f2"));

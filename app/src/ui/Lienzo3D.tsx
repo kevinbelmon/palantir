@@ -5,7 +5,8 @@ import { textosDe } from "../contenido";
 import { AGENTES, type EstadoAgente, type UbicacionBrief } from "../flujo";
 import { elementoEn, factorRueda, SALAS, tiempoVisible, type Elemento } from "../oficina";
 import {
-  ALTURA_OJOS,
+  ESCALA_CASA,
+  OJOS_EN_CASA,
   arrastrar3d,
   camara3dEnSala,
   camara3dInicial,
@@ -271,7 +272,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
         const gente = mundo.personas().map((q) => ({ x: q.x - 18, y: q.z - 18, w: 36, h: 36 }));
         jugador.current = moverJugador(jugador.current, entrada, dt, gente.length ? [...paredes, ...gente] : paredes);
         const j = jugador.current;
-        lente.position.set(j.x, ALTURA_OJOS + (entrada.adelante !== 0 || entrada.lateral !== 0 ? Math.sin(ahora / 140) * 1.6 : 0), j.z);
+        lente.position.set(j.x * ESCALA_CASA, OJOS_EN_CASA + (entrada.adelante !== 0 || entrada.lateral !== 0 ? Math.sin(ahora / 140) * 2.4 : 0), j.z * ESCALA_CASA);
         lente.rotation.set(j.pitch, j.yaw, 0);
         mundo.colocarJugador(null);
         const objetivo = objetivoDeInteraccion(j, terminados());

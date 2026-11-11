@@ -24,7 +24,7 @@ export function mezclarHex(a: string, b: string, k: number): string {
 
 /** El piso de cada sala lleva un toque del color de su agente, para que cada oficina se vea propia. */
 export function colorDePiso(indice: number): string {
-  return mezclarHex("#ffffff", COLORES_SALA[indice], 0.2);
+  return mezclarHex("#8a8a8a", COLORES_SALA[indice], 0.22);
 }
 
 /** El marco de la puerta de la sala: dos postes y un dintel, justo sobre el hueco que dejan las paredes. */

@@ -11,7 +11,7 @@ import { COLORES_SALA } from "./identidad";
 import { conRepeticion, texturaAlfombra } from "./materiales";
 import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
 import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
-import { ALTURA_TECHO, type Jugador } from "./persona";
+import { ALTURA_TECHO, ESCALA_CASA, type Jugador } from "./persona";
 import { animarCuerpo, crearGente } from "./gente";
 import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
@@ -395,22 +395,39 @@ export function construirMundo(): Mundo3D {
     }
   });
 
+  // al agrandar la casa, las luces puntuales y el sol tienen que crecer con ella o todo queda a oscuras
+  const puntuales: { luz: THREE.PointLight; intensidad: number; alcance: number }[] = [];
+  raiz.traverse((o) => {
+    if (o instanceof THREE.PointLight) puntuales.push({ luz: o, intensidad: o.intensity, alcance: o.distance });
+  });
+  const solBase = { pos: sol.position.clone(), objetivo: sol.target.position.clone(), camara: { ...sol.shadow.camera } as { left: number; right: number; top: number; bottom: number; far: number } };
+
   function ponerModo(modo: ModoDeVista) {
     const dentro = modo === "persona";
+    const k = dentro ? ESCALA_CASA : 1;
+    raiz.scale.setScalar(k);
+    for (const p of puntuales) {
+      p.luz.intensity = p.intensidad * k * k;
+      p.luz.distance = p.alcance * k;
+    }
+    sol.position.copy(solBase.pos).multiplyScalar(k);
+    sol.target.position.copy(solBase.objetivo).multiplyScalar(k);
+    Object.assign(sol.shadow.camera, { left: solBase.camara.left * k, right: solBase.camara.right * k, top: solBase.camara.top * k, bottom: solBase.camara.bottom * k, far: solBase.camara.far * k });
+    sol.shadow.camera.updateProjectionMatrix();
     muros.corte.visible = !dentro;
     muros.completo.visible = dentro;
     techo.visible = dentro;
     interior.visible = dentro;
     // adentro hay más luz pareja (los ambientes cerrados reciben poco cielo) y menos sol; los carteles dejan de verse a través de las paredes
-    cielo.intensity = dentro ? 0.5 : 0.8;
-    ambiente.intensity = dentro ? 0.12 : 0;
+    cielo.intensity = dentro ? 0.55 : 0.8;
+    ambiente.intensity = dentro ? 0.2 : 0;
     sol.intensity = dentro ? 1.1 : 1.6;
-    escena.fog = dentro ? new THREE.Fog("#e9e4da", 900, 3200) : null;
+    escena.fog = dentro ? new THREE.Fog("#16171f", 1200 * k, 4800 * k) : null;
     caminando = dentro;
     for (const s of sprites) {
       s.material.depthTest = dentro;
       // de cerca los avisos («!», globitos) serían enormes: se achican; los carteles de arriba se esconden
-      s.scale.copy(s.userData.escala0 as THREE.Vector3).multiplyScalar(dentro ? 0.45 : 1);
+      s.scale.copy(s.userData.escala0 as THREE.Vector3).multiplyScalar(dentro ? 0.45 / k : 1);
     }
     for (const r of rotulos) r.visible = !dentro;
     for (const p of puestos) p.etiqueta.visible = !dentro;

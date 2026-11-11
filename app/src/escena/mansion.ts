@@ -108,7 +108,7 @@ export function amueblarSala(raiz: THREE.Group, interior: THREE.Group, sala: Sal
 /** El lobby de la mansión: rincones de estar con sillón y mesa ratona; columnas, araña de cristal y moldura solo al caminar por adentro. */
 export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { liberar: () => void } {
   const baldosas = conRepeticion(texturaBaldosas(), 100, 100, 100);
-  const marmol = new THREE.MeshStandardMaterial({ map: baldosas, color: "#f1eee8", roughness: 0.25 });
+  const marmol = new THREE.MeshStandardMaterial({ map: baldosas, color: "#4a4d58", roughness: 0.25 });
 
   // rincones de estar
   SOFAS_LOBBY.forEach((s, i) => {
