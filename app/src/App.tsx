@@ -8,19 +8,20 @@ import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
 import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
-import { soportaWebGL } from "./escena";
+import { type ModoDeVista, soportaWebGL } from "./escena";
 import { Lienzo, type Enfoque } from "./ui/Lienzo";
 import { Lienzo3D } from "./ui/Lienzo3D";
 import { ANCHO_PANEL } from "./ui/columna";
 import { PanelAgente } from "./ui/PanelAgente";
 import { Archivos, BotonArchivos } from "./ui/Archivos";
+import { BotonVista } from "./ui/BotonVista";
 import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
 
 /** La oficina en 3D; si el navegador no puede mostrar 3D, el mapa plano de siempre. */
-const Mapa = soportaWebGL() ? Lienzo3D : Lienzo;
+const HAY_3D = soportaWebGL();
 
 const CLAVE_CANCION = "sdd-juego-cancion";
 
@@ -42,6 +43,7 @@ export default function App() {
   const [local, setLocal] = useState<EstadoLocal>(SIN_CONEXION);
   const [repoAbierto, setRepoAbierto] = useState(false);
   const [archivosAbierto, setArchivosAbierto] = useState(false);
+  const [modo, setModo] = useState<ModoDeVista>("arriba");
   const [aviso, setAviso] = useState("");
   const real = local.briefSubido;
   const [ocupado, setOcupado] = useState(false);
@@ -183,7 +185,11 @@ export default function App() {
   return (
     <main style={{ height: "100%", position: "relative" }}>
       <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS, right: columna !== null ? ANCHO_PANEL : 0 }}>
-        <Mapa agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+        {HAY_3D ? (
+          <Lienzo3D agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} modo={modo} />
+        ) : (
+          <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+        )}
       </div>
       <PasoAPaso
         estado={estado}
@@ -222,6 +228,7 @@ export default function App() {
         />
       )}
       <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} canciones={CANCIONES} actual={cancion} alElegir={elegirCancion} />
+      {HAY_3D && <BotonVista modo={modo} alCambiar={() => setModo(modo === "arriba" ? "persona" : "arriba")} />}
       {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
       <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
       {columna === "archivos" && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}

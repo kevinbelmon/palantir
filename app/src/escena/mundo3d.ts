@@ -8,12 +8,20 @@ import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
 import { crearMuros, crearPisos, plastico, tacosInstanciados } from "./bloques3d";
 import { COLORES_SALA } from "./identidad";
-import { crearExterior, crearRecepcion, decorarSala } from "./oficinas";
+import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
+import { ALTURA_TECHO, type Jugador } from "./persona";
 import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
+/** Cómo se mira el mundo: desde arriba, como una maqueta, o caminando por adentro. */
+export type ModoDeVista = "arriba" | "persona";
+
 export type Mundo3D = {
   escena: THREE.Scene;
+  /** Cambia entre la vista desde arriba (paredes bajas, sin techo) y la de recorrer por adentro (techo y paredes completas). */
+  ponerModo: (modo: ModoDeVista) => void;
+  /** Dónde está la persona que recorre: se ve como un muñeco desde arriba. `null` lo esconde. */
+  colocarJugador: (j: Jugador | null) => void;
   /** Pone el mundo al día con el juego. `t` son los segundos de animación (0 deja todo quieto). */
   actualizar: (agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) => void;
   /** Libera la memoria de la tarjeta de video. */
@@ -55,7 +63,8 @@ export function construirMundo(): Mundo3D {
   escena.add(raiz);
 
   // luces: cielo suave y un sol que tira sombras
-  escena.add(new THREE.HemisphereLight("#ffffff", "#8e94bd", 1.05));
+  const cielo = new THREE.HemisphereLight("#ffffff", "#8e94bd", 1.05);
+  escena.add(cielo);
   const sol = new THREE.DirectionalLight("#fff4e0", 1.6);
   sol.position.set(MUNDO.ancho / 2 - 700, 1500, MUNDO.alto / 2 - 500);
   sol.target.position.set(MUNDO.ancho / 2, 0, MUNDO.alto / 2);
@@ -68,7 +77,8 @@ export function construirMundo(): Mundo3D {
 
   crearExterior(raiz);
   crearPisos(raiz);
-  crearMuros(raiz);
+  const muros = crearMuros(raiz, ALTURA_TECHO);
+  const techo = crearTecho(raiz, ALTURA_TECHO);
   crearRecepcion(raiz);
   SALAS.forEach((sala, i) => decorarSala(raiz, sala, i));
 
@@ -338,6 +348,44 @@ export function construirMundo(): Mundo3D {
     });
   }
 
+  // la persona que recorre, vista desde arriba
+  const marcador = new THREE.Group();
+  const cuerpoMarcador = new THREE.Mesh(new THREE.CapsuleGeometry(18, 70, 6, 14), plastico("#ffffff", { emissive: "#ffffff", emissiveIntensity: 0.25 }));
+  cuerpoMarcador.position.y = 62;
+  cuerpoMarcador.castShadow = true;
+  const cabezaMarcador = new THREE.Mesh(new THREE.SphereGeometry(17, 18, 14), plastico("#ffd54a"));
+  cabezaMarcador.position.y = 132;
+  const flecha = new THREE.Mesh(new THREE.ConeGeometry(14, 34, 3), new THREE.MeshBasicMaterial({ color: "#ffd54a" }));
+  flecha.rotation.x = -Math.PI / 2;
+  flecha.position.set(0, 4, -52);
+  marcador.add(cuerpoMarcador, cabezaMarcador, flecha);
+  marcador.visible = false;
+  raiz.add(marcador);
+
+  const sprites: THREE.Sprite[] = [];
+  escena.traverse((o) => {
+    if ((o as THREE.Sprite).isSprite) sprites.push(o as THREE.Sprite);
+  });
+
+  function ponerModo(modo: ModoDeVista) {
+    const dentro = modo === "persona";
+    muros.corte.visible = !dentro;
+    muros.completo.visible = dentro;
+    techo.visible = dentro;
+    // adentro, el cielo y el sol pesan menos y los carteles dejan de verse a través de las paredes
+    cielo.intensity = dentro ? 0.75 : 1.05;
+    sol.intensity = dentro ? 1.0 : 1.6;
+    for (const s of sprites) s.material.depthTest = dentro;
+  }
+
+  function colocarJugador(j: Jugador | null) {
+    marcador.visible = j !== null;
+    if (j) {
+      marcador.position.set(j.x, 0, j.z);
+      marcador.rotation.y = j.yaw;
+    }
+  }
+
   function liberar() {
     escena.traverse((o) => {
       const malla = o as THREE.Mesh;
@@ -357,5 +405,5 @@ export function construirMundo(): Mundo3D {
     }
   }
 
-  return { escena, actualizar, liberar };
+  return { escena, ponerModo, colocarJugador, actualizar, liberar };
 }

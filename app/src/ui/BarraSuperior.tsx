@@ -27,7 +27,7 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         display: "flex",
         alignItems: "center",
         gap: 20,
-        padding: "0 620px 0 16px",
+        padding: "0 800px 0 16px",
         background: "#000000",
         borderBottom: "1px solid var(--linea)",
         color: "var(--texto)",

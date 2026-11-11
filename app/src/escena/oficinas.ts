@@ -111,6 +111,27 @@ export function decorarSala(raiz: THREE.Group, sala: Sala, indice: number): void
   raiz.add(luz);
 }
 
+/** El techo del edificio, con paneles de luz. Solo se ve al recorrerlo por adentro (desde arriba taparía todo). */
+export function crearTecho(raiz: THREE.Group, altura: number): THREE.Group {
+  const grupo = new THREE.Group();
+  const losa = new THREE.Mesh(new THREE.PlaneGeometry(MUNDO.ancho - 80, MUNDO.alto - 80), new THREE.MeshStandardMaterial({ color: "#f3f1ec", roughness: 0.95, side: THREE.DoubleSide }));
+  losa.rotation.x = Math.PI / 2;
+  losa.position.set(MUNDO.ancho / 2, altura, MUNDO.alto / 2);
+  losa.receiveShadow = false;
+  grupo.add(losa);
+  const panel = new THREE.MeshStandardMaterial({ color: "#fffdf4", emissive: "#fff3d6", emissiveIntensity: 1.1 });
+  for (let x = 220; x < MUNDO.ancho - 100; x += 300) {
+    for (let z = 200; z < MUNDO.alto - 100; z += 280) {
+      const p = new THREE.Mesh(new THREE.BoxGeometry(110, 3, 55), panel);
+      p.position.set(x, altura - 1.5, z);
+      grupo.add(p);
+    }
+  }
+  grupo.visible = false;
+  raiz.add(grupo);
+  return grupo;
+}
+
 /** El mostrador de recepción del lobby. */
 export function crearRecepcion(raiz: THREE.Group): void {
   const x = 1400;

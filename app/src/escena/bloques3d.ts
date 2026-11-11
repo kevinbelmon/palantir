@@ -80,52 +80,60 @@ export function crearPisos(raiz: THREE.Group): void {
 
 const ALTURA = { norte: 170, sur: 40, oeste: 110, este: 110 } as const;
 
-/** Paredes de ladrillos blancos con tacos arriba; la sala de vidrio tiene paredes transparentes. */
-export function crearMuros(raiz: THREE.Group): { liberar: () => void } {
+/**
+ * Paredes con tacos arriba; la sala de vidrio tiene paredes transparentes. Se arman dos juegos: el «de corte»
+ * (bajas, para mirar desde arriba) y el «completo» (a la altura del techo, para recorrer por adentro).
+ */
+export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: THREE.Group; completo: THREE.Group; liberar: () => void } {
   const texLadrillos = texturaLadrillos();
   const matLadrillo = plastico("#ffffff", { map: texLadrillos, roughness: 0.42 });
   const matVidrio = new THREE.MeshStandardMaterial({ color: "#bfe1f5", transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0, depthWrite: false });
   const matTaco = plastico("#ffffff", { roughness: 0.3 });
-  const tacosDeArriba: { x: number; y: number; alto: number }[] = [];
-
-  const muro = (rect: Rect, alto: number, material: THREE.Material, conTacos: boolean) => {
-    const m = new THREE.Mesh(geometriaDeLadrillos(rect.w, alto, rect.h), material);
-    m.position.set(rect.x + rect.w / 2, alto / 2, rect.y + rect.h / 2);
-    m.castShadow = material === matLadrillo;
-    m.receiveShadow = true;
-    raiz.add(m);
-    if (conTacos) for (const p of tacosEn(rect, 16)) tacosDeArriba.push({ x: p.x, y: p.y, alto });
-  };
 
   const puertaDe = (s: Sala): "abajo" | "arriba" | "izquierda" => (s.tipo === "vidrio" ? "izquierda" : s.area.y < LOBBY.y ? "abajo" : "arriba");
   const cerramientos: [Rect, "abajo" | "arriba" | "izquierda", boolean][] = [...SALAS.map((s): [Rect, "abajo" | "arriba" | "izquierda", boolean] => [s.area, puertaDe(s), s.tipo === "vidrio"]), [PAPELERIA, "arriba", false]];
-  for (const [area, puerta, esVidrio] of cerramientos) {
-    for (const t of tirasDeMuro(area, puerta, 16)) {
-      const vidrio = esVidrio && t.lado !== "norte";
-      muro(t.rect, ALTURA[t.lado], vidrio ? matVidrio : matLadrillo, !vidrio);
-    }
-  }
-
-  // borde bajo alrededor de todo el edificio
   const borde = 22;
-  const b = [
+  const perimetro = [
     { x: 60 - borde, y: 60 - borde, w: MUNDO.ancho - 120 + borde * 2, h: borde },
     { x: 60 - borde, y: MUNDO.alto - 60, w: MUNDO.ancho - 120 + borde * 2, h: borde },
     { x: 60 - borde, y: 60, w: borde, h: MUNDO.alto - 120 },
     { x: MUNDO.ancho - 60, y: 60, w: borde, h: MUNDO.alto - 120 },
   ];
-  for (const r of b) muro(r, 36, matLadrillo, true);
 
-  // los tacos de arriba de las paredes, agrupados por altura
-  const alturas = [...new Set(tacosDeArriba.map((t) => t.alto))];
-  for (const alto of alturas) {
-    raiz.add(tacosInstanciados(tacosDeArriba.filter((t) => t.alto === alto), alto, matTaco, 5.5, 5));
-  }
+  const armar = (completo: boolean): THREE.Group => {
+    const grupo = new THREE.Group();
+    const tacosDeArriba: { x: number; y: number; alto: number }[] = [];
+    const muro = (r: Rect, alto: number, material: THREE.Material, conTacos: boolean) => {
+      const m = new THREE.Mesh(geometriaDeLadrillos(r.w, alto, r.h), material);
+      m.position.set(r.x + r.w / 2, alto / 2, r.y + r.h / 2);
+      m.castShadow = material === matLadrillo;
+      m.receiveShadow = true;
+      grupo.add(m);
+      if (conTacos && !completo) for (const p of tacosEn(r, 16)) tacosDeArriba.push({ x: p.x, y: p.y, alto });
+    };
+    for (const [area, puerta, esVidrio] of cerramientos) {
+      for (const t of tirasDeMuro(area, puerta, 16)) {
+        const vidrio = esVidrio && t.lado !== "norte";
+        muro(t.rect, completo ? alturaCompleta : ALTURA[t.lado], vidrio ? matVidrio : matLadrillo, !vidrio);
+      }
+    }
+    for (const r of perimetro) muro(r, completo ? alturaCompleta : 36, matLadrillo, true);
+    for (const alto of [...new Set(tacosDeArriba.map((t) => t.alto))]) {
+      grupo.add(tacosInstanciados(tacosDeArriba.filter((t) => t.alto === alto), alto, matTaco, 5.5, 5));
+    }
+    raiz.add(grupo);
+    return grupo;
+  };
+
+  const corte = armar(false);
+  const completo = armar(true);
+  completo.visible = false;
 
   return {
+    corte,
+    completo,
     liberar: () => {
       texLadrillos.dispose();
     },
   };
 }
-

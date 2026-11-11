@@ -16,3 +16,6 @@ export type { Camara3D, Punto3D, VistaPantalla } from "./camara3d";
 export { soportaWebGL } from "./webgl";
 export { construirMundo } from "./mundo3d";
 export type { Mundo3D } from "./mundo3d";
+export type { ModoDeVista } from "./mundo3d";
+export { ALTURA_OJOS, ALTURA_TECHO, candidatos, girarJugador, JUGADOR_INICIAL, moverJugador, objetivoDeInteraccion, obstaculos, RADIO_JUGADOR, salaDe, tocaRect } from "./persona";
+export type { Jugador } from "./persona";

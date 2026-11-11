@@ -8,7 +8,7 @@ export const COLORES_SALA = ["#5b8cff", "#8e6bff", "#3ecf6e", "#f2a33a", "#ff6b8
 const GROSOR = 16;
 const HUECO = 130;
 /** Alto del marco de la puerta. */
-export const ALTO_MARCO = 125;
+export const ALTO_MARCO = 165;
 
 const aNumeros = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
 
