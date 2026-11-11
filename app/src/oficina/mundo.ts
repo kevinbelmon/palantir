@@ -16,21 +16,22 @@ export type Sala = {
 };
 
 /** La oficina es más grande que una pantalla: se recorre moviendo la cámara. */
-export const MUNDO = { ancho: 2600, alto: 1600 } as const;
+export const MUNDO = { ancho: 2600, alto: 1800 } as const;
 
-export const LOBBY: Rect = { x: 560, y: 560, w: 1300, h: 460 };
-export const PAPELERIA: Rect = { x: 100, y: 580, w: 420, h: 420 };
+/** Los pasillos de 140 de ancho quedan entre las oficinas de arriba (hasta y=520), el lobby (660 a 1120) y las de abajo (desde y=1260). */
+export const LOBBY: Rect = { x: 560, y: 660, w: 1300, h: 460 };
+export const PAPELERIA: Rect = { x: 100, y: 680, w: 420, h: 420 };
 
 export const CARTEL_CENTRAL = {
   titulo: "Spec-Driven Development",
   lema: "Planear primero. Construir después.",
-  area: { x: 810, y: 740, w: 800, h: 150 } as Rect,
+  area: { x: 810, y: 840, w: 800, h: 150 } as Rect,
 } as const;
 
 const ANCHO_SALA = 560;
 const ALTO_SALA = 420;
 const ARRIBA_Y = 100;
-const ABAJO_Y = 1060;
+const ABAJO_Y = 1260;
 
 function salaNormal(indice: number, x: number, y: number): Sala {
   return {
@@ -49,7 +50,7 @@ function salaDeVidrio(indice: number, x: number, y: number): Sala {
     numero: AGENTES[indice].numero,
     comando: AGENTES[indice].comando,
     tipo: "vidrio",
-    area: { x, y, w: ANCHO_SALA, h: 900 },
+    area: { x, y, w: ANCHO_SALA, h: 940 },
     pizarra: { x: x + 150, y: y + 30, w: 260, h: 84 },
     escritorio: { x: x + 130, y: y + 420, w: 300, h: 200 },
     personaje: { x: x + 280, y: y + 400 },
@@ -65,7 +66,7 @@ export const SALAS: readonly Sala[] = [
   salaNormal(4, 100, ABAJO_Y),
   salaNormal(5, 700, ABAJO_Y),
   salaNormal(6, 1300, ABAJO_Y),
-  salaDeVidrio(7, 1900, 580),
+  salaDeVidrio(7, 1900, 740),
 ];
 
 const PAPEL = { w: 44, h: 30 } as const;

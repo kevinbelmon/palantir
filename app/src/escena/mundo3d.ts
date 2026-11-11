@@ -2,8 +2,8 @@ import * as THREE from "three";
 import type { EstadoAgente, UbicacionBrief } from "../flujo";
 import { AGENTES } from "../flujo";
 import { etiquetaDeEstado, textoEtiqueta, textosDe } from "../contenido";
-import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, parpadeo, puntoEnRuta, rectBrief, rectDocumento, respiracion, RUTA, SALAS, estadoDeSegmento, type EstadoTramo, type Sala } from "../oficina";
-import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
+import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, puntoEnRuta, rectBrief, rectDocumento, RUTA, SALAS, estadoDeSegmento, type EstadoTramo, type Sala } from "../oficina";
+import { BEBEDERO, COLEGAS_REVIEW, ESTANTE_PAPELERIA, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
 import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
 import { crearMuros, crearPisos, plastico } from "./bloques3d";
@@ -12,7 +12,8 @@ import { conRepeticion, texturaAlfombra } from "./materiales";
 import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
 import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
 import { ALTURA_TECHO, type Jugador } from "./persona";
-import { ANCLAS, apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
+import { animarCuerpo, crearGente } from "./gente";
+import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
 /** Cómo se mira el mundo: desde arriba, como una maqueta, o caminando por adentro. */
@@ -24,6 +25,8 @@ export type Mundo3D = {
   ponerModo: (modo: ModoDeVista) => void;
   /** Dónde está la persona que recorre: se ve como un muñeco desde arriba. `null` lo esconde. */
   colocarJugador: (j: Jugador | null) => void;
+  /** Dónde está cada persona de pie ahora (recepcionista, empleados): no se las puede atravesar. */
+  personas: () => { x: number; z: number }[];
   /** Pone el mundo al día con el juego. `t` son los segundos de animación (0 deja todo quieto). */
   actualizar: (agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) => void;
   /** Libera la memoria de la tarjeta de video. */
@@ -93,6 +96,7 @@ export function construirMundo(): Mundo3D {
   });
   const lobby = decorarLobby(raiz, interior);
   const jardin = crearJardin(raiz);
+  const gente = crearGente(raiz);
 
   // ---- lobby: alfombra, cartel central, sillón, bebedero, mesa baja
   const alfombra = { x: LOBBY.x + 150, y: LOBBY.y + 60, w: LOBBY.w - 300, h: LOBBY.h - 120 };
@@ -112,12 +116,12 @@ export function construirMundo(): Mundo3D {
   const mesaBaja = new THREE.Mesh(new THREE.CylinderGeometry(56, 56, 30, 36), plastico(PALETA.maderaTapa, { roughness: 0.5 }));
   mesaBaja.scale.z = 24 / 56;
   mesaBaja.castShadow = true;
-  raiz.add(colocar(mesaBaja, 1080, 15, 972));
+  raiz.add(colocar(mesaBaja, 1080, 15, 1072));
   for (const p of PLANTAS) raiz.add(colocar(crearPlanta(), p.x, 0, p.y));
 
   // ---- papelería: estantería, mesa con bandeja, brief y cartel
   const pa = PAPELERIA;
-  raiz.add(colocar(crearObjeto("libros", 190).grupo, pa.x + 135, 0, pa.y + 50));
+  raiz.add(colocar(crearObjeto("libros", ESTANTE_PAPELERIA.w).grupo, ESTANTE_PAPELERIA.x + ESTANTE_PAPELERIA.w / 2, 0, ESTANTE_PAPELERIA.y + 30));
   const mesa = { x: pa.x + 70, y: pa.y + 230, w: 280, h: 90 };
   const cm = centro(mesa);
   const patas = plastico(PALETA.maderaFrente, { roughness: 0.55 });
@@ -148,6 +152,7 @@ export function construirMundo(): Mundo3D {
   /** Los carteles de arriba de cada sala: sirven para mirar desde arriba y estorban al caminar por adentro. */
   const rotulos: THREE.Sprite[] = [];
   let caminando = false;
+  const colegas: { m: Munyeco; indice: number; fase: number }[] = [];
   const puestos: PuestoSala[] = SALAS.map((sala: Sala, i) => {
     const textos = textosDe(AGENTES[i].id);
     const a = sala.area;
@@ -176,7 +181,7 @@ export function construirMundo(): Mundo3D {
     let pantallas: THREE.Texture[] = [];
     let halo = sala.escritorio;
     if (esVidrio) {
-      for (const c of COLEGAS_REVIEW) {
+      for (const [k, c] of COLEGAS_REVIEW.entries()) {
         const dir = Math.atan2(MESA_REDONDA_REVIEW.x - c.x, MESA_REDONDA_REVIEW.y - c.y);
         const s = colocar(crearSilla(), c.x, 0, c.y);
         s.rotation.y = dir;
@@ -184,6 +189,7 @@ export function construirMundo(): Mundo3D {
         const m = crearMunyeco(c.indice);
         colocar(m.grupo, c.x, 0, c.y).rotation.y = dir;
         raiz.add(m.grupo);
+        colegas.push({ m, indice: c.indice, fase: k * 2.3 });
       }
       raiz.add(colocar(crearMesaRedonda(MESA_REDONDA_REVIEW.rx, MESA_REDONDA_REVIEW.ry), MESA_REDONDA_REVIEW.x, 0, MESA_REDONDA_REVIEW.y));
     } else {
@@ -279,20 +285,22 @@ export function construirMundo(): Mundo3D {
   function actualizar(agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) {
     const pulso = 0.5 + 0.5 * Math.sin(t * 4);
     jardin.actualizar(t);
+    gente.actualizar(t);
+    for (const c of colegas) animarCuerpo(c.m, "habla-sentado", t, c.fase, c.indice);
 
     puestos.forEach((p, i) => {
       const estado = agentes[i] ?? "deshabilitado";
       const m = p.munyeco;
-      const r = respiracion(t, i);
-      m.torso.position.y = ANCLAS.torsoY + r * 0.5;
-      m.cabeza.position.y = ANCLAS.cabezaY + r;
-      m.brazoI.position.y = m.brazoD.position.y = ANCLAS.hombroY + r * 0.5;
-      const teclea = estado === "corriendo" ? Math.sin(t * 14) * 0.22 : 0;
-      m.brazoI.rotation.x = -0.62 + teclea;
-      m.brazoD.rotation.x = -0.62 - teclea;
-      m.brazoD.rotation.z = estado === "habilitado" ? 2.5 + Math.sin(t * 6) * 0.3 : 0;
-      if (estado === "habilitado") m.brazoD.rotation.x = 0;
-      m.cara.material.map = parpadeo(t, i) ? m.cerrados : m.abiertos;
+      animarCuerpo(m, estado === "corriendo" ? "teclea" : "quieto", t, i * 1.7, i);
+      if (estado !== "corriendo") {
+        // manos sobre el escritorio, mirando de a ratos a un costado
+        m.brazoI.rotation.x = -0.62;
+        m.brazoD.rotation.x = -0.62;
+      }
+      if (estado === "habilitado") {
+        m.brazoD.rotation.z = 2.5 + Math.sin(t * 6) * 0.3;
+        m.brazoD.rotation.x = 0;
+      }
       apagarMunyeco(m, estado === "deshabilitado");
 
       for (const tex of p.pantallas) tex.offset.y = estado === "corriendo" ? (t * 0.5) % 1 : 0;
@@ -428,6 +436,11 @@ export function construirMundo(): Mundo3D {
     sol.shadow.map?.dispose();
     lobby.liberar();
     guiones.dispose();
+    gente.liberar();
+    for (const c of colegas) {
+      c.m.abiertos.dispose();
+      c.m.cerrados.dispose();
+    }
     for (const p of puestos) {
       p.munyeco.abiertos.dispose();
       p.munyeco.cerrados.dispose();
@@ -435,5 +448,5 @@ export function construirMundo(): Mundo3D {
     }
   }
 
-  return { escena, ponerModo, colocarJugador, actualizar, liberar };
+  return { escena, ponerModo, colocarJugador, personas: gente.posiciones, actualizar, liberar };
 }

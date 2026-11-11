@@ -95,10 +95,10 @@ function dibujarDecoracion(ctx: Ctx) {
   dibujarBebedero(ctx, BEBEDERO);
   // mesa baja del lobby
   ctx.beginPath();
-  ctx.ellipse(1080, 972, 56, 24, 0, 0, Math.PI * 2);
+  ctx.ellipse(1080, 1072, 56, 24, 0, 0, Math.PI * 2);
   rellenar(ctx, PALETA.maderaTapa);
   ctx.beginPath();
-  ctx.ellipse(1080, 984, 56, 24, 0, 0, Math.PI);
+  ctx.ellipse(1080, 1084, 56, 24, 0, 0, Math.PI);
   rellenar(ctx, PALETA.maderaLado);
   for (const p of PLANTAS) dibujarPlanta(ctx, p.x, p.y);
 }

@@ -136,7 +136,7 @@ export function crearTecho(raiz: THREE.Group, altura: number): THREE.Group {
 /** El mostrador de recepción del lobby. */
 export function crearRecepcion(raiz: THREE.Group): void {
   const x = 1400;
-  const z = 975;
+  const z = 1075;
   caja(raiz, 300, 62, 56, plastico(PALETA.maderaFrente, { roughness: 0.55 }), x, 31, z);
   caja(raiz, 316, 7, 72, plastico("#f4f3ee", { roughness: 0.35 }), x, 65.5, z);
   caja(raiz, 64, 36, 6, plastico(PALETA.monitorMarco), x - 70, 92, z - 6);

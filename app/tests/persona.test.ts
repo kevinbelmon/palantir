@@ -23,30 +23,30 @@ describe("chocar con las cosas", () => {
 
 describe("caminar", () => {
   it("adelante con yaw 0 va hacia el norte (z baja); atrás, al revés", () => {
-    const a = moverJugador(parado(1210, 700), { adelante: 1, lateral: 0, correr: false }, 0.5);
-    expect(a.z).toBeLessThan(700);
+    const a = moverJugador(parado(1210, 800), { adelante: 1, lateral: 0, correr: false }, 0.5);
+    expect(a.z).toBeLessThan(800);
     expect(a.x).toBeCloseTo(1210);
-    const b = moverJugador(parado(1210, 700), { adelante: -1, lateral: 0, correr: false }, 0.5);
-    expect(b.z).toBeGreaterThan(700);
+    const b = moverJugador(parado(1210, 800), { adelante: -1, lateral: 0, correr: false }, 0.5);
+    expect(b.z).toBeGreaterThan(800);
   });
 
   it("la derecha es el este con yaw 0, y girar 90° cambia hacia dónde es «adelante»", () => {
-    expect(moverJugador(parado(1210, 700), { adelante: 0, lateral: 1, correr: false }, 0.5).x).toBeGreaterThan(1210);
-    const mirandoOeste = moverJugador(parado(1210, 700, Math.PI / 2), { adelante: 1, lateral: 0, correr: false }, 0.5);
+    expect(moverJugador(parado(1210, 800), { adelante: 0, lateral: 1, correr: false }, 0.5).x).toBeGreaterThan(1210);
+    const mirandoOeste = moverJugador(parado(1210, 800, Math.PI / 2), { adelante: 1, lateral: 0, correr: false }, 0.5);
     expect(mirandoOeste.x).toBeLessThan(1210);
-    expect(mirandoOeste.z).toBeCloseTo(700);
+    expect(mirandoOeste.z).toBeCloseTo(800);
   });
 
   it("correr es más rápido que caminar, y en diagonal no se va más rápido", () => {
-    const camina = moverJugador(parado(1210, 700), { adelante: 1, lateral: 0, correr: false }, 0.1);
-    const corre = moverJugador(parado(1210, 700), { adelante: 1, lateral: 0, correr: true }, 0.1);
-    expect(700 - corre.z).toBeGreaterThan(700 - camina.z);
-    const diagonal = moverJugador(parado(1210, 700), { adelante: 1, lateral: 1, correr: false }, 0.1);
-    expect(Math.hypot(diagonal.x - 1210, diagonal.z - 700)).toBeCloseTo(Math.hypot(camina.x - 1210, camina.z - 700));
+    const camina = moverJugador(parado(1210, 800), { adelante: 1, lateral: 0, correr: false }, 0.1);
+    const corre = moverJugador(parado(1210, 800), { adelante: 1, lateral: 0, correr: true }, 0.1);
+    expect(800 - corre.z).toBeGreaterThan(800 - camina.z);
+    const diagonal = moverJugador(parado(1210, 800), { adelante: 1, lateral: 1, correr: false }, 0.1);
+    expect(Math.hypot(diagonal.x - 1210, diagonal.z - 800)).toBeCloseTo(Math.hypot(camina.x - 1210, camina.z - 800));
   });
 
   it("sin entrada o sin tiempo, se queda donde está", () => {
-    const j = parado(1210, 700);
+    const j = parado(1210, 800);
     expect(moverJugador(j, { adelante: 0, lateral: 0, correr: false }, 1)).toBe(j);
     expect(moverJugador(j, { adelante: 1, lateral: 0, correr: false }, 0)).toBe(j);
   });

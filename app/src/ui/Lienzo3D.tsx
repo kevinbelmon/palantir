@@ -258,7 +258,9 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
           lateral: (teclas.has("KeyD") ? 1 : 0) - (teclas.has("KeyA") ? 1 : 0),
           correr: teclas.has("ShiftLeft") || teclas.has("ShiftRight"),
         };
-        jugador.current = moverJugador(jugador.current, entrada, dt, paredes);
+        // a la gente que camina por la casa tampoco se la atraviesa
+        const gente = mundo.personas().map((q) => ({ x: q.x - 18, y: q.z - 18, w: 36, h: 36 }));
+        jugador.current = moverJugador(jugador.current, entrada, dt, gente.length ? [...paredes, ...gente] : paredes);
         const j = jugador.current;
         lente.position.set(j.x, ALTURA_OJOS + (entrada.adelante !== 0 || entrada.lateral !== 0 ? Math.sin(ahora / 140) * 1.6 : 0), j.z);
         lente.rotation.set(j.pitch, j.yaw, 0);

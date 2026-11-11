@@ -24,14 +24,16 @@ export type Munyeco = {
   cabeza: THREE.Group;
   brazoI: THREE.Group;
   brazoD: THREE.Group;
+  /** Las piernas articuladas (cadera y rodilla) de la persona de pie; vacío si está sentada. */
+  piernas: { cadera: THREE.Group; rodilla: THREE.Group }[];
   cara: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>;
   abiertos: THREE.Texture;
   cerrados: THREE.Texture;
   piezas: Pieza[];
 };
 
-/** Una persona sentada, con proporciones reales: cabeza, cuello, torso, brazos con codo y mano, piernas y zapatos. Mira hacia +z. */
-export function crearMunyeco(indice: number): Munyeco {
+/** Una persona con proporciones reales: cabeza, cuello, torso, brazos con codo y mano, piernas y zapatos. Sentada por defecto, o de pie con las piernas articuladas para caminar. Mira hacia +z. */
+export function crearMunyeco(indice: number, dePie = false): Munyeco {
   const a = APARIENCIAS[indice % APARIENCIAS.length];
   const piel = PIELES[indice % PIELES.length];
   const grupo = new THREE.Group();
@@ -50,9 +52,23 @@ export function crearMunyeco(indice: number): Munyeco {
   };
   const acostada = (m: THREE.Mesh) => ((m.rotation.x = Math.PI / 2), m);
 
-  // piernas: muslos hacia adelante, canillas hacia abajo, zapatos
-  pieza(new THREE.SphereGeometry(14.5, 20, 14), PANTALON, 0, 50, 0).scale.set(1.15, 0.7, 1.0);
+  // piernas: sentada (muslos hacia adelante, canillas hacia abajo) o de pie (cadera y rodilla que se mueven)
+  const piernas: Munyeco["piernas"] = [];
+  pieza(new THREE.SphereGeometry(14.5, 20, 14), PANTALON, 0, dePie ? 53 : 50, 0).scale.set(1.15, 0.7, 1.0);
   for (const lado of [-1, 1]) {
+    if (dePie) {
+      const cadera = new THREE.Group();
+      cadera.position.set(lado * 8.6, 53, 0);
+      grupo.add(cadera);
+      pieza(new THREE.CapsuleGeometry(7.4, 17, 6, 14), PANTALON, 0, -13.5, 0, cadera);
+      const rodilla = new THREE.Group();
+      rodilla.position.set(0, -26, 0);
+      cadera.add(rodilla);
+      pieza(new THREE.CapsuleGeometry(5.6, 14, 6, 14), PANTALON, 0, -13.5, 0, rodilla);
+      pieza(new THREE.BoxGeometry(10, 7, 23), CALZADO, 0, -24, 5, rodilla);
+      piernas.push({ cadera, rodilla });
+      continue;
+    }
     acostada(pieza(new THREE.CapsuleGeometry(7.6, 30, 6, 14), PANTALON, lado * 8.6, 51, 18));
     pieza(new THREE.CapsuleGeometry(6, 32, 6, 14), PANTALON, lado * 8.6, 28, 38);
     pieza(new THREE.BoxGeometry(10, 7, 23), CALZADO, lado * 8.6, 4.5, 44).geometry.translate(0, 0, 0);
@@ -102,7 +118,7 @@ export function crearMunyeco(indice: number): Munyeco {
   cara.position.set(0, -0.2, 11.55);
   cabeza.add(cara);
 
-  return { grupo, torso, cabeza, brazoI, brazoD, cara, abiertos, cerrados, piezas };
+  return { grupo, torso, cabeza, brazoI, brazoD, piernas, cara, abiertos, cerrados, piezas };
 }
 
 /** Los muñecos «apagados» (agentes que todavía no les toca) se ven desteñidos. */

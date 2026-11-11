@@ -5,6 +5,8 @@ export type { EstadoTramo, Punto, Tramo } from "./ruta";
 export { parpadeo, respiracion, tiempoVisible } from "./animacion";
 export { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
 export type { LadoDeMuro, TiraDeMuro } from "./bloques";
+export { PERSONAS_AMBIENTE, duracionDeCircuito, poseDe, poseDeCircuito } from "./gente";
+export type { Actividad, Parada, PersonaAmbiente, Pose } from "./gente";
 export { posicionEtiqueta } from "./etiquetas";
 export { camaraEnSala, interpolarCamara } from "./enfoque";
 export { APARIENCIAS, COLORES_ESTADO } from "./paleta";

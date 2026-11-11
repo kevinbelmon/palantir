@@ -1,5 +1,5 @@
 import { type Elemento, LOBBY, MUNDO, PAPELERIA, rectDocumento, SALAS, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { BEBEDERO, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
+import { BEBEDERO, ESTANTE_PAPELERIA, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
 import { obstaculosDeMuebles } from "./distribucion";
 import { marcoDePuerta } from "./identidad";
 
@@ -17,7 +17,7 @@ const ALCANCE = 250;
 const ANGULO_MAXIMO = 0.8;
 
 /** Arranca en el lobby, mirando hacia el cartel central. */
-export const JUGADOR_INICIAL: Jugador = { x: 1210, z: 960, yaw: 0, pitch: 0 };
+export const JUGADOR_INICIAL: Jugador = { x: 1210, z: 1060, yaw: 0, pitch: 0 };
 
 export type Entrada = { adelante: number; lateral: number; correr: boolean };
 
@@ -49,11 +49,11 @@ export function obstaculos(): Rect[] {
     lista.push(rect(s.personaje.x - 40, s.personaje.y - 34, 80, 70));
   }
   lista.push(rect(SILLON.x, SILLON.y - 20, SILLON.w, SILLON.h + 20), rect(BEBEDERO.x, BEBEDERO.y + 30, BEBEDERO.w, 55));
-  lista.push(rect(1250, 945, 300, 60)); // recepción
-  lista.push(rect(1080 - 56, 972 - 24, 112, 48)); // mesa baja del lobby
-  lista.push(MESA_PAPELERIA, rect(PAPELERIA.x + 40, PAPELERIA.y + 20, 190, 50));
+  lista.push(rect(1250, 1045, 300, 60)); // recepción
+  lista.push(rect(1080 - 56, 1072 - 24, 112, 48)); // mesa baja del lobby
+  lista.push(MESA_PAPELERIA, ESTANTE_PAPELERIA);
   for (const o of OBJETOS_SALA) lista.push(rect(o.x, o.y + o.h - 45, o.w, 45));
-  for (const p of PLANTAS) lista.push(rect(p.x - 20, p.y - 20, 40, 40));
+  for (const p of PLANTAS) lista.push(rect(p.x - 16, p.y - 16, 32, 32));
   lista.push(...obstaculosDeMuebles());
   return lista;
 }
