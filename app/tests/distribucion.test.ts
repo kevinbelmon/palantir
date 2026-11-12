@@ -59,7 +59,9 @@ describe("el mobiliario del lobby", () => {
 
   it("los sillones y las mesas ratonas quedan adentro del lobby y no se pisan", () => {
     const huellas = [...SOFAS_LOBBY.map(huellaDeAsiento), ...MESAS_RATONAS];
-    for (const h of huellas) expect(dentro(h, LOBBY)).toBe(true);
+    // el mobiliario va pegado a las paredes laterales, que están 40 más allá del borde del piso del lobby
+    const conParedes = { x: LOBBY.x - 40, y: LOBBY.y, w: LOBBY.w + 80, h: LOBBY.h };
+    for (const h of huellas) expect(dentro(h, conParedes)).toBe(true);
     huellas.forEach((h, i) => huellas.slice(i + 1).forEach((o) => expect(cruzan(h, o)).toBe(false)));
   });
 

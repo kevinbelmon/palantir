@@ -1,5 +1,5 @@
 import { type Elemento, LOBBY, MUNDO, PAPELERIA, rectDocumento, SALAS, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { BEBEDERO, ESTANTE_PAPELERIA, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
+import { BEBEDERO, ESTANTE_PAPELERIA, OBJETOS_SALA, PLANTAS } from "../oficina/decoracion";
 import { obstaculosDeMuebles } from "./distribucion";
 import { marcoDePuerta } from "./identidad";
 
@@ -52,9 +52,8 @@ export function obstaculos(): Rect[] {
     else lista.push(rect(e.x - 6, e.y + 4, e.w + 12, 96));
     lista.push(rect(s.personaje.x - 40, s.personaje.y - 34, 80, 70));
   }
-  lista.push(rect(SILLON.x, SILLON.y - 20, SILLON.w, SILLON.h + 20), rect(BEBEDERO.x, BEBEDERO.y + 30, BEBEDERO.w, 55));
+  lista.push(rect(BEBEDERO.x, BEBEDERO.y + 30, BEBEDERO.w, 55));
   lista.push(rect(1250, 1045, 300, 60)); // recepción
-  lista.push(rect(1080 - 56, 1072 - 24, 112, 48)); // mesa baja del lobby
   lista.push(MESA_PAPELERIA, ESTANTE_PAPELERIA);
   for (const o of OBJETOS_SALA) lista.push(rect(o.x, o.y + o.h - 45, o.w, 45));
   for (const p of PLANTAS) lista.push(rect(p.x - 16, p.y - 16, 32, 32));

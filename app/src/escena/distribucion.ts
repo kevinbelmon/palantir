@@ -11,15 +11,15 @@ export type Asiento = Mueble & { ancho: number; fondo: number };
 export const COLUMNAS: readonly { x: number; z: number }[] = [800, 1130, 1400, 1700].map((x) => ({ x, z: 690 }));
 export const RADIO_COLUMNA = 24;
 
-/** Dos rincones de estar en el lobby, uno a cada lado, con su sillón de tres cuerpos, su mesa ratona y su lámpara de pie. */
+/** Dos rincones de estar en el lobby, uno contra cada pared lateral (la de la papelería y la de la sala de vidrio), con su sillón de tres cuerpos, su mesa ratona y su lámpara de pie. */
 export const SOFAS_LOBBY: readonly Asiento[] = [
-  { x: 1770, z: 940, giro: -Math.PI / 2, ancho: 150, fondo: 62 },
-  { x: 650, z: 920, giro: Math.PI / 2, ancho: 150, fondo: 62 },
+  { x: 1856, z: 940, giro: -Math.PI / 2, ancho: 150, fondo: 62 },
+  { x: 562, z: 920, giro: Math.PI / 2, ancho: 150, fondo: 62 },
 ];
-export const MESAS_RATONAS: readonly Rect[] = [rect(1625, 895, 70, 90), rect(735, 875, 70, 90)];
+export const MESAS_RATONAS: readonly Rect[] = [rect(1725, 895, 70, 90), rect(630, 875, 70, 90)];
 export const LAMPARAS_LOBBY: readonly { x: number; z: number }[] = [
-  { x: 1770, z: 1040 },
-  { x: 650, z: 1035 },
+  { x: 1856, z: 1040 },
+  { x: 562, z: 1035 },
 ];
 export const ARAÑA_LOBBY = { x: LOBBY.x + LOBBY.w / 2, z: LOBBY.y + LOBBY.h / 2 };
 

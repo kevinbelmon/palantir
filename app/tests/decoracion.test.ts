@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { LOBBY, SALAS, type Rect } from "../src/oficina";
-import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../src/oficina/decoracion";
+import { LOBBY, PAPELERIA, SALAS, type Rect } from "../src/oficina";
+import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS } from "../src/oficina/decoracion";
+import { SOFAS_LOBBY } from "../src/escena/distribucion";
 import { APARIENCIAS, PALETA } from "../src/oficina/paleta";
 
 const contiene = (r: Rect, x: number, y: number) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
@@ -43,10 +44,21 @@ describe("las plantas", () => {
 });
 
 describe("el lobby", () => {
-  it("tiene un sillón y un bebedero, adentro del lobby", () => {
-    expect(contiene(LOBBY, SILLON.x, SILLON.y)).toBe(true);
-    expect(contiene(LOBBY, SILLON.x + SILLON.w, SILLON.y + SILLON.h)).toBe(true);
-    expect(contiene(LOBBY, BEBEDERO.x, BEBEDERO.y)).toBe(true);
+  it("tiene el bebedero adentro del lobby", () => {
+    // va pegado a la pared de la sala de vidrio, 40 más allá del borde del piso del lobby
+    const conParedes = { x: LOBBY.x - 40, y: LOBBY.y, w: LOBBY.w + 80, h: LOBBY.h };
+    expect(contiene(conParedes, BEBEDERO.x, BEBEDERO.y)).toBe(true);
+    expect(contiene(conParedes, BEBEDERO.x + BEBEDERO.w, BEBEDERO.y + BEBEDERO.h)).toBe(true);
+  });
+
+  it("apoya cada sillón y el bebedero contra una pared de verdad (nada flotando en medio de la nada)", () => {
+    // paredes laterales del lobby: la este de la papelería (cara hacia el lobby en x=528) y la oeste de la sala de vidrio (x=1892)
+    const paredes = [PAPELERIA.x + PAPELERIA.w + 8, SALAS[7].area.x - 8];
+    for (const s of SOFAS_LOBBY) {
+      const respaldo = s.giro > 0 ? s.x - s.fondo / 2 : s.x + s.fondo / 2;
+      expect(Math.min(...paredes.map((p) => Math.abs(p - respaldo)))).toBeLessThanOrEqual(8);
+    }
+    expect(Math.abs(SALAS[7].area.x - 8 - (BEBEDERO.x + BEBEDERO.w))).toBeLessThanOrEqual(12);
   });
 });
 

@@ -19,10 +19,10 @@ export const PLANTAS: readonly Planta[] = [
   { x: LOBBY.x + LOBBY.w - 60, y: LOBBY.y + LOBBY.h - 60 },
 ];
 
-export const SILLON: Rect = { x: 700, y: 1035, w: 260, h: 65 };
 /** La estantería de la papelería: contra la pared de la izquierda, para dejar libre la entrada. */
 export const ESTANTE_PAPELERIA: Rect = { x: PAPELERIA.x + 15, y: PAPELERIA.y + 20, w: 130, h: 50 };
-export const BEBEDERO: Rect = { x: 1730, y: 750, w: 50, h: 90 };
+/** El bebedero: contra la pared de la sala de vidrio (que está en x 1892). */
+export const BEBEDERO: Rect = { x: 1832, y: 750, w: 50, h: 90 };
 
 /** Mesa redonda de la sala de reuniones del review (centro y radios). */
 export const MESA_REDONDA_REVIEW = { x: salaReview.area.x + 280, y: salaReview.area.y + 520, rx: 150, ry: 100 } as const;

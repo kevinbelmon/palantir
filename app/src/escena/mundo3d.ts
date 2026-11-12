@@ -3,7 +3,7 @@ import type { EstadoAgente, UbicacionBrief } from "../flujo";
 import { AGENTES } from "../flujo";
 import { etiquetaDeEstado, textoEtiqueta, textosDe } from "../contenido";
 import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, puntoEnRuta, rectBrief, rectDocumento, RUTA, SALAS, estadoDeSegmento, type EstadoTramo, type Sala } from "../oficina";
-import { BEBEDERO, COLEGAS_REVIEW, ESTANTE_PAPELERIA, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "../oficina/decoracion";
+import { BEBEDERO, COLEGAS_REVIEW, ESTANTE_PAPELERIA, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS } from "../oficina/decoracion";
 import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
 import { crearMuros, crearPisos, plastico } from "./bloques3d";
@@ -13,7 +13,7 @@ import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
 import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
 import { ALTURA_TECHO, ESCALA_CASA, type Jugador } from "./persona";
 import { animarCuerpo, crearGente } from "./gente";
-import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, crearSillon, type Munyeco } from "./figuras";
+import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
 /** Cómo se mira el mundo: desde arriba, como una maqueta, o caminando por adentro. */
@@ -98,7 +98,7 @@ export function construirMundo(): Mundo3D {
   const jardin = crearJardin(raiz);
   const gente = crearGente(raiz);
 
-  // ---- lobby: alfombra, cartel central, sillón, bebedero, mesa baja
+  // ---- lobby: alfombra, cartel central y bebedero (los rincones de estar están en mansion.ts)
   const alfombra = { x: LOBBY.x + 150, y: LOBBY.y + 60, w: LOBBY.w - 300, h: LOBBY.h - 120 };
   const ca = centro(alfombra);
   raiz.add(colocar(new THREE.Mesh(new THREE.BoxGeometry(alfombra.w, 3, alfombra.h), new THREE.MeshStandardMaterial({ map: conRepeticion(texturaAlfombra(PALETA.alfombra), alfombra.w, alfombra.h, 90), roughness: 0.95 })), ca.x, 1.5, ca.z));
@@ -110,13 +110,7 @@ export function construirMundo(): Mundo3D {
   cartelCentral.rotation.x = -Math.PI / 2;
   raiz.add(colocar(cartelCentral, cc.x, 10.5, cc.z));
 
-  const sillon = SILLON;
-  raiz.add(colocar(crearSillon(sillon.w, sillon.h), sillon.x + sillon.w / 2, 0, sillon.y + sillon.h / 2));
   raiz.add(colocar(crearBebedero(), BEBEDERO.x + BEBEDERO.w / 2, 0, BEBEDERO.y + BEBEDERO.h - 20));
-  const mesaBaja = new THREE.Mesh(new THREE.CylinderGeometry(56, 56, 30, 36), plastico(PALETA.maderaTapa, { roughness: 0.5 }));
-  mesaBaja.scale.z = 24 / 56;
-  mesaBaja.castShadow = true;
-  raiz.add(colocar(mesaBaja, 1080, 15, 1072));
   for (const p of PLANTAS) raiz.add(colocar(crearPlanta(), p.x, 0, p.y));
 
   // ---- papelería: estantería, mesa con bandeja, brief y cartel

@@ -3,7 +3,7 @@ import { etiquetaDeEstado, textoEtiqueta, textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 import type { Camara } from "./camara";
 import { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, rectBrief, rectDocumento, SALAS, type Rect, type Sala } from "./mundo";
-import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS, SILLON } from "./decoracion";
+import { BEBEDERO, COLEGAS_REVIEW, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS } from "./decoracion";
 import { dibujarObjeto } from "./objetos";
 import { estadoDeSegmento, puntoEnRuta, RUTA } from "./ruta";
 import { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
@@ -63,20 +63,6 @@ function dibujarPlanta(ctx: Ctx, x: number, y: number) {
   rellenar(ctx, PALETA.maceta);
 }
 
-function dibujarSillon(ctx: Ctx, s: Rect) {
-  sombra(ctx, s.x + s.w / 2, s.y + s.h + 10, s.w / 2, 10);
-  rectRedondo(ctx, s.x, s.y - 34, s.w, 52, 14);
-  rellenar(ctx, PALETA.sillon);
-  rectRedondo(ctx, s.x - 14, s.y - 10, 30, s.h, 12);
-  rellenar(ctx, PALETA.sillonClaro);
-  rectRedondo(ctx, s.x + s.w - 16, s.y - 10, 30, s.h, 12);
-  rellenar(ctx, PALETA.sillonClaro);
-  rectRedondo(ctx, s.x + 12, s.y + 6, s.w - 24, s.h - 14, 12);
-  rellenar(ctx, PALETA.sillonClaro);
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  ctx.fillRect(s.x + s.w / 2 - 1, s.y + 8, 2, s.h - 18);
-}
-
 function dibujarBebedero(ctx: Ctx, b: Rect) {
   sombra(ctx, b.x + b.w / 2, b.y + b.h + 6, 30, 8);
   rectRedondo(ctx, b.x, b.y + 30, b.w, b.h - 30, 8);
@@ -91,15 +77,7 @@ function dibujarBebedero(ctx: Ctx, b: Rect) {
 }
 
 function dibujarDecoracion(ctx: Ctx) {
-  dibujarSillon(ctx, SILLON);
   dibujarBebedero(ctx, BEBEDERO);
-  // mesa baja del lobby
-  ctx.beginPath();
-  ctx.ellipse(1080, 1072, 56, 24, 0, 0, Math.PI * 2);
-  rellenar(ctx, PALETA.maderaTapa);
-  ctx.beginPath();
-  ctx.ellipse(1080, 1084, 56, 24, 0, 0, Math.PI);
-  rellenar(ctx, PALETA.maderaLado);
   for (const p of PLANTAS) dibujarPlanta(ctx, p.x, p.y);
 }
 

@@ -24,6 +24,9 @@ export type Munyeco = {
   cabeza: THREE.Group;
   brazoI: THREE.Group;
   brazoD: THREE.Group;
+  /** Dónde está cada mano: lo que lleva una persona (un libro, una carpeta) se cuelga de acá y la sigue. */
+  manoI: THREE.Group;
+  manoD: THREE.Group;
   /** Las piernas articuladas (cadera y rodilla) de la persona de pie; vacío si está sentada. */
   piernas: { cadera: THREE.Group; rodilla: THREE.Group }[];
   cara: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>;
@@ -92,10 +95,13 @@ export function crearMunyeco(indice: number, dePie = false): Munyeco {
     pieza(new THREE.SphereGeometry(4.4, 12, 10), a.camisa, 0, 0, 0, codo);
     pieza(new THREE.CapsuleGeometry(4, 15, 6, 12), a.camisa, 0, -12.5, 0, codo);
     pieza(new THREE.SphereGeometry(4.5, 14, 10), piel, 0, -26.5, 0.4, codo).scale.set(0.9, 1.15, 1.0);
-    return hombro;
+    const mano = new THREE.Group();
+    mano.position.set(0, -26.5, 0.4);
+    codo.add(mano);
+    return { hombro, mano };
   };
-  const brazoI = brazo(-1);
-  const brazoD = brazo(1);
+  const { hombro: brazoI, mano: manoI } = brazo(-1);
+  const { hombro: brazoD, mano: manoD } = brazo(1);
 
   const cabeza = new THREE.Group();
   cabeza.position.set(0, ANCLAS.cabezaY, 0);
@@ -118,7 +124,7 @@ export function crearMunyeco(indice: number, dePie = false): Munyeco {
   cara.position.set(0, -0.2, 11.55);
   cabeza.add(cara);
 
-  return { grupo, torso, cabeza, brazoI, brazoD, piernas, cara, abiertos, cerrados, piezas };
+  return { grupo, torso, cabeza, brazoI, brazoD, manoI, manoD, piernas, cara, abiertos, cerrados, piezas };
 }
 
 /** Los muñecos «apagados» (agentes que todavía no les toca) se ven desteñidos. */
@@ -249,22 +255,6 @@ export function crearPlanta(): THREE.Group {
     h.castShadow = true;
     g.add(h);
   }
-  return g;
-}
-
-export function crearSillon(ancho: number, fondo: number): THREE.Group {
-  const g = new THREE.Group();
-  const parte = (w: number, h: number, d: number, color: string, x: number, y: number, z: number) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), plastico(color, { roughness: 0.55 }));
-    m.position.set(x, y, z);
-    m.castShadow = true;
-    m.receiveShadow = true;
-    g.add(m);
-  };
-  parte(ancho, 30, fondo, PALETA.sillonClaro, 0, 15, 0);
-  parte(ancho, 58, 20, PALETA.sillon, 0, 59, -fondo / 2 + 10);
-  parte(30, 52, fondo, PALETA.sillonClaro, -ancho / 2 + 15, 26, 0);
-  parte(30, 52, fondo, PALETA.sillonClaro, ancho / 2 - 15, 26, 0);
   return g;
 }
 
