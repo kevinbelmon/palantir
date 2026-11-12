@@ -34,6 +34,13 @@ body,
   }
 }
 
+/* En pantallas angostas los botones de arriba ocupan el lugar del avance: ahí manda el panel «Paso a paso». */
+@media (max-width: 1400px) {
+  .barra-paso {
+    display: none !important;
+  }
+}
+
 /* ---- Estilo de la interfaz: negro, plano y con esquinas rectas ---- */
 :root {
   --acento: #5b7cff;

@@ -1,9 +1,9 @@
 // Interfaz pública de oficina: el mapa, la cámara y el dibujo.
-export { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, puertaDeSala, rectBrief, rectDocumento, SALAS } from "./mundo";
+export { CARTEL_CENTRAL, LOBBY, MUNDO, PAPELERIA, PATIO, puertaDeSala, rectBrief, rectDocumento, SALAS } from "./mundo";
 export { estadoDeSegmento, longitudDeSegmento, puntoEnRuta, RUTA } from "./ruta";
 export type { EstadoTramo, Punto, Tramo } from "./ruta";
 export { parpadeo, respiracion, tiempoVisible } from "./animacion";
-export { ladrillosEn, tacosEn, tirasDeMuro } from "./bloques";
+export { ladrillosEn, rellenoSobrePuerta, restarRectes, tacosEn, tirasDeMuro } from "./bloques";
 export type { LadoDeMuro, TiraDeMuro } from "./bloques";
 export { PERSONAS_AMBIENTE, duracionDeCircuito, poseDe, poseDeCircuito } from "./gente";
 export type { Actividad, Parada, PersonaAmbiente, Pose } from "./gente";

@@ -1,36 +1,36 @@
 import { type Elemento, LOBBY, MUNDO, PAPELERIA, rectDocumento, SALAS, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { BEBEDERO, ESTANTE_PAPELERIA, OBJETOS_SALA, PLANTAS } from "../oficina/decoracion";
-import { obstaculosDeMuebles } from "./distribucion";
+import { BEBEDERO, ESTANTE_PAPELERIA, MESA_PAPELERIA, MESA_REDONDA_REVIEW, OBJETOS_SALA, PLANTAS } from "../oficina/decoracion";
+import { obstaculosDeMuebles, RECEPCION } from "./distribucion";
 import { marcoDePuerta } from "./identidad";
 
 /** Dónde está la persona que recorre la oficina y hacia dónde mira. `yaw` 0 mira al norte (hacia arriba en el plano). */
 export type Jugador = { x: number; z: number; yaw: number; pitch: number };
 
-/** La altura de los ojos y el radio del cuerpo, en unidades del mundo (un escritorio mide 66). */
+/** La altura de los ojos y el radio del cuerpo, en unidades del mundo (un escritorio mide 130 de fondo). */
 export const ALTURA_OJOS = 140;
 /** Al caminar por adentro la casa se ve tantas veces más grande (el plano y los choques no cambian: crece todo parejo). */
 export const ESCALA_CASA = 1.8;
 /** Altura de los ojos ya en la escala de la casa: la persona queda chica frente a techos y puertas altos. */
 export const OJOS_EN_CASA = ALTURA_OJOS * ESCALA_CASA * 0.8;
 export const RADIO_JUGADOR = 26;
-/** Alto de los techos cuando se recorre por adentro. */
+/** Alto de los techos cuando se recorre por adentro (el atrio del lobby sube al doble). */
 export const ALTURA_TECHO = 235;
-const CAMINAR = 210;
-const CORRER = 380;
+/** El atrio del lobby: el techo se abre al doble de altura y entra luz desde arriba. */
+export const ALTURA_ATRIO = 430;
+/** La casa es más grande que antes: se camina un poco más rápido para no tardar en cruzar el lobby. */
+const CAMINAR = 230;
+const CORRER = 420;
 const ALCANCE = 250;
 const ANGULO_MAXIMO = 0.8;
 
-/** Arranca en el lobby, mirando hacia el cartel central. */
-export const JUGADOR_INICIAL: Jugador = { x: 1210, z: 1060, yaw: 0, pitch: 0 };
+/** Arranca en el atrio, mirando hacia el cartel central. */
+export const JUGADOR_INICIAL: Jugador = { x: 1600, z: 1420, yaw: 0, pitch: 0 };
 
 export type Entrada = { adelante: number; lateral: number; correr: boolean };
 
 const rect = (x: number, y: number, w: number, h: number): Rect => ({ x, y, w, h });
 
 const puertaDe = (s: Sala): "abajo" | "arriba" | "izquierda" => (s.tipo === "vidrio" ? "izquierda" : s.area.y < LOBBY.y ? "abajo" : "arriba");
-
-/** Mesa de la papelería: lo que se toca para dejar el brief. */
-const MESA_PAPELERIA = rect(PAPELERIA.x + 70, PAPELERIA.y + 230, 280, 90);
 
 /** Todo lo que no se puede atravesar: paredes, marcos de puerta, muebles y los agentes sentados. */
 export function obstaculos(): Rect[] {
@@ -48,14 +48,15 @@ export function obstaculos(): Rect[] {
   for (const s of SALAS) {
     for (const p of marcoDePuerta(s).postes) lista.push(p);
     const e = s.escritorio;
-    if (s.tipo === "vidrio") lista.push(rect(s.area.x + 280 - 150, s.area.y + 520 - 100, 300, 200));
-    else lista.push(rect(e.x - 6, e.y + 4, e.w + 12, 96));
+    if (s.tipo === "vidrio") {
+      lista.push(rect(MESA_REDONDA_REVIEW.x - MESA_REDONDA_REVIEW.rx, MESA_REDONDA_REVIEW.y - MESA_REDONDA_REVIEW.ry, MESA_REDONDA_REVIEW.rx * 2, MESA_REDONDA_REVIEW.ry * 2));
+    } else lista.push(rect(e.x - 6, e.y + 4, e.w + 12, e.h - 8));
     lista.push(rect(s.personaje.x - 40, s.personaje.y - 34, 80, 70));
   }
   lista.push(rect(BEBEDERO.x, BEBEDERO.y + 30, BEBEDERO.w, 55));
-  lista.push(rect(1250, 1045, 300, 60)); // recepción
+  lista.push(RECEPCION);
   lista.push(MESA_PAPELERIA, ESTANTE_PAPELERIA);
-  for (const o of OBJETOS_SALA) lista.push(rect(o.x, o.y + o.h - 45, o.w, 45));
+  for (const o of OBJETOS_SALA) lista.push(rect(o.x, o.y, o.w, 50));
   for (const p of PLANTAS) lista.push(rect(p.x - 16, p.y - 16, 32, 32));
   lista.push(...obstaculosDeMuebles());
   return lista;

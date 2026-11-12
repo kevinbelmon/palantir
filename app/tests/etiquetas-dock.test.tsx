@@ -80,7 +80,7 @@ describe("el dock de abajo", () => {
 
   it("muestra los contadores de tareas y de «te toca»", () => {
     const h = html(terminar(conBrief, 0));
-    expect(h).toContain("Tareas");
+    expect(h).toContain("Pendientes");
     expect(h).toContain("Te toca");
     expect(h).toMatch(/data-contador="tareas"[^>]*>7</);
   });

@@ -52,13 +52,13 @@ describe("cancelar una corrida que falló", () => {
   });
 });
 
-describe("«Tu repositorio»", () => {
+describe("«Tu proyecto»", () => {
   const cliente = crearCliente();
   const html = (estado = SIN_CONEXION) => renderToString(<PanelRepo estado={estado} cliente={cliente} alCambiar={() => {}} alCerrar={() => {}} />);
 
-  it("al empezar pide solo el link del repo", () => {
+  it("al empezar pide solo el link del proyecto", () => {
     const h = html();
-    expect(h).toContain("Link del repositorio");
+    expect(h).toContain("Link del proyecto");
     expect(h).not.toContain("Tu brief");
   });
 
@@ -67,9 +67,9 @@ describe("«Tu repositorio»", () => {
     expect(html({ ...SIN_CONEXION, repo: "x", modeloInstalado: true, briefSubido: true })).toContain("usa tu cuenta de Claude");
   });
 
-  it("el botón de arriba dice si hay un repo conectado", () => {
-    expect(renderToString(<BotonRepo conectado={false} alAbrir={() => {}} />)).toContain("Conectar repo");
-    expect(renderToString(<BotonRepo conectado alAbrir={() => {}} />)).toContain("Repo conectado");
+  it("el botón de arriba dice si hay un proyecto conectado", () => {
+    expect(renderToString(<BotonRepo conectado={false} alAbrir={() => {}} />)).toContain("Conectar proyecto");
+    expect(renderToString(<BotonRepo conectado alAbrir={() => {}} />)).toContain("Proyecto conectado");
   });
 });
 

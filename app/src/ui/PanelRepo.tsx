@@ -21,7 +21,7 @@ function Paso({ hecho, texto }: { hecho: boolean; texto: string }) {
 
 const etiqueta = { display: "block", fontSize: 12, fontWeight: 650, letterSpacing: "0.04em", color: "var(--texto-suave)", margin: "0 0 6px" } as const;
 
-/** «Tu repositorio»: pegás el link de un repo de GitHub, escribís tu brief y los agentes corren de verdad ahí. */
+/** «Tu proyecto»: pegás el link de un proyecto de GitHub, escribís tu brief y los agentes corren de verdad ahí. */
 export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
   const [url, setUrl] = useState("");
   const [brief, setBrief] = useState("");
@@ -41,15 +41,15 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
   };
 
   return (
-    <section role="dialog" aria-label="Tu repositorio" className="panel aparece" style={{ ...estiloColumna, display: "block", overflowY: "auto", padding: "22px 20px" }}>
+    <section role="dialog" aria-label="Tu proyecto" className="panel aparece" style={{ ...estiloColumna, display: "block", overflowY: "auto", padding: "22px 20px" }}>
       <div>
-        <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.01em" }}>Tu repositorio</h2>
+        <h2 style={{ margin: "0 0 6px", fontSize: 24, fontWeight: 750, letterSpacing: "-0.01em" }}>Tu proyecto en GitHub</h2>
         <p style={{ margin: "0 0 22px", color: "var(--texto-suave)", fontSize: 14, lineHeight: 1.55 }}>
-          Pegá el link de un repositorio tuyo de GitHub. Se instala el modelo, subís tu brief y los agentes corren de verdad con tu Claude. Todo queda publicado ahí.
+          Pegá el link de tu proyecto. Se instala el modelo, subís tu brief y los agentes corren de verdad con tu Claude. Todo lo que hacen queda publicado ahí.
         </p>
 
         <label style={etiqueta} htmlFor="repo-url">
-          Link del repositorio
+          Link del proyecto
         </label>
         <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
           <input id="repo-url" className="campo" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://github.com/tu-usuario/tu-repo" />
@@ -77,11 +77,11 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
         )}
 
         <ul style={{ listStyle: "none", margin: "22px 0", padding: "16px 18px", display: "flex", flexDirection: "column", gap: 10, fontSize: 14, borderRadius: 0, background: "var(--superficie)" }}>
-          <Paso hecho={estado.repo !== null} texto={estado.repo ? `Repo conectado: ${estado.repo}` : "Repo conectado"} />
+          <Paso hecho={estado.repo !== null} texto={estado.repo ? `Proyecto conectado: ${estado.repo}` : "Proyecto conectado"} />
           <Paso hecho={estado.modeloInstalado} texto="Modelo SDD instalado y subido" />
           <Paso hecho={estado.briefSubido} texto="Brief guardado en drafts/ y subido" />
         </ul>
-        {estado.briefSubido && <p style={{ margin: "0 0 18px", color: "var(--aviso)", fontSize: 14, lineHeight: 1.5 }}>Listo: ahora cada agente que ordenes correr trabaja de verdad en tu repo. Puede tardar unos minutos y usa tu cuenta de Claude.</p>}
+        {estado.briefSubido && <p style={{ margin: "0 0 18px", color: "var(--aviso)", fontSize: 14, lineHeight: 1.5 }}>Listo: ahora cada agente que ordenes correr trabaja de verdad en tu proyecto. Puede tardar unos minutos y usa tu cuenta de Claude.</p>}
 
         <button className="btn btn-suave" onClick={alCerrar}>
           Cerrar
@@ -91,12 +91,12 @@ export function PanelRepo({ estado, cliente, alCambiar, alCerrar }: Props) {
   );
 }
 
-/** El botón de arriba, junto al de música, que abre «Tu repositorio». */
+/** El botón de arriba, junto al de música, que abre «Tu proyecto». */
 export function BotonRepo({ conectado, alAbrir }: { conectado: boolean; alAbrir: () => void }) {
   return (
     <button onClick={alAbrir} className="pastilla" style={{ position: "absolute", top: 12, right: 300, zIndex: 6 }}>
       <span aria-hidden="true" style={{ width: 8, height: 8, borderRadius: 0, background: conectado ? "var(--ok)" : "var(--texto-suave)", boxShadow: conectado ? "0 0 10px var(--ok)" : "none" }} />
-      {conectado ? "Repo conectado" : "Conectar repo"}
+      {conectado ? "Proyecto conectado" : "Conectar proyecto"}
     </button>
   );
 }

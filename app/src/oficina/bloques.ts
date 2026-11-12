@@ -40,6 +40,53 @@ export type LadoDeMuro = "norte" | "sur" | "oeste" | "este";
 export type TiraDeMuro = { lado: LadoDeMuro; rect: Rect };
 
 /**
+ * La pared que sigue sobre el marco de la puerta: del dintel hasta el techo no puede quedar un hueco
+ * abierto. Devuelve el rectángulo del hueco para que el 3D lo rellene ahí mismo (en la sala de vidrio
+ * el relleno es de vidrio, así la fachada sigue pareja).
+ */
+export function rellenoSobrePuerta(area: Rect, puerta: "abajo" | "arriba" | "izquierda", hueco = 130, g = 16): Rect {
+  if (puerta === "izquierda") {
+    const cz = area.y + area.h / 2;
+    return { x: area.x - g / 2, y: cz - hueco / 2, w: g, h: hueco };
+  }
+  return {
+    x: area.x + (area.w - hueco) / 2,
+    y: puerta === "arriba" ? area.y - g / 2 : area.y + area.h - g / 2,
+    w: hueco,
+    h: g,
+  };
+}
+
+const seCruzan = (a: Rect, b: Rect) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+
+/**
+ * Un rectángulo con agujeros adentro (por ejemplo, el techo con el atrio del lobby y el patio abiertos).
+ * Devuelve los rectángulos que quedan, sin solaparse entre sí.
+ */
+export function restarRectes(base: Rect, huecos: readonly Rect[]): Rect[] {
+  let resto: Rect[] = [base];
+  for (const h of huecos) {
+    const siguiente: Rect[] = [];
+    for (const r of resto) {
+      if (!seCruzan(r, h)) {
+        siguiente.push(r);
+        continue;
+      }
+      const arriba = Math.max(r.y, h.y);
+      const abajo = Math.min(r.y + r.h, h.y + h.h);
+      if (h.y > r.y) siguiente.push({ x: r.x, y: r.y, w: r.w, h: h.y - r.y });
+      if (h.y + h.h < r.y + r.h) siguiente.push({ x: r.x, y: h.y + h.h, w: r.w, h: r.y + r.h - (h.y + h.h) });
+      if (abajo > arriba) {
+        if (h.x > r.x) siguiente.push({ x: r.x, y: arriba, w: h.x - r.x, h: abajo - arriba });
+        if (h.x + h.w < r.x + r.w) siguiente.push({ x: h.x + h.w, y: arriba, w: r.x + r.w - (h.x + h.w), h: abajo - arriba });
+      }
+    }
+    resto = siguiente;
+  }
+  return resto;
+}
+
+/**
  * Las tiras de pared de una sala, centradas sobre su borde, con un hueco de 130 en el lado de la
  * puerta (`abajo` = sur, `arriba` = norte, `izquierda` = oeste). Las usan el dibujo 2D y el 3D.
  */

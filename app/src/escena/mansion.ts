@@ -1,11 +1,13 @@
 import * as THREE from "three";
 import { MUNDO, type Sala } from "../oficina";
+import { PALETA } from "../oficina/paleta";
 import { plastico } from "./bloques3d";
 import { ARAÑA_LOBBY, COLUMNAS, LAMPARAS_LOBBY, MESAS_RATONAS, mueblesDeSala, RADIO_COLUMNA, SOFAS_LOBBY } from "./distribucion";
 import { crearObjeto } from "./figuras";
-import { COLORES_SALA, mezclarHex, placaDePuerta } from "./identidad";
+import { COLORES_SALA, mezclarHex, placaDePuerta, ventanaDeSala } from "./identidad";
+import { crearLamas } from "./oficinas";
 import { aleatorio, conRepeticion, texturaAgua, texturaAlfombra, texturaBaldosas, texturaCuadro, texturaPlaca } from "./materiales";
-import { ALTURA_TECHO } from "./persona";
+import { ALTURA_ATRIO } from "./persona";
 import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 
@@ -84,17 +86,18 @@ export function amueblarSala(raiz: THREE.Group, interior: THREE.Group, sala: Sal
     lampara.position.set(m.lampara.x, 0, m.lampara.z);
     raiz.add(lampara);
     // cuadros: uno grande sobre el sillón y uno más chico sobre la biblioteca
-    colgarCuadro(interior, 96, 64, acento, indice + 1, a.x + 8.8, 140, a.y + 250, Math.PI / 2);
-    colgarCuadro(interior, 56, 38, acento, indice + 11, a.x + a.w - 8.8, 172, a.y + 190, -Math.PI / 2);
+    colgarCuadro(interior, 120, 80, acento, indice + 1, a.x + 8.8, 130, a.y + 470, Math.PI / 2);
+    colgarCuadro(interior, 66, 44, acento, indice + 11, a.x + a.w - 8.8, 168, a.y + 300, -Math.PI / 2);
   }
 
   // cortinas a los lados de la ventana, con su riel
-  const tono = tela(mezclarHex("#ece5d8", acento, 0.28));
-  const zPared = a.y + 9;
-  const ventanaX = a.x + (sala.tipo === "vidrio" ? 430 : 50);
-  const ancho = sala.tipo === "vidrio" ? 110 : 130;
-  for (const x of [ventanaX - 9, ventanaX + ancho + 9]) caja(raiz, 18, 100, 5, tono, x, 108, zPared + 3, false);
-  caja(raiz, ancho + 56, 3, 4, madera("#3b2a1a"), ventanaX + ancho / 2, 160, zPared + 3, false);
+  if (sala.tipo !== "vidrio") {
+    const v = ventanaDeSala(sala);
+    const tono = tela(mezclarHex("#3b3a36", acento, 0.3));
+    const zPared = a.y + 9;
+    for (const x of [v.x - 9, v.x + v.w + 9]) caja(raiz, 18, 100, 5, tono, x, 108, zPared + 3, false);
+    caja(raiz, v.w + 56, 3, 4, madera("#2a1d12"), v.x + v.w / 2, 160, zPared + 3, false);
+  }
 
   // la placa de bronce junto a la puerta, del lado del pasillo
   const p = placaDePuerta(sala);
@@ -108,7 +111,7 @@ export function amueblarSala(raiz: THREE.Group, interior: THREE.Group, sala: Sal
 /** El lobby de la mansión: rincones de estar con sillón y mesa ratona; columnas, araña de cristal y moldura solo al caminar por adentro. */
 export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { liberar: () => void } {
   const baldosas = conRepeticion(texturaBaldosas(), 100, 100, 100);
-  const marmol = new THREE.MeshStandardMaterial({ map: baldosas, color: "#4a4d58", roughness: 0.25 });
+  const marmol = new THREE.MeshStandardMaterial({ map: baldosas, color: PALETA.marmolGrafito, roughness: 0.22, metalness: 0.05 });
 
   // rincones de estar
   SOFAS_LOBBY.forEach((s, i) => {
@@ -117,8 +120,10 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
     sofa.rotation.y = s.giro;
     raiz.add(sofa);
     const mesa = MESAS_RATONAS[i];
-    const alfombra = new THREE.Mesh(new THREE.BoxGeometry(250, 2, 210), new THREE.MeshStandardMaterial({ map: conRepeticion(texturaAlfombra(i === 0 ? "#c9b896" : "#9aa6b8"), 250, 210, 90), roughness: 0.95 }));
-    alfombra.position.set(mesa.x + mesa.w / 2 + (i === 0 ? 10 : -10), 1, mesa.y + mesa.h / 2);
+    const anchoAlfombra = 210;
+    const fondoAlfombra = 190;
+    const alfombra = new THREE.Mesh(new THREE.BoxGeometry(anchoAlfombra, 2, fondoAlfombra), new THREE.MeshStandardMaterial({ map: conRepeticion(texturaAlfombra(i === 0 ? "#1b2236" : "#242a3c"), anchoAlfombra, fondoAlfombra, 90), roughness: 0.95 }));
+    alfombra.position.set(mesa.x + mesa.w / 2 + (i === 0 ? 14 : -14), 1, mesa.y + mesa.h / 2);
     alfombra.receiveShadow = true;
     raiz.add(alfombra);
     caja(raiz, mesa.w, 4, mesa.h, plastico("#d7e6ee", { roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.8 }), mesa.x + mesa.w / 2, 38, mesa.y + mesa.h / 2);
@@ -138,33 +143,33 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
     raiz.add(lampara);
   }
 
-  // columnas de mármol con base y capitel
+  // columnas de hormigón pulido que llegan hasta el cielo del atrio, con base y capitel
   for (const c of COLUMNAS) {
-    const fuste = new THREE.Mesh(new THREE.CylinderGeometry(RADIO_COLUMNA - 3, RADIO_COLUMNA, ALTURA_TECHO - 28, 32), marmol);
-    fuste.position.set(c.x, ALTURA_TECHO / 2, c.z);
+    const fuste = new THREE.Mesh(new THREE.CylinderGeometry(RADIO_COLUMNA - 4, RADIO_COLUMNA, ALTURA_ATRIO - 30, 32), marmol);
+    fuste.position.set(c.x, ALTURA_ATRIO / 2, c.z);
     fuste.castShadow = true;
     fuste.receiveShadow = true;
     interior.add(fuste);
-    caja(interior, RADIO_COLUMNA * 2 + 14, 14, RADIO_COLUMNA * 2 + 14, marmol, c.x, 7, c.z);
-    caja(interior, RADIO_COLUMNA * 2 + 14, 14, RADIO_COLUMNA * 2 + 14, marmol, c.x, ALTURA_TECHO - 7, c.z);
-    caja(interior, RADIO_COLUMNA * 2 + 4, 8, RADIO_COLUMNA * 2 + 4, marmol, c.x, ALTURA_TECHO - 18, c.z);
+    caja(interior, RADIO_COLUMNA * 2 + 16, 16, RADIO_COLUMNA * 2 + 16, marmol, c.x, 8, c.z);
+    caja(interior, RADIO_COLUMNA * 2 + 16, 14, RADIO_COLUMNA * 2 + 16, marmol, c.x, ALTURA_ATRIO - 7, c.z);
+    caja(interior, RADIO_COLUMNA * 2 + 4, 8, RADIO_COLUMNA * 2 + 4, marmol, c.x, ALTURA_ATRIO - 18, c.z);
   }
 
   // araña de cristal: aro dorado con velas encendidas y una luz cálida
   const dorado = plastico("#d9b866", { metalness: 0.25, roughness: 0.35, emissive: "#5a3f12", emissiveIntensity: 0.55 });
   const llama = new THREE.MeshStandardMaterial({ color: "#fff4d6", emissive: "#ffd89a", emissiveIntensity: 1.6 });
-  const altoAraña = ALTURA_TECHO - 60;
-  const aro = new THREE.Mesh(new THREE.TorusGeometry(64, 3.5, 12, 48), dorado);
+  const altoAraña = ALTURA_ATRIO - 150;
+  const aro = new THREE.Mesh(new THREE.TorusGeometry(74, 4, 12, 48), dorado);
   aro.rotation.x = Math.PI / 2;
   aro.position.set(ARAÑA_LOBBY.x, altoAraña, ARAÑA_LOBBY.z);
   interior.add(aro);
-  const cadena = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 58, 8), dorado);
-  cadena.position.set(ARAÑA_LOBBY.x, ALTURA_TECHO - 29, ARAÑA_LOBBY.z);
+  const cadena = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, ALTURA_ATRIO - altoAraña, 8), dorado);
+  cadena.position.set(ARAÑA_LOBBY.x, (ALTURA_ATRIO + altoAraña) / 2, ARAÑA_LOBBY.z);
   interior.add(cadena);
   for (let i = 0; i < 10; i++) {
     const ang = (i / 10) * Math.PI * 2;
-    const x = ARAÑA_LOBBY.x + Math.cos(ang) * 64;
-    const z = ARAÑA_LOBBY.z + Math.sin(ang) * 64;
+    const x = ARAÑA_LOBBY.x + Math.cos(ang) * 74;
+    const z = ARAÑA_LOBBY.z + Math.sin(ang) * 74;
     const vela = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 2.2, 12, 10), plastico("#f4eee0"));
     vela.position.set(x, altoAraña + 8, z);
     const fuego = new THREE.Mesh(new THREE.SphereGeometry(2.8, 10, 8), llama);
@@ -173,9 +178,13 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
     cristal.position.set(x, altoAraña - 10, z);
     interior.add(vela, fuego, cristal);
   }
-  const luz = new THREE.PointLight("#ffe2b8", 160000, 1100, 2);
+  const luz = new THREE.PointLight("#ffe2b8", 85000, 1250, 2);
   luz.position.set(ARAÑA_LOBBY.x, altoAraña - 10, ARAÑA_LOBBY.z);
   interior.add(luz);
+
+  // lamas de roble sobre las dos paredes laterales, por encima de los sillones
+  crearLamas(interior, 380, 120, 773, 168, 1240, Math.PI / 2);
+  crearLamas(interior, 330, 120, 2767, 168, 1200, -Math.PI / 2);
 
   return { liberar: () => baldosas.dispose() };
 }

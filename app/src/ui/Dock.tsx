@@ -97,7 +97,7 @@ export function Dock({ estado, alElegir, alNuevo }: Props) {
       <span style={{ width: 1, height: 40, background: "var(--linea)" }} />
       <div style={{ display: "grid", justifyItems: "center", gap: 2, minWidth: 54, fontSize: 12, fontWeight: 600 }}>
         <span data-contador="tareas" style={{ width: 44, height: 44, borderRadius: 0, background: "var(--superficie-fuerte)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: "var(--texto)" }}>{tareas}</span>
-        Tareas
+        Pendientes
       </div>
       <div style={{ display: "grid", justifyItems: "center", gap: 2, minWidth: 54, fontSize: 12, fontWeight: 600 }}>
         <span data-contador="teToca" style={{ width: 44, height: 44, borderRadius: 0, background: teToca > 0 ? "#ff4d6d" : "var(--superficie-fuerte)", display: "grid", placeItems: "center", fontSize: 20, fontWeight: 800, color: teToca > 0 ? "#fff" : "var(--texto)" }}>{teToca}</span>

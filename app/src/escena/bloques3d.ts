@@ -1,6 +1,7 @@
 import * as THREE from "three";
-import { LOBBY, PAPELERIA, SALAS, MUNDO, tirasDeMuro, type Rect, type Sala } from "../oficina";
-import { ALTO_MARCO, colorDePiso } from "./identidad";
+import { LOBBY, MUNDO, PAPELERIA, rellenoSobrePuerta, SALAS, tirasDeMuro, type Rect, type Sala } from "../oficina";
+import { ALTO_DINTEL, ALTO_MARCO, colorDePiso } from "./identidad";
+import { PALETA } from "../oficina/paleta";
 import { conRepeticion, texturaBaldosas, texturaCemento, texturaParquet, texturaPiedra, texturaYeso } from "./materiales";
 import { LADRILLO } from "./texturas";
 
@@ -53,7 +54,7 @@ const caja = (w: number, h: number, d: number, material: THREE.Material, x: numb
   return m;
 };
 
-/** Los pisos del edificio: parquet en las oficinas y la papelería, mármol en el lobby y cemento pulido en los pasillos. */
+/** Los pisos de la casa: parquet oscuro en las oficinas, mármol grafito en el lobby y cemento en los pasillos. */
 export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
   const texturas: THREE.Texture[] = [];
   const nueva = (t: THREE.Texture) => (texturas.push(t), t);
@@ -68,11 +69,11 @@ export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
   };
 
   const losa: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
-  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.7 }, "#5a5d68");
+  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.72 }, PALETA.cemento);
 
   // el piso de cada oficina lleva un toque del color de su agente
   SALAS.forEach((s, i) => piso(s.area, 20, -10, parquet, 160, { roughness: 0.42 }, colorDePiso(i)));
-  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.2 }, "#6b6e7c");
+  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.06, metalness: 0.28, envMapIntensity: 2.6 }, PALETA.marmolGrafito);
   piso(PAPELERIA, 20, -10, parquet, 160, { roughness: 0.42 });
   return { liberar: () => texturas.forEach((t) => t.dispose()) };
 }
@@ -80,16 +81,28 @@ export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
 const ALTURA = { norte: 170, sur: 40, oeste: 110, este: 110 } as const;
 
 /**
- * Paredes pintadas con zócalo; la sala de vidrio tiene paredes transparentes. Se arman dos juegos: el «de corte»
+ * Paredes pintadas con zócalo negro; la sala de vidrio tiene paredes transparentes. Se arman dos juegos: el «de corte»
  * (bajas, para mirar desde arriba) y el «completo» (a la altura del techo, para recorrer por adentro).
  */
 export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: THREE.Group; completo: THREE.Group; liberar: () => void } {
-  const yeso = texturaYeso("#2c2f3a");
-  const matPared = new THREE.MeshStandardMaterial({ map: yeso, roughness: 0.88 });
+  const yeso = texturaYeso(PALETA.pared);
+  const matPared = new THREE.MeshStandardMaterial({ map: yeso, roughness: 0.9 });
   const piedra = texturaPiedra();
-  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, color: "#6a6f80", roughness: 0.9 });
-  const matZocalo = plastico("#12131a", { roughness: 0.45 });
-  const matVidrio = new THREE.MeshStandardMaterial({ color: "#bfe1f5", transparent: true, opacity: 0.22, roughness: 0.08, metalness: 0, depthWrite: false });
+  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, color: "#33363f", roughness: 0.88 });
+  const matZocalo = plastico(PALETA.zocalo, { roughness: 0.42 });
+  // vidrio de verdad: casi sin color, con el brillo del entorno y una capa de barniz que refleja las luces
+  const matVidrio = new THREE.MeshPhysicalMaterial({
+    color: "#cfe4f0",
+    transparent: true,
+    opacity: 0.2,
+    roughness: 0.03,
+    metalness: 0,
+    clearcoat: 1,
+    clearcoatRoughness: 0.02,
+    envMapIntensity: 2.4,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+  });
 
   const puertaDe = (s: Sala): "abajo" | "arriba" | "izquierda" => (s.tipo === "vidrio" ? "izquierda" : s.area.y < LOBBY.y ? "abajo" : "arriba");
   const cerramientos: [Rect, "abajo" | "arriba" | "izquierda", boolean][] = [...SALAS.map((s): [Rect, "abajo" | "arriba" | "izquierda", boolean] => [s.area, puertaDe(s), s.tipo === "vidrio"]), [PAPELERIA, "arriba", false]];
@@ -109,7 +122,7 @@ export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: 
       m.castShadow = material === matPared || material === matPiedra;
       m.receiveShadow = true;
       grupo.add(m);
-      if (material === matPared && alto > 60) grupo.add(caja(r.w + 3, 10, r.h + 3, matZocalo, r.x + r.w / 2, 5, r.y + r.h / 2));
+      if (material === matPared && alto > 60) grupo.add(caja(r.w + 3, 12, r.h + 3, matZocalo, r.x + r.w / 2, 6, r.y + r.h / 2));
       // moldura de yeso en el borde del techo, solo al recorrer por adentro
       if (completo && material !== matVidrio) grupo.add(caja(r.w + 5, 9, r.h + 5, matZocalo, r.x + r.w / 2, alto - 4.5, r.y + r.h / 2));
     };
@@ -118,13 +131,14 @@ export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: 
         const vidrio = esVidrio && t.lado !== "norte";
         muro(t.rect, completo ? alturaCompleta : ALTURA[t.lado], vidrio ? matVidrio : matPared);
       }
-      // al recorrer por adentro, sobre el marco de la puerta la pared sigue hasta el techo (si no queda un hueco abierto)
-      if (completo && !esVidrio && puerta !== "izquierda") {
-        const hueco = 130;
-        const g = 16;
-        const dintel = { x: area.x + (area.w - hueco) / 2, y: puerta === "arriba" ? area.y - g / 2 : area.y + area.h - g / 2, w: hueco, h: g };
-        const base = ALTO_MARCO + 14;
-        grupo.add(caja(dintel.w, alturaCompleta - base, dintel.h, matPared, dintel.x + dintel.w / 2, base + (alturaCompleta - base) / 2, dintel.y + dintel.h / 2));
+      // al recorrer por adentro, sobre el marco la pared (o el vidrio) sigue hasta el techo: no queda un hueco abierto
+      if (completo) {
+        const relleno = rellenoSobrePuerta(area, puerta);
+        const base = ALTO_MARCO + ALTO_DINTEL;
+        const alto = Math.max(0, alturaCompleta - base);
+        if (alto > 0) {
+          grupo.add(caja(relleno.w, alto, relleno.h, esVidrio ? matVidrio : matPared, relleno.x + relleno.w / 2, base + alto / 2, relleno.y + relleno.h / 2));
+        }
       }
     }
     for (const r of perimetro) muro(r, completo ? alturaCompleta : 36, matPiedra);

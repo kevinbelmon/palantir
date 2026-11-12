@@ -8,10 +8,10 @@ import { posicionEtiqueta } from "../oficina";
 import { APARIENCIAS, COLORES_ESTADO, PALETA } from "../oficina/paleta";
 import { crearMuros, crearPisos, plastico } from "./bloques3d";
 import { COLORES_SALA } from "./identidad";
-import { conRepeticion, texturaAlfombra } from "./materiales";
+import { aleatorio, conRepeticion, texturaAlfombra } from "./materiales";
 import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
-import { crearExterior, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
-import { ALTURA_TECHO, ESCALA_CASA, type Jugador } from "./persona";
+import { crearExterior, crearGaleria, crearLucesDePiso, crearPatio, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
+import { ALTURA_ATRIO, ALTURA_TECHO, ESCALA_CASA, type Jugador } from "./persona";
 import { animarCuerpo, crearGente } from "./gente";
 import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
@@ -76,24 +76,49 @@ export function construirMundo(): Mundo3D {
   sol.target.position.set(MUNDO.ancho / 2, 0, MUNDO.alto / 2);
   sol.castShadow = true;
   sol.shadow.mapSize.set(4096, 4096);
-  Object.assign(sol.shadow.camera, { left: -1800, right: 1800, top: 1300, bottom: -1300, near: 100, far: 4000 });
+  Object.assign(sol.shadow.camera, { left: -2400, right: 2400, top: 1700, bottom: -1700, near: 100, far: 4200 });
   sol.shadow.bias = -0.0006;
-  sol.shadow.normalBias = 1.5;
+  sol.shadow.normalBias = 1.8;
   escena.add(sol, sol.target);
 
   crearExterior(raiz);
   crearPisos(raiz);
   const muros = crearMuros(raiz, ALTURA_TECHO);
-  const techo = crearTecho(raiz, ALTURA_TECHO);
+  const techo = crearTecho(raiz, ALTURA_TECHO, ALTURA_ATRIO);
   crearRecepcion(raiz);
+  crearPatio(raiz);
   // lo que solo se ve al caminar por adentro (techo alto, columnas, araña, cuadros, placas)
   const interior = new THREE.Group();
   interior.visible = false;
   raiz.add(interior);
+  crearLucesDePiso(interior);
+  crearGaleria(interior);
   SALAS.forEach((sala, i) => {
-    decorarSala(raiz, sala, i);
+    decorarSala(raiz, interior, sala, i);
     amueblarSala(raiz, interior, sala, i);
   });
+
+  // polvo suspendido en la luz del atrio: el detalle que hace que el aire "exista" al caminar
+  const polvo = new THREE.Group();
+  {
+    const azar = aleatorio(13);
+    const n = 220;
+    const posiciones = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      posiciones[i * 3] = (azar() - 0.5) * (LOBBY.w - 220);
+      posiciones[i * 3 + 1] = 24 + azar() * (ALTURA_ATRIO - 130);
+      posiciones[i * 3 + 2] = (azar() - 0.5) * (LOBBY.h - 180);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(posiciones, 3));
+    const material = new THREE.PointsMaterial({ color: "#ffe6bd", size: 1.7, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+    const puntos = new THREE.Points(geo, material);
+    puntos.frustumCulled = false;
+    polvo.add(puntos);
+    polvo.position.set(LOBBY.x + LOBBY.w / 2, 0, LOBBY.y + LOBBY.h / 2);
+    polvo.visible = false;
+    raiz.add(polvo);
+  }
   const lobby = decorarLobby(raiz, interior);
   const jardin = crearJardin(raiz);
   const gente = crearGente(raiz);
@@ -200,15 +225,18 @@ export function construirMundo(): Mundo3D {
     const ch = centro(halo);
     raiz.add(colocar(haloMalla, ch.x, 17, ch.z));
 
-    const rotulo = sprite(texturaRotulo(sala.numero, textos.nombre, textos.subtitulo, COLORES_SALA[i]), 340, 66);
+    // el cartel con el nombre: arriba de la sala si da al pasillo de arriba, sobre el pasillo si no
+    const alturaRotulo = arriba || esVidrio ? ALTURA_CARTEL : 175;
+    const zRotulo = arriba ? a.y + 8 : esVidrio ? a.y + 40 : a.y - 46;
+    const rotulo = sprite(texturaRotulo(sala.numero, textos.nombre, textos.subtitulo, COLORES_SALA[i]), 380, 74);
     rotulos.push(rotulo);
-    raiz.add(colocar(rotulo, a.x + a.w / 2, arriba ? ALTURA_CARTEL : a.y > 1000 ? 175 : 70, arriba ? a.y + 8 : a.y > 1000 ? a.y - 46 : a.y - 34));
+    raiz.add(colocar(rotulo, a.x + a.w / 2, alturaRotulo, zRotulo));
     const insignia = sprite(texturaInsignia(), 38, 38);
-    raiz.add(colocar(insignia, a.x + a.w / 2 + 196, arriba ? ALTURA_CARTEL : a.y > 1000 ? 175 : 70, arriba ? a.y + 8 : a.y > 1000 ? a.y - 46 : a.y - 34));
+    raiz.add(colocar(insignia, a.x + a.w / 2 + 216, alturaRotulo, zRotulo));
     insignia.visible = false;
 
     const signo = sprite(texturaSigno(), 42, 42);
-    raiz.add(colocar(signo, px + 92, 235, py));
+    raiz.add(colocar(signo, px + 92, 205, py));
     signo.visible = false;
     const globito = sprite(texturaGlobito(textos.globito), 262, 100);
     raiz.add(colocar(globito, px + 190, 215, py - 30));
@@ -220,7 +248,7 @@ export function construirMundo(): Mundo3D {
 
     const documento = crearPapel(44, 30);
     const rd = rectDocumento(sala);
-    raiz.add(colocar(documento.grupo, rd.x + rd.w / 2, esVidrio ? 70 : 69, esVidrio ? rd.y + rd.h / 2 : sala.escritorio.y + 78));
+    raiz.add(colocar(documento.grupo, rd.x + rd.w / 2, esVidrio ? 70 : 69, esVidrio ? rd.y + rd.h / 2 : sala.escritorio.y + sala.escritorio.h - 44));
     documento.grupo.visible = false;
 
     return { munyeco, pantallas, pizarra, halo: haloMalla, haloMat, signo, globito, insignia, etiqueta, etiquetaEstado: null, documento, leds };
@@ -280,6 +308,7 @@ export function construirMundo(): Mundo3D {
     const pulso = 0.5 + 0.5 * Math.sin(t * 4);
     jardin.actualizar(t);
     gente.actualizar(t);
+    if (polvo.visible) polvo.rotation.y = t * 0.02;
     for (const c of colegas) animarCuerpo(c.m, "habla-sentado", t, c.fase, c.indice);
 
     puestos.forEach((p, i) => {
@@ -335,7 +364,7 @@ export function construirMundo(): Mundo3D {
     } else {
       const sala = SALAS[brief.agente];
       const rb = rectBrief(sala);
-      colocar(hoja, rb.x + rb.w / 2, sala.tipo === "vidrio" ? 70 : 69, sala.tipo === "vidrio" ? rb.y + rb.h / 2 : sala.escritorio.y + 78);
+      colocar(hoja, rb.x + rb.w / 2, sala.tipo === "vidrio" ? 70 : 69, sala.tipo === "vidrio" ? rb.y + rb.h / 2 : sala.escritorio.y + sala.escritorio.h - 44);
       hoja.scale.setScalar(0.52);
       briefPapel.material.emissiveIntensity = 0;
     }
@@ -390,9 +419,9 @@ export function construirMundo(): Mundo3D {
   });
 
   // al agrandar la casa, las luces puntuales y el sol tienen que crecer con ella o todo queda a oscuras
-  const puntuales: { luz: THREE.PointLight; intensidad: number; alcance: number }[] = [];
+  const puntuales: { luz: THREE.PointLight | THREE.SpotLight; intensidad: number; alcance: number }[] = [];
   raiz.traverse((o) => {
-    if (o instanceof THREE.PointLight) puntuales.push({ luz: o, intensidad: o.intensity, alcance: o.distance });
+    if (o instanceof THREE.PointLight || o instanceof THREE.SpotLight) puntuales.push({ luz: o, intensidad: o.intensity, alcance: o.distance });
   });
   const solBase = { pos: sol.position.clone(), objetivo: sol.target.position.clone(), camara: { ...sol.shadow.camera } as { left: number; right: number; top: number; bottom: number; far: number } };
 
@@ -412,11 +441,14 @@ export function construirMundo(): Mundo3D {
     muros.completo.visible = dentro;
     techo.visible = dentro;
     interior.visible = dentro;
+    polvo.visible = dentro;
     // adentro hay más luz pareja (los ambientes cerrados reciben poco cielo) y menos sol; los carteles dejan de verse a través de las paredes
-    cielo.intensity = dentro ? 0.55 : 0.8;
-    ambiente.intensity = dentro ? 0.2 : 0;
-    sol.intensity = dentro ? 1.1 : 1.6;
-    escena.fog = dentro ? new THREE.Fog("#16171f", 1200 * k, 4800 * k) : null;
+    // adentro manda la luz de las lámparas: poca luz pareja y poco sol, para que se marquen los volúmenes
+    cielo.intensity = dentro ? 0.34 : 0.72;
+    ambiente.intensity = dentro ? 0.1 : 0;
+    sol.intensity = dentro ? 0.66 : 1.4;
+    // niebla corta: da profundidad a los pasillos y esconde el fondo (como en una casa grande y oscura)
+    escena.fog = dentro ? new THREE.Fog("#14151d", 760 * k, 3600 * k) : null;
     caminando = dentro;
     for (const s of sprites) {
       s.material.depthTest = dentro;

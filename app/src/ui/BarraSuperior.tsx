@@ -1,5 +1,6 @@
 import { textosDe } from "../contenido";
 import { AGENTES, progreso, type Estado } from "../flujo";
+import { CARTEL_CENTRAL } from "../oficina";
 import { Logo } from "./iconos";
 
 /** Alto de la barra: el mapa deja ese margen arriba para no quedar tapado. */
@@ -27,7 +28,7 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
         display: "flex",
         alignItems: "center",
         gap: 20,
-        padding: "0 800px 0 16px",
+        padding: "0 440px 0 16px",
         background: "#000000",
         borderBottom: "1px solid var(--linea)",
         color: "var(--texto)",
@@ -37,12 +38,12 @@ export function BarraSuperior({ estado }: { estado: Estado }) {
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
         <Logo tam={36} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 18, fontWeight: 750, letterSpacing: "-0.01em", lineHeight: 1.1 }}>Spec-Driven Development</div>
-          <div style={{ fontSize: 12.5, color: "var(--texto-suave)", marginTop: 2 }}>Planear primero. Construir después.</div>
+          <div style={{ fontSize: 18, fontWeight: 750, letterSpacing: "-0.01em", lineHeight: 1.1, whiteSpace: "nowrap" }}>{CARTEL_CENTRAL.titulo}</div>
+          <div style={{ fontSize: 12.5, color: "var(--texto-suave)", marginTop: 2, whiteSpace: "nowrap" }}>{CARTEL_CENTRAL.lema}</div>
         </div>
       </div>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
+      <div className="barra-paso" style={{ display: "flex", alignItems: "center", gap: 14, marginLeft: "auto" }}>
         <span style={{ fontSize: 14, fontWeight: 650, color: "var(--aviso)", whiteSpace: "nowrap" }}>{textoDelPaso(estado)}</span>
         <div role="progressbar" aria-label="Avance del recorrido" aria-valuemin={0} aria-valuemax={total} aria-valuenow={hechos} style={{ display: "flex", gap: 4 }}>
           {AGENTES.map((a, i) => (

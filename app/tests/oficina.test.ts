@@ -74,13 +74,16 @@ describe("el mapa de la oficina", () => {
 
   it("el lobby tiene el cartel con el nombre del modelo y su lema", () => {
     expect(CARTEL_CENTRAL.titulo).toBe("Spec-Driven Development");
-    expect(CARTEL_CENTRAL.lema).toBe("Planear primero. Construir después.");
+    expect(CARTEL_CENTRAL.lema).toBe("Ocho pasos, de la idea al trabajo revisado.");
     expect(dentro(CARTEL_CENTRAL.area, LOBBY)).toBe(true);
   });
 
-  it("es más grande que una pantalla común", () => {
+  it("es mucho más grande que una pantalla común", () => {
     expect(MUNDO.ancho).toBeGreaterThan(1920);
     expect(MUNDO.alto).toBeGreaterThan(1080);
+    // la casa creció a más del doble del plano anterior (2600 × 1800)
+    expect(MUNDO.ancho * MUNDO.alto).toBeGreaterThan(9_000_000);
+    expect(MUNDO.alto).toBeGreaterThan(2400);
   });
 });
 

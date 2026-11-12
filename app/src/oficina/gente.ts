@@ -1,5 +1,3 @@
-import { PAPELERIA } from "./mundo";
-
 // La gente que trabaja en la casa además de los ocho agentes: recepcionista, empleados que recorren los pasillos
 // y visitan oficinas, dos colegas charlando junto al bebedero, lectores en los sillones y alguien en la papelería.
 // Acá solo hay lógica (dónde está cada uno y qué hace en cada instante); el dibujo está en `escena/gente.ts`.
@@ -59,51 +57,56 @@ export function poseDe(p: PersonaAmbiente, t: number): Pose {
 
 const N = Math.PI;
 
+/**
+ * Los cuatro que recorren la casa llevan una carpeta bajo el brazo y, cuando se detienen, la consultan o
+ * escriben. Dos entran a una oficina y miran al agente de frente; uno va a la papelería a escribir sobre la mesa.
+ * Ninguno se queda esperando en la punta de un pasillo: las pausas son cortas y siempre con algo en la mano.
+ */
 export const PERSONAS_AMBIENTE: readonly PersonaAmbiente[] = [
-  // recepción: quien atiende, de pie del lado del fondo del mostrador, mirando al lobby
-  { id: "recepcion", indice: 1, modo: "quieta", x: 1330, z: 1128, giro: N, actividad: "teclea", sentada: false, fase: 0.4 },
-  // dos colegas charlando junto al bebedero
-  { id: "charla-a", indice: 5, modo: "quieta", x: 1715, z: 800, giro: N / 2, actividad: "charla", sentada: false, fase: 0 },
-  { id: "charla-b", indice: 2, modo: "quieta", x: 1795, z: 800, giro: -N / 2, actividad: "charla", sentada: false, fase: 2.1 },
-  // lectores en los dos sillones del lobby (el muñeco se sienta de cara a la mesa ratona)
-  { id: "lector-este", indice: 6, modo: "quieta", x: 1860, z: 925, giro: -N / 2, actividad: "lee", sentada: true, fase: 1.3 },
-  { id: "lector-oeste", indice: 0, modo: "quieta", x: 558, z: 905, giro: N / 2, actividad: "lee", sentada: true, fase: 3.2 },
-  // alguien ordenando papeles en la mesa de la papelería, del lado de la puerta
-  { id: "papeleria", indice: 3, modo: "quieta", x: PAPELERIA.x + 210, z: PAPELERIA.y + 350, giro: N, actividad: "escribe", sentada: false, fase: 0.9 },
-  // pasillo de arriba: va y viene, y a veces entra a la oficina 3 a consultar algo
+  // recepción: quien atiende, parada detrás del mostrador de piedra, mirando el atrio
+  { id: "recepcion", indice: 1, modo: "quieta", x: 1630, z: 1590, giro: N, actividad: "teclea", sentada: false, fase: 0.4 },
+  // dos colegas junto al bebedero, enfrentados a 80 de distancia, con la taza siempre en la mano
+  { id: "charla-a", indice: 5, modo: "quieta", x: 2640, z: 1420, giro: 0, actividad: "charla", sentada: false, fase: 0 },
+  { id: "charla-b", indice: 2, modo: "quieta", x: 2640, z: 1500, giro: N, actividad: "charla", sentada: false, fase: 2.1 },
+  // lectores en los dos sillones del lobby, cada uno de cara a su mesa ratona
+  { id: "lector-este", indice: 6, modo: "quieta", x: 2708, z: 1200, giro: -N / 2, actividad: "lee", sentada: true, fase: 1.3 },
+  { id: "lector-oeste", indice: 0, modo: "quieta", x: 836, z: 1240, giro: N / 2, actividad: "lee", sentada: true, fase: 3.2 },
+  // alguien ordenando papeles en la mesa de la papelería, de cara a la mesa
+  { id: "papeleria", indice: 3, modo: "quieta", x: 440, z: 1500, giro: N, actividad: "escribe", sentada: false, fase: 0.9 },
+  // pasillo de arriba: va y viene, y entra a la oficina 3 a consultar algo mirando al agente
   {
     id: "pasillo-norte",
     indice: 2,
     modo: "camina",
-    velocidad: 78,
+    velocidad: 88,
     desfase: 0,
-    circuito: [parada(200, 590, 0.4), parada(1580, 590, 0.4), parada(1580, 490, 7, N, "consulta"), parada(1580, 590, 0.4), parada(2300, 590, 0.4)],
+    circuito: [parada(200, 910, 0.5), parada(2310, 910, 0.5), parada(2310, 730, 7, N, "consulta"), parada(2310, 910, 0.5), parada(3500, 910, 0.5)],
   },
-  // pasillo de abajo: lo mismo con la oficina 6
+  // pasillo de abajo: lo mismo, entrando a la oficina 6
   {
     id: "pasillo-sur",
     indice: 4,
     modo: "camina",
-    velocidad: 72,
+    velocidad: 82,
     desfase: 31,
-    circuito: [parada(250, 1190, 0.4), parada(980, 1190, 0.4), parada(980, 1330, 0.3), parada(1050, 1455, 7, -N / 2, "consulta"), parada(980, 1330, 0.3), parada(980, 1190, 0.4), parada(1800, 1190, 0.4)],
+    circuito: [parada(250, 1750, 0.5), parada(1430, 1750, 0.5), parada(1430, 1960, 7, 0, "consulta"), parada(1430, 1750, 0.5), parada(2600, 1750, 0.5)],
   },
-  // lobby: da la vuelta al cartel mirando el piso de mármol
+  // lobby: da la vuelta al cartel del piso, consultando la carpeta junto a las columnas
   {
     id: "lobby",
     indice: 7,
     modo: "camina",
-    velocidad: 70,
+    velocidad: 80,
     desfase: 12,
-    circuito: [parada(860, 770, 3, undefined, "consulta"), parada(1560, 770, 0.5), parada(1580, 990, 4, undefined, "consulta"), parada(880, 990, 3, undefined, "consulta")],
+    circuito: [parada(900, 1150, 3, undefined, "consulta"), parada(1250, 1150, 0.5), parada(1250, 1370, 0.5), parada(1750, 1370, 3, undefined, "consulta"), parada(2350, 1370, 0.5), parada(2350, 1150, 3, undefined, "consulta")],
   },
-  // va a la papelería a dejar y buscar papeles y vuelve al pasillo
+  // va a la papelería a escribir sobre la mesa y vuelve al pasillo
   {
     id: "papeleria-ida",
     indice: 5,
     modo: "camina",
-    velocidad: 74,
+    velocidad: 84,
     desfase: 55,
-    circuito: [parada(310, 590, 0.4), parada(310, 875, 6, 0, "escribe"), parada(310, 590, 0.4), parada(900, 590, 0.4)],
+    circuito: [parada(450, 910, 0.5), parada(450, 1290, 6, 0, "escribe"), parada(450, 910, 0.5), parada(950, 910, 0.5)],
   },
 ];

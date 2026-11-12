@@ -14,6 +14,8 @@ export {
 } from "./camara3d";
 export type { Camara3D, Punto3D, VistaPantalla } from "./camara3d";
 export { soportaWebGL } from "./webgl";
+export { crearPostproceso } from "./postproceso";
+export type { Postproceso } from "./postproceso";
 export { construirMundo } from "./mundo3d";
 export type { Mundo3D } from "./mundo3d";
 export type { ModoDeVista } from "./mundo3d";

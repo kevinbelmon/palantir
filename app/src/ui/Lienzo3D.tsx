@@ -11,6 +11,7 @@ import {
   camara3dEnSala,
   camara3dInicial,
   construirMundo,
+  crearPostproceso,
   FOV_VERTICAL,
   entradaDeSala,
   girarJugador,
@@ -101,7 +102,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     renderer.shadowMap.type = THREE.PCFShadowMap;
     // cine: curva de tonos filmica y reflejos de un interior, para que los materiales (mármol, madera, vidrio) brillen de verdad
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 0.9;
+    renderer.toneMappingExposure = 0.95;
     const generador = new THREE.PMREMGenerator(renderer);
     const entorno = generador.fromScene(new RoomEnvironment(), 0.04).texture;
     generador.dispose();
@@ -113,6 +114,8 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const lente = new THREE.PerspectiveCamera((FOV_VERTICAL * 180) / Math.PI, 1, 20, 30000);
     lente.rotation.order = "YXZ";
     const paredes = obstaculos();
+    // oclusión, brillo, viñeta y grano: lo que hace que la casa se vea a cine y no a dibujo
+    const post = crearPostproceso(renderer, mundo.escena, lente, canvas.clientWidth || 1, canvas.clientHeight || 1);
 
     let raf = 0;
     const inicio = performance.now();
@@ -134,8 +137,10 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
 
     const ajustar = () => {
       const { ancho, alto } = tamano();
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      const proporcion = Math.min(window.devicePixelRatio || 1, 1.75);
+      renderer.setPixelRatio(proporcion);
       renderer.setSize(ancho, alto, false);
+      post.ajustar(ancho, alto, proporcion);
       lente.aspect = ancho / Math.max(1, alto);
       lente.updateProjectionMatrix();
       if (!movida.current) camara.current = camara3dInicial({ ancho, alto }, ALTO_BARRA, ALTO_DOCK);
@@ -300,7 +305,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
         mundo.colocarJugador(jugadorUsado.current ? jugador.current : null);
       }
       mundo.actualizar(vista.current.agentes, vista.current.brief, tiempoVisible((ahora - inicio) / 1000, reducido));
-      renderer.render(mundo.escena, lente);
+      post.render(mundo.escena, lente);
       raf = requestAnimationFrame(bucle);
     };
     raf = requestAnimationFrame(bucle);
@@ -322,6 +327,7 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
       document.exitPointerLock?.();
       mundoRef.current = null;
       mundo.liberar();
+      post.liberar();
       entorno.dispose();
       renderer.dispose();
     };

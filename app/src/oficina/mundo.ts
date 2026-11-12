@@ -15,23 +15,31 @@ export type Sala = {
   personaje: { x: number; y: number };
 };
 
-/** La oficina es más grande que una pantalla: se recorre moviendo la cámara. */
-export const MUNDO = { ancho: 2600, alto: 1800 } as const;
+/** La casa es mucho más grande que una pantalla: se recorre moviendo la cámara o caminando por adentro. */
+export const MUNDO = { ancho: 4000, alto: 2640 } as const;
 
-/** Los pasillos de 140 de ancho quedan entre las oficinas de arriba (hasta y=520), el lobby (660 a 1120) y las de abajo (desde y=1260). */
-export const LOBBY: Rect = { x: 560, y: 660, w: 1300, h: 460 };
-export const PAPELERIA: Rect = { x: 100, y: 680, w: 420, h: 420 };
+/**
+ * El plano va en tres franjas: las oficinas de arriba (y 160 a 800), el lobby (y 1020 a 1640) y las de
+ * abajo (desde 1860). Entre medio quedan dos pasillos de 220 de ancho. La persona mide 52 (radio 26),
+ * así que en 220 sobra aire para cruzarse con otra.
+ */
+export const LOBBY: Rect = { x: 800, y: 1020, w: 1980, h: 620 };
+/** La papelería queda a la izquierda del lobby, pegada a él. */
+export const PAPELERIA: Rect = { x: 140, y: 1040, w: 620, h: 560 };
+
+/** El patio seco del este: se ve a través del vidrio de la sala de reuniones. Está a la intemperie. */
+export const PATIO: Rect = { x: 3608, y: 1020, w: 310, h: 1480 };
 
 export const CARTEL_CENTRAL = {
   titulo: "Spec-Driven Development",
-  lema: "Planear primero. Construir después.",
-  area: { x: 810, y: 840, w: 800, h: 150 } as Rect,
+  lema: "Ocho pasos, de la idea al trabajo revisado.",
+  area: { x: 1100, y: 1230, w: 1100, h: 190 } as Rect,
 } as const;
 
-const ANCHO_SALA = 560;
-const ALTO_SALA = 420;
-const ARRIBA_Y = 100;
-const ABAJO_Y = 1260;
+const ANCHO_SALA = 820;
+const ALTO_SALA = 640;
+const ARRIBA_Y = 160;
+const ABAJO_Y = 1860;
 
 function salaNormal(indice: number, x: number, y: number): Sala {
   return {
@@ -39,9 +47,9 @@ function salaNormal(indice: number, x: number, y: number): Sala {
     comando: AGENTES[indice].comando,
     tipo: "normal",
     area: { x, y, w: ANCHO_SALA, h: ALTO_SALA },
-    pizarra: { x: x + 290, y: y + 30, w: 230, h: 84 },
-    escritorio: { x: x + 120, y: y + 250, w: 320, h: 100 },
-    personaje: { x: x + 280, y: y + 215 },
+    pizarra: { x: x + 430, y: y + 40, w: 320, h: 110 },
+    escritorio: { x: x + 150, y: y + 400, w: 470, h: 130 },
+    personaje: { x: x + 410, y: y + 350 },
   };
 }
 
@@ -50,23 +58,24 @@ function salaDeVidrio(indice: number, x: number, y: number): Sala {
     numero: AGENTES[indice].numero,
     comando: AGENTES[indice].comando,
     tipo: "vidrio",
-    area: { x, y, w: ANCHO_SALA, h: 940 },
-    pizarra: { x: x + 150, y: y + 30, w: 260, h: 84 },
-    escritorio: { x: x + 130, y: y + 420, w: 300, h: 200 },
-    personaje: { x: x + 280, y: y + 400 },
+    area: { x, y, w: ANCHO_SALA, h: 1480 },
+    pizarra: { x: x + 180, y: y + 40, w: 360, h: 110 },
+    // la mesa de reuniones hace de escritorio: es lo que se toca para elegir al agente
+    escritorio: { x: x + 200, y: y + 620, w: 420, h: 280 },
+    personaje: { x: x + 410, y: y + 600 },
   };
 }
 
-/** Salas 1 a 4 arriba, 5 a 7 abajo, y la 8 (review) como sala de vidrio a la derecha. */
+/** Salas 1 a 4 arriba, 5 a 7 abajo, y la 8 (review) como sala de vidrio a la derecha, sobre el patio. */
 export const SALAS: readonly Sala[] = [
-  salaNormal(0, 100, ARRIBA_Y),
-  salaNormal(1, 700, ARRIBA_Y),
-  salaNormal(2, 1300, ARRIBA_Y),
-  salaNormal(3, 1900, ARRIBA_Y),
-  salaNormal(4, 100, ABAJO_Y),
-  salaNormal(5, 700, ABAJO_Y),
-  salaNormal(6, 1300, ABAJO_Y),
-  salaDeVidrio(7, 1900, 740),
+  salaNormal(0, 140, ARRIBA_Y),
+  salaNormal(1, 1020, ARRIBA_Y),
+  salaNormal(2, 1900, ARRIBA_Y),
+  salaNormal(3, 2780, ARRIBA_Y),
+  salaNormal(4, 140, ABAJO_Y),
+  salaNormal(5, 1020, ABAJO_Y),
+  salaNormal(6, 1900, ABAJO_Y),
+  salaDeVidrio(7, 2780, 1020),
 ];
 
 const PAPEL = { w: 44, h: 30 } as const;
@@ -75,16 +84,16 @@ const PAPEL = { w: 44, h: 30 } as const;
 export function rectBrief(sala: Sala): Rect {
   const e = sala.escritorio;
   return sala.tipo === "vidrio"
-    ? { x: e.x + e.w / 2 + 30, y: e.y + 34, ...PAPEL }
-    : { x: e.x + e.w / 2 + 52, y: e.y + 2, ...PAPEL };
+    ? { x: e.x + e.w / 2 + 40, y: e.y + 60, ...PAPEL }
+    : { x: e.x + e.w / 2 + 62, y: e.y + 18, ...PAPEL };
 }
 
 /** Dónde queda el documento que deja el agente al terminar. Es lo que se toca para leerlo. */
 export function rectDocumento(sala: Sala): Rect {
   const e = sala.escritorio;
   return sala.tipo === "vidrio"
-    ? { x: e.x + e.w / 2 - 74, y: e.y + 34, ...PAPEL }
-    : { x: e.x + e.w / 2 - 100, y: e.y + 2, ...PAPEL };
+    ? { x: e.x + e.w / 2 - 84, y: e.y + 60, ...PAPEL }
+    : { x: e.x + e.w / 2 - 106, y: e.y + 18, ...PAPEL };
 }
 
 /** La puerta de la sala: abajo en las de arriba, arriba en las de abajo y a la izquierda en la de vidrio. */

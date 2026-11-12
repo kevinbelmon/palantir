@@ -113,13 +113,24 @@ export function texturaBaldosas(): THREE.CanvasTexture {
   return repetible(c);
 }
 
-/** Pared pintada: un color liso con un granulado casi invisible. */
+/** Pared pintada a mano: el color, unas manchas muy suaves y el grano del yeso. */
 export function texturaYeso(color: string): THREE.CanvasTexture {
   const T = 256;
   const { c, ctx } = lienzo(T, T);
   const azar = aleatorio(31);
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, T, T);
+  // manchas grandes y suaves: rompen el color liso cuando la pared ocupa media pantalla
+  for (let i = 0; i < 26; i++) {
+    const x = azar() * T;
+    const y = azar() * T;
+    const r = 24 + azar() * 70;
+    const mancha = ctx.createRadialGradient(x, y, 0, x, y, r);
+    mancha.addColorStop(0, `rgba(255,255,255,${0.012 + azar() * 0.022})`);
+    mancha.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = mancha;
+    ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
   granulado(ctx, T, T, azar, 3500, 0.05);
   return repetible(c);
 }
@@ -252,24 +263,42 @@ export function texturaPiedra(): THREE.CanvasTexture {
   return repetible(c);
 }
 
-/** Un cuadro abstracto: fondo suave y formas del color de la oficina. Cada semilla da un cuadro distinto. */
+/**
+ * Un grabado moderno: papel oscuro, una forma grande apenas translúcida del color del agente y unas
+ * líneas finas. Cada semilla da una obra distinta, sin colores de póster.
+ */
 export function texturaCuadro(color: string, semilla: number): THREE.CanvasTexture {
   const { c, ctx } = lienzo(256, 176);
   const azar = aleatorio(semilla * 17 + 3);
   const g = ctx.createLinearGradient(0, 0, 256, 176);
-  g.addColorStop(0, mezclarHex("#f4efe6", color, 0.15));
-  g.addColorStop(1, mezclarHex("#d9d2c4", color, 0.35));
+  g.addColorStop(0, "#1c1f27");
+  g.addColorStop(1, "#0f1116");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 256, 176);
-  for (let i = 0; i < 6; i++) {
-    ctx.fillStyle = mezclarHex(color, azar() > 0.5 ? "#ffffff" : "#1a1c28", 0.1 + azar() * 0.55);
-    ctx.globalAlpha = 0.55 + azar() * 0.4;
-    ctx.beginPath();
-    if (azar() > 0.5) ctx.arc(30 + azar() * 196, 24 + azar() * 128, 14 + azar() * 40, 0, Math.PI * 2);
-    else ctx.rect(10 + azar() * 170, 10 + azar() * 110, 30 + azar() * 80, 20 + azar() * 60);
-    ctx.fill();
-  }
+
+  // la forma: un círculo fuera de centro, del color de la oficina
+  ctx.globalAlpha = 0.18 + azar() * 0.1;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.arc(120 + azar() * 70, 60 + azar() * 40, 40 + azar() * 26, 0, Math.PI * 2);
+  ctx.fill();
   ctx.globalAlpha = 1;
+
+  // líneas finas, como las de un plano
+  for (let i = 0; i < 7; i++) {
+    const y = 24 + i * 19 + azar() * 4;
+    const ancho = 60 + azar() * 150;
+    ctx.strokeStyle = `rgba(232,228,218,${0.1 + azar() * 0.16})`;
+    ctx.lineWidth = 0.8 + azar() * 1.1;
+    ctx.beginPath();
+    ctx.moveTo(22, y);
+    ctx.lineTo(22 + ancho, y);
+    ctx.stroke();
+  }
+  ctx.strokeStyle = "rgba(232,228,218,0.2)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(14, 12, 228, 152);
+
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
@@ -307,6 +336,53 @@ export function texturaPlaca(numero: number, nombre: string, color: string): THR
   t.colorSpace = THREE.SRGBColorSpace;
   t.anisotropy = 8;
   return t;
+}
+
+/** Grava del patio: piedritas de varios grises sobre tierra oscura. Un mosaico mide 110 × 110 unidades. */
+export function texturaGrava(): THREE.CanvasTexture {
+  const T = 256;
+  const { c, ctx } = lienzo(T, T);
+  const azar = aleatorio(83);
+  ctx.fillStyle = "#2b2823";
+  ctx.fillRect(0, 0, T, T);
+  for (let i = 0; i < 1400; i++) {
+    const r = 1.4 + azar() * 3.6;
+    const tono = 40 + Math.floor(azar() * 60);
+    ctx.fillStyle = `rgb(${tono + 12}, ${tono + 9}, ${tono})`;
+    ctx.beginPath();
+    ctx.ellipse(azar() * T, azar() * T, r, r * (0.6 + azar() * 0.5), azar() * Math.PI, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  granulado(ctx, T, T, azar, 3000, 0.12);
+  return repetible(c);
+}
+
+/** Lamas verticales de roble: listones de madera con su sombra en la junta. Un mosaico mide 60 de ancho. */
+export function texturaLamas(base = "#6b4a2f"): THREE.CanvasTexture {
+  const T = 256;
+  const { c, ctx } = lienzo(T, T);
+  const azar = aleatorio(97);
+  ctx.fillStyle = "#1a1510";
+  ctx.fillRect(0, 0, T, T);
+  const paso = T / 8;
+  for (let i = 0; i < 8; i++) {
+    const x = i * paso;
+    ctx.fillStyle = mezclarHex(base, azar() > 0.5 ? "#ffffff" : "#000000", 0.06 + azar() * 0.12);
+    ctx.fillRect(x + 1.5, 0, paso - 3, T);
+    for (let v = 0; v < 12; v++) {
+      ctx.strokeStyle = `rgba(30,18,8,${0.06 + azar() * 0.12})`;
+      ctx.lineWidth = 0.7 + azar();
+      const vx = x + 4 + azar() * (paso - 8);
+      ctx.beginPath();
+      ctx.moveTo(vx, 0);
+      ctx.bezierCurveTo(vx + 2, T * 0.35, vx - 2, T * 0.7, vx, T);
+      ctx.stroke();
+    }
+    // luz que roza el canto del listón
+    ctx.fillStyle = "rgba(255,225,180,0.05)";
+    ctx.fillRect(x + paso - 3, 0, 2, T);
+  }
+  return repetible(c);
 }
 
 /** Agua con reflejos largos: se repite y se corre despacio para que parezca que se mueve. */

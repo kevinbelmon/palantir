@@ -22,6 +22,18 @@ const ESTILO =
   "Quien te habla no sabe programar. Explicá cada paso en español simple, paso a paso, sin jerga: si usás una palabra técnica, explicala en la misma frase. Cuando necesites una decisión, hacé una sola pregunta por vez, con ejemplos concretos.";
 
 /**
+ * El entorno con el que corre el agente. Si la compu tiene una clave de API suelta (`ANTHROPIC_API_KEY` o similares), Claude Code
+ * la usa en vez de la sesión iniciada de la persona, y si está vencida o es de otra cuenta falla con «Invalid API key».
+ * Por eso se sacan: el juego usa siempre la sesión de la persona. Quien de verdad quiera usar su clave pone `SDD_USAR_API_KEY=1`.
+ */
+export function entornoDelAgente(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  if (env.SDD_USAR_API_KEY === "1") return env;
+  const limpio = { ...env };
+  for (const nombre of ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]) delete limpio[nombre];
+  return limpio;
+}
+
+/**
  * Claude Code de la propia persona (su sesión ya iniciada), en modo seguimiento para ir contando qué hace.
  * El pedido viaja por la entrada estándar: nada de lo que escribe la persona forma parte de la línea de comando.
  * La sesión se valida antes de usarla. `CLAUDE_BIN` cambia el ejecutable.
@@ -31,7 +43,7 @@ export const ejecutorClaude: Ejecutor = (carpeta, prompt, sesion, alActividad) =
     if (sesion !== null && !SESION.test(sesion)) return fallo(new Error("La conversación guardada no es válida."));
     const bin = process.env.CLAUDE_BIN ?? "claude";
     const linea = `"${bin}" -p --output-format stream-json --verbose --permission-mode acceptEdits --append-system-prompt "${ESTILO}"${sesion ? ` --resume ${sesion}` : ""}`;
-    const hijo = spawn(linea, { cwd: carpeta, shell: true, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
+    const hijo = spawn(linea, { cwd: carpeta, env: entornoDelAgente(process.env), shell: true, windowsHide: true, stdio: ["pipe", "pipe", "pipe"] });
     let resto = "";
     let final: string | null = null;
     let sesionNueva: string | null = sesion;

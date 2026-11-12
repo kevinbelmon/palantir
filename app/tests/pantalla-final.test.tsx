@@ -2,6 +2,7 @@ import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { AGENTES } from "../src/flujo";
 import { textosDe } from "../src/contenido";
+import { CARTEL_CENTRAL } from "../src/oficina";
 import { PantallaFinal } from "../src/ui/PantallaFinal";
 
 describe("la pantalla final", () => {
@@ -22,7 +23,7 @@ describe("la pantalla final", () => {
   });
 
   it("explica la idea del modelo con el lema", () => {
-    expect(html).toContain("Planear primero. Construir después.");
+    expect(html).toContain(CARTEL_CENTRAL.lema);
   });
 
   it("tiene el botón para jugar de nuevo", () => {

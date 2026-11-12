@@ -1,6 +1,7 @@
 import { renderToString } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 import { ESTADO_INICIAL, reducir, type Estado } from "../src/flujo";
+import { CARTEL_CENTRAL } from "../src/oficina";
 import { BarraSuperior } from "../src/ui/BarraSuperior";
 
 const terminar = (e: Estado, i: number) => reducir(reducir(e, { tipo: "ordenarCorrer", indice: i }), { tipo: "terminarCorrida", indice: i });
@@ -9,7 +10,7 @@ describe("la barra superior", () => {
   it("muestra el nombre del modelo y su lema", () => {
     const html = renderToString(<BarraSuperior estado={ESTADO_INICIAL} />);
     expect(html).toContain("Spec-Driven Development");
-    expect(html).toContain("Planear primero. Construir después.");
+    expect(html).toContain(CARTEL_CENTRAL.lema);
   });
 
   it("al empezar pide dejar el brief", () => {

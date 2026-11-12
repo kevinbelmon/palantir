@@ -147,28 +147,30 @@ export function crearEscritorio(e: Rect): Escritorio {
     return m;
   };
   const cx = e.x + e.w / 2;
-  const cz = e.y + 52;
+  const cz = e.y + e.h / 2;
+  const fondo = e.h - 8;
   const veta = texturaMadera("#bd8d55");
-  const tablero = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, e.w, 90, 150), roughness: 0.42 });
+  const tablero = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, e.w, fondo, 150), roughness: 0.42 });
   const costado = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, 90, 60, 150), color: "#c9a479", roughness: 0.55 });
   const metal = plastico("#9aa0ab", { roughness: 0.3, metalness: 0.6 });
-  caja(e.w + 8, 5, 92, tablero, cx, 63.5, cz);
+  caja(e.w + 8, 5, fondo, tablero, cx, 63.5, cz);
   // dos cajoneras con sus cajones y manijas
+  const fondoCajonera = Math.min(82, fondo - 10);
   for (const lado of [-1, 1]) {
     const x = lado === -1 ? e.x + 34 : e.x + e.w - 34;
-    caja(62, 61, 82, costado, x, 30.5, cz);
+    caja(62, 61, fondoCajonera, costado, x, 30.5, cz);
     for (let i = 0; i < 3; i++) {
-      caja(54, 17, 1.5, plastico("#b58e5e", { roughness: 0.5 }), x, 12 + i * 20, cz - 41.5);
-      caja(18, 2.4, 2.4, metal, x, 12 + i * 20, cz - 43);
+      caja(54, 17, 1.5, plastico("#b58e5e", { roughness: 0.5 }), x, 12 + i * 20, cz - fondoCajonera / 2 - 0.5);
+      caja(18, 2.4, 2.4, metal, x, 12 + i * 20, cz - fondoCajonera / 2 - 2);
     }
   }
-  caja(e.w - 130, 36, 2, costado, cx, 40, cz + 38);
+  caja(e.w - 130, 36, 2, costado, cx, 40, cz + fondo / 2 - 12);
 
   // monitores: la pantalla mira a la persona (hacia -z); desde la puerta se ve el respaldo
   const marco = plastico("#15171f", { roughness: 0.4 });
   for (const [i, mx] of [e.x + 26, e.x + e.w - 100].entries()) {
     const x = mx + 38;
-    const z = e.y + 64;
+    const z = e.y + 58;
     const monitor = new THREE.Group();
     monitor.position.set(x, 0, z);
     monitor.rotation.y = Math.PI + (i === 0 ? -0.18 : 0.18);
@@ -192,14 +194,14 @@ export function crearEscritorio(e: Rect): Escritorio {
   }
 
   // teclado, mouse y taza, del lado de la persona
-  caja(46, 2.2, 15, plastico("#23262f", { roughness: 0.5 }), cx, 67.6, e.y + 30);
-  for (let fila = 0; fila < 3; fila++) caja(40, 0.8, 3.2, plastico("#3b3f4c", { roughness: 0.6 }), cx, 69, e.y + 25.5 + fila * 4.8);
+  caja(46, 2.2, 15, plastico("#23262f", { roughness: 0.5 }), cx, 67.6, e.y + 26);
+  for (let fila = 0; fila < 3; fila++) caja(40, 0.8, 3.2, plastico("#3b3f4c", { roughness: 0.6 }), cx, 69, e.y + 21.5 + fila * 4.8);
   const raton = new THREE.Mesh(new THREE.SphereGeometry(4.2, 14, 10), plastico("#23262f", { roughness: 0.4 }));
   raton.scale.set(0.8, 0.5, 1.2);
-  raton.position.set(cx + 38, 68.2, e.y + 30);
+  raton.position.set(cx + 38, 68.2, e.y + 26);
   grupo.add(raton);
   const taza = new THREE.Mesh(new THREE.CylinderGeometry(4.2, 3.6, 8.5, 20), plastico("#ffffff", { roughness: 0.25 }));
-  taza.position.set(e.x + e.w - 78, 70.5, e.y + 28);
+  taza.position.set(e.x + e.w - 78, 70.5, e.y + 24);
   taza.castShadow = true;
   grupo.add(taza);
   return { grupo, pantallas };

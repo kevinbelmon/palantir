@@ -14,6 +14,7 @@ const JERGA = [
   "commit",
   "merge",
   "branch",
+  "repo",
   "repositorio",
   "pull request",
   "tdd",

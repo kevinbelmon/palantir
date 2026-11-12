@@ -6,8 +6,12 @@ export const COLORES_SALA = ["#5b8cff", "#8e6bff", "#3ecf6e", "#f2a33a", "#ff6b8
 
 const GROSOR = 16;
 const HUECO = 130;
+/** Los marcos son más gruesos que la pared: si comparten plano con ella, las caras titilan. */
+export const GROSOR_MARCO = GROSOR + 4;
 /** Alto del marco de la puerta. */
 export const ALTO_MARCO = 165;
+/** Lo que ocupa el dintel del marco, de alto. La pared sigue por encima hasta el techo. */
+export const ALTO_DINTEL = 14;
 
 const aNumeros = (hex: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)) as [number, number, number];
 
@@ -66,7 +70,7 @@ export function placaDePuerta(sala: Sala): { x: number; z: number; giroY: number
 export function alfombraDeSala(sala: Sala): Rect {
   if (sala.tipo === "vidrio") {
     const m = MESA_REDONDA_REVIEW;
-    return { x: m.x - 210, y: m.y - 150, w: 420, h: 300 };
+    return { x: m.x - 280, y: m.y - 200, w: 560, h: 400 };
   }
   const e = sala.escritorio;
   const arriba = sala.personaje.y - 80;
@@ -76,11 +80,11 @@ export function alfombraDeSala(sala: Sala): Rect {
 /** La ventana sobre la pared del fondo: `x` y `w` en el plano, `base` y `alto` en altura. */
 export function ventanaDeSala(sala: Sala): { x: number; w: number; base: number; alto: number } {
   const a = sala.area;
-  return sala.tipo === "vidrio" ? { x: a.x + 430, w: 110, base: 70, alto: 80 } : { x: a.x + 50, w: 130, base: 70, alto: 80 };
+  return sala.tipo === "vidrio" ? { x: a.x + 610, w: 150, base: 70, alto: 80 } : { x: a.x + 70, w: 180, base: 70, alto: 80 };
 }
 
 /** El reloj de pared: su posición `x` en el plano y su altura. */
 export function relojDeSala(sala: Sala): { x: number; altura: number; radio: number } {
   const a = sala.area;
-  return { x: sala.tipo === "vidrio" ? a.x + 70 : a.x + 235, altura: 138, radio: 17 };
+  return { x: sala.tipo === "vidrio" ? a.x + 100 : a.x + 330, altura: 140, radio: 22 };
 }
