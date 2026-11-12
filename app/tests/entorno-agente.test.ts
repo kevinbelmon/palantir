@@ -10,6 +10,11 @@ describe("el entorno con el que corre el agente", () => {
     expect(e.HOME).toBe("/h");
   });
 
+  it("las saca también si el nombre viene con otras mayúsculas (Windows no distingue)", () => {
+    const e = entornoDelAgente({ Anthropic_Api_Key: "sk-vieja", anthropic_auth_token: "t", Path: "C:\\bin" });
+    expect(Object.keys(e)).toEqual(["Path"]);
+  });
+
   it("no modifica el entorno original", () => {
     const original = { ANTHROPIC_API_KEY: "sk-vieja" };
     entornoDelAgente(original);

@@ -28,9 +28,9 @@ const ESTILO =
  */
 export function entornoDelAgente(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   if (env.SDD_USAR_API_KEY === "1") return env;
-  const limpio = { ...env };
-  for (const nombre of ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]) delete limpio[nombre];
-  return limpio;
+  // en Windows los nombres de variables no distinguen mayúsculas: «Anthropic_Api_Key» es la misma variable
+  const sueltas = new Set(["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"]);
+  return Object.fromEntries(Object.entries(env).filter(([nombre]) => !sueltas.has(nombre.toUpperCase())));
 }
 
 /**
