@@ -1,11 +1,12 @@
 import { useEffect, useReducer, useState } from "react";
 import { crearCliente, SIN_CONEXION, type EstadoLocal } from "./conexion";
-import { mensajeGuia } from "./contenido";
+import { contextoDelBot, mensajeGuia } from "./contenido";
 import { DURACION_CORRIDA_MS, ESTADO_INICIAL, reducir, ubicacionBrief } from "./flujo";
 import { CANCIONES, cancionPorId, crearReproductor } from "./musica";
 import type { Elemento } from "./oficina";
 import { Dock } from "./ui/Dock";
 import { BarraSuperior } from "./ui/BarraSuperior";
+import { Bot } from "./ui/Bot";
 import { BotonMusica } from "./ui/BotonMusica";
 import { Guia } from "./ui/Guia";
 import { type ModoDeVista, soportaWebGL } from "./escena";
@@ -201,6 +202,7 @@ export default function App() {
       />
       <BarraSuperior estado={estado} />
       <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
+      <Bot contexto={contextoDelBot(estado, seleccion ?? pasoAbierto)} />
       {columna === "agente" && seleccion !== null && (
         <PanelAgente
           indice={seleccion}

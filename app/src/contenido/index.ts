@@ -6,5 +6,7 @@ export { DOCUMENTOS } from "./documentos";
 export type { BloqueDocumento, Documento } from "./documentos";
 export { etiquetaDeEstado, textoEtiqueta } from "./estados";
 export type { ColorDeEstado } from "./estados";
+export { contextoDelBot, NOMBRE_BOT, tarjetasBot } from "./bot";
+export type { ContextoBot, TarjetaBot } from "./bot";
 export { mensajeGuia } from "./guia";
 export { oracionMasLarga, palabrasTecnicas } from "./lenguaje";
