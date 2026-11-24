@@ -170,6 +170,18 @@ describe("el viaje de la cámara", () => {
       antes = x;
     }
     expect(interpolar3d(a, b, -3)).toEqual(a);
+  });
+
+  it("con arco, la cámara se aleja a mitad de camino y llega igual al destino", () => {
+    const a = camara3dEnSala(SALAS[0], { ancho: 1400, alto: 800 });
+    const b = camara3dEnSala(SALAS[3], { ancho: 1400, alto: 800 });
+    const arco = 300;
+    expect(interpolar3d(a, b, 0, arco)).toEqual(a);
+    expect(interpolar3d(a, b, 1, arco).distancia).toBeCloseTo(b.distancia, 6);
+    const medio = interpolar3d(a, b, 0.5, arco);
+    expect(medio.distancia).toBeCloseTo((a.distancia + b.distancia) / 2 + arco, 6);
+    // sin arco no cambia nada respecto de siempre
+    expect(interpolar3d(a, b, 0.5).distancia).toBeCloseTo((a.distancia + b.distancia) / 2, 6);
     expect(interpolar3d(a, b, 9)).toEqual(b);
   });
 });

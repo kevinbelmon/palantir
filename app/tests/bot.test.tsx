@@ -63,7 +63,7 @@ describe("el bot guía", () => {
     const html = renderToString(<Bot contexto={{ tipo: "intro" }} />);
     expect(html).toContain("tu guía");
     expect(html).toContain('aria-label="Zac, el bot guía"');
-    expect(html).toContain("Hola, soy");
+    expect(html).toContain("tu asistente");
     expect(html).toContain("Siguiente");
     expect(html).toContain("1 de 5");
   });

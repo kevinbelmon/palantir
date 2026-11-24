@@ -22,7 +22,9 @@ const Remate = {
   name: "Remate",
   uniforms: {
     tDiffuse: { value: null as THREE.Texture | null },
-    intensidad: { value: 0.38 },
+    intensidad: { value: 0.18 },
+    resolucion: { value: new THREE.Vector2(1, 1) },
+    tiempo: { value: 0 },
   },
   vertexShader: /* glsl */ `
     varying vec2 vUv;
@@ -35,9 +37,18 @@ const Remate = {
     varying vec2 vUv;
     uniform sampler2D tDiffuse;
     uniform float intensidad;
+    uniform vec2 resolucion;
+    uniform float tiempo;
 
     void main() {
-      vec3 c = texture2D(tDiffuse, vUv).rgb;
+      // aberración de lente: casi invisible en el centro, apenas marcada en los bordes
+      vec2 d = vUv - 0.5;
+      vec2 off = d * dot(d, d) * 0.0022;
+      vec3 c = vec3(
+        texture2D(tDiffuse, vUv + off).r,
+        texture2D(tDiffuse, vUv).g,
+        texture2D(tDiffuse, vUv - off).b
+      );
 
       // sombras un poco frías, luces un poco cálidas (muy suave, sin teñir la escena)
       float luma = dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -46,6 +57,10 @@ const Remate = {
       // viñeta: solo en los bordes
       float v = smoothstep(1.05, 0.35, length(vUv - 0.5));
       c *= mix(1.0, v, intensidad);
+
+      // grano fino, como el de una foto: se nota sobre todo en los grises
+      float n = fract(sin(dot(vUv * resolucion + tiempo, vec2(12.9898, 78.233))) * 43758.5453);
+      c += (n - 0.5) * 0.014 * (1.0 - smoothstep(0.6, 1.0, luma));
 
       gl_FragColor = vec4(c, 1.0);
     }
@@ -65,8 +80,8 @@ export function crearPostproceso(renderer: THREE.WebGLRenderer, escena: THREE.Sc
 
   composer.addPass(new RenderPass(escena, camara));
 
-  // brillo: solo lo que de verdad es una fuente de luz (paneles, lámparas, lucernario)
-  const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.38, 0.55, 0.95);
+  // sin lámparas encendidas el brillo casi no tiene de dónde salir: queda apenas para las pantallas
+  const brillo = new UnrealBloomPass(new THREE.Vector2(ancho, alto), 0.06, 0.3, 2.1);
   composer.addPass(brillo);
 
   // revelado: curva de tonos ACES y paso a sRGB, una sola vez
@@ -79,12 +94,14 @@ export function crearPostproceso(renderer: THREE.WebGLRenderer, escena: THREE.Sc
     render(escenaActual, camaraActual) {
       (composer.passes[0] as RenderPass).scene = escenaActual;
       (composer.passes[0] as RenderPass).camera = camaraActual;
+      remate.uniforms.tiempo.value = performance.now() / 1000;
       composer.render();
     },
     ajustar(nuevoAncho, nuevoAlto, nuevaProporcion) {
       composer.setPixelRatio(nuevaProporcion);
       composer.setSize(nuevoAncho, nuevoAlto);
       brillo.setSize(nuevoAncho, nuevoAlto);
+      remate.uniforms.resolucion.value.set(nuevoAncho * nuevaProporcion, nuevoAlto * nuevaProporcion);
     },
     liberar() {
       composer.dispose();

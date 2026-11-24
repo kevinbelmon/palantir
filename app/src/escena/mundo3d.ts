@@ -13,6 +13,7 @@ import { crearJardin, decorarLobby, amueblarSala } from "./mansion";
 import { crearExterior, crearGaleria, crearLucesDePiso, crearPatio, crearRecepcion, crearTecho, decorarSala } from "./oficinas";
 import { ALTURA_ATRIO, ALTURA_TECHO, ESCALA_CASA, type Jugador } from "./persona";
 import { animarCuerpo, crearGente } from "./gente";
+import { crearMarca } from "./marca";
 import { apagarMunyeco, crearBebedero, crearEscritorio, crearMesaRedonda, crearMunyeco, crearObjeto, crearPlanta, crearSilla, type Munyeco } from "./figuras";
 import { sprite, texturaCartelCentral, texturaCartelChico, texturaEtiqueta, texturaGlobito, texturaGuiones, texturaInsignia, texturaPizarra, texturaRotulo, texturaSigno } from "./texturas";
 
@@ -27,6 +28,8 @@ export type Mundo3D = {
   colocarJugador: (j: Jugador | null) => void;
   /** Dónde está cada persona de pie ahora (recepcionista, empleados): no se las puede atravesar. */
   personas: () => { x: number; z: number }[];
+  /** Señala un lugar del plano con un marco amarillo que late (lo usa el recorrido explicado); `null` lo apaga. */
+  marcar: (zona: { x: number; y: number; w: number; h: number } | null) => void;
   /** Pone el mundo al día con el juego. `t` son los segundos de animación (0 deja todo quieto). */
   actualizar: (agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) => void;
   /** Libera la memoria de la tarjeta de video. */
@@ -70,7 +73,9 @@ export function construirMundo(): Mundo3D {
   // luces: cielo suave y un sol que tira sombras
   const cielo = new THREE.HemisphereLight("#ffffff", "#8e94bd", 0.62);
   const ambiente = new THREE.AmbientLight("#fff3e0", 0);
-  escena.add(cielo, ambiente);
+  // el rebote del piso: la luz cálida que sube y golpea el techo. Es lo que evita que un interior se vea plano.
+  const rebote = new THREE.HemisphereLight("#0b0e14", "#4d3c28", 0);
+  escena.add(cielo, ambiente, rebote);
   const sol = new THREE.DirectionalLight("#fff4e0", 1.6);
   sol.position.set(MUNDO.ancho / 2 - 700, 1500, MUNDO.alto / 2 - 500);
   sol.target.position.set(MUNDO.ancho / 2, 0, MUNDO.alto / 2);
@@ -111,7 +116,7 @@ export function construirMundo(): Mundo3D {
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(posiciones, 3));
-    const material = new THREE.PointsMaterial({ color: "#ffe6bd", size: 1.7, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending });
+    const material = new THREE.PointsMaterial({ color: "#ffe6bd", size: 1.5, transparent: true, opacity: 0.12, depthWrite: false, blending: THREE.AdditiveBlending });
     const puntos = new THREE.Points(geo, material);
     puntos.frustumCulled = false;
     polvo.add(puntos);
@@ -306,6 +311,7 @@ export function construirMundo(): Mundo3D {
 
   function actualizar(agentes: readonly EstadoAgente[], brief: UbicacionBrief, t: number) {
     const pulso = 0.5 + 0.5 * Math.sin(t * 4);
+    marca.actualizar(t);
     jardin.actualizar(t);
     gente.actualizar(t);
     if (polvo.visible) polvo.rotation.y = t * 0.02;
@@ -327,10 +333,10 @@ export function construirMundo(): Mundo3D {
       apagarMunyeco(m, estado === "deshabilitado");
 
       for (const tex of p.pantallas) tex.offset.y = estado === "corriendo" ? (t * 0.5) % 1 : 0;
-      for (const led of p.leds) led.emissiveIntensity = estado === "corriendo" ? 0.4 + 0.8 * Math.abs(Math.sin(t * 8 + i)) : 0.9;
+      for (const led of p.leds) led.emissiveIntensity = estado === "corriendo" ? 0.25 + 0.5 * Math.abs(Math.sin(t * 8 + i)) : 0.5;
 
       p.halo.visible = estado === "habilitado";
-      p.haloMat.opacity = 0.3 + 0.3 * pulso;
+      p.haloMat.opacity = 0.18 + 0.18 * pulso;
       p.signo.visible = estado === "habilitado";
       p.signo.position.y = 235 + Math.sin(t * 5) * 9;
       p.globito.visible = estado === "corriendo";
@@ -338,7 +344,7 @@ export function construirMundo(): Mundo3D {
       p.insignia.visible = estado === "terminado" && !caminando;
       p.etiqueta.visible = !caminando;
       p.documento.grupo.visible = estado === "terminado";
-      p.documento.material.emissiveIntensity = 0.15 + 0.5 * pulso;
+      p.documento.material.emissiveIntensity = 0.08 + 0.22 * pulso;
       p.documento.grupo.position.y = 72 + pulso * 3;
 
       if (p.etiquetaEstado !== estado) {
@@ -356,7 +362,7 @@ export function construirMundo(): Mundo3D {
     if (brief === "mano") {
       colocar(hoja, cm.x, 120 + Math.sin(t * 3) * 8, cm.z - 4);
       hoja.scale.setScalar(1.15 + Math.sin(t * 4) * 0.07);
-      briefPapel.material.emissiveIntensity = 0.5 + 0.4 * pulso;
+      briefPapel.material.emissiveIntensity = 0.28 + 0.2 * pulso;
     } else if (brief === "papeleria") {
       colocar(hoja, cm.x, 70, cm.z - 4);
       hoja.scale.setScalar(1);
@@ -395,6 +401,8 @@ export function construirMundo(): Mundo3D {
     });
   }
 
+  const marca = crearMarca(raiz);
+
   // la persona que recorre, vista desde arriba
   const marcador = new THREE.Group();
   const cuerpoMarcador = new THREE.Mesh(new THREE.CapsuleGeometry(18, 70, 6, 14), plastico("#ffffff", { emissive: "#ffffff", emissiveIntensity: 0.25 }));
@@ -413,6 +421,7 @@ export function construirMundo(): Mundo3D {
   escena.traverse((o) => {
     if ((o as THREE.Sprite).isSprite) {
       const s = o as THREE.Sprite;
+      if (s.userData.fijo) return; // los halos de luz no se achican al caminar
       s.userData.escala0 = s.scale.clone();
       sprites.push(s);
     }
@@ -444,11 +453,13 @@ export function construirMundo(): Mundo3D {
     polvo.visible = dentro;
     // adentro hay más luz pareja (los ambientes cerrados reciben poco cielo) y menos sol; los carteles dejan de verse a través de las paredes
     // adentro manda la luz de las lámparas: poca luz pareja y poco sol, para que se marquen los volúmenes
-    cielo.intensity = dentro ? 0.34 : 0.72;
-    ambiente.intensity = dentro ? 0.1 : 0;
-    sol.intensity = dentro ? 0.66 : 1.4;
-    // niebla corta: da profundidad a los pasillos y esconde el fondo (como en una casa grande y oscura)
-    escena.fog = dentro ? new THREE.Fog("#14151d", 760 * k, 3600 * k) : null;
+    // la casa está iluminada por luz pareja de día: nada de lámparas encendidas
+    cielo.intensity = dentro ? 0.95 : 0.8;
+    ambiente.intensity = dentro ? 0.42 : 0.15;
+    rebote.intensity = dentro ? 0.18 : 0;
+    sol.intensity = dentro ? 1.05 : 1.3;
+    // niebla clara: da profundidad a los pasillos sin ensuciar el blanco
+    escena.fog = dentro ? new THREE.Fog(PALETA.fondo, 1300 * k, 5600 * k) : null;
     caminando = dentro;
     for (const s of sprites) {
       s.material.depthTest = dentro;
@@ -492,5 +503,5 @@ export function construirMundo(): Mundo3D {
     }
   }
 
-  return { escena, ponerModo, colocarJugador, personas: gente.posiciones, actualizar, liberar };
+  return { escena, ponerModo, colocarJugador, personas: gente.posiciones, marcar: marca.poner, actualizar, liberar };
 }

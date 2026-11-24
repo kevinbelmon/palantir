@@ -3,6 +3,7 @@ import { LOBBY, MUNDO, PAPELERIA, rellenoSobrePuerta, SALAS, tirasDeMuro, type R
 import { ALTO_DINTEL, ALTO_MARCO, colorDePiso } from "./identidad";
 import { PALETA } from "../oficina/paleta";
 import { conRepeticion, texturaBaldosas, texturaCemento, texturaParquet, texturaPiedra, texturaYeso } from "./materiales";
+import { relieveDe } from "./realismo";
 import { LADRILLO } from "./texturas";
 
 export const PASO_TACO = 28;
@@ -62,19 +63,27 @@ export function crearPisos(raiz: THREE.Group): { liberar: () => void } {
   const baldosas = nueva(texturaBaldosas());
   const cemento = nueva(texturaCemento());
 
-  const piso = (r: Rect, grosor: number, y: number, base: THREE.Texture, escala: number, extra: Partial<THREE.MeshStandardMaterialParameters>, tinte = "#ffffff") => {
+  /** `relieve` es la fuerza del grano: la madera y el cemento lo tienen marcado, el mármol pulido casi nada. */
+  const piso = (r: Rect, grosor: number, y: number, base: THREE.Texture, escala: number, extra: Partial<THREE.MeshPhysicalMaterialParameters>, tinte = "#ffffff", relieve = 0.55) => {
     const mapa = nueva(conRepeticion(base, r.w, r.h, escala));
-    const mat = new THREE.MeshStandardMaterial({ map: mapa, color: tinte, ...extra });
+    const mat = new THREE.MeshPhysicalMaterial({
+      map: mapa,
+      color: tinte,
+      normalMap: relieveDe(mapa, 1.7),
+      normalScale: new THREE.Vector2(relieve, relieve),
+      ...extra,
+    });
     raiz.add(caja(r.w, grosor, r.h, mat, r.x + r.w / 2, y, r.y + r.h / 2));
   };
 
   const losa: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
-  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.72 }, PALETA.cemento);
+  piso(losa, 40, -20.5, cemento, 300, { roughness: 0.7 }, PALETA.cemento, 0.75);
 
   // el piso de cada oficina lleva un toque del color de su agente
-  SALAS.forEach((s, i) => piso(s.area, 20, -10, parquet, 160, { roughness: 0.42 }, colorDePiso(i)));
-  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.06, metalness: 0.28, envMapIntensity: 2.6 }, PALETA.marmolGrafito);
-  piso(PAPELERIA, 20, -10, parquet, 160, { roughness: 0.42 });
+  SALAS.forEach((s, i) => piso(s.area, 20, -10, parquet, 160, { roughness: 0.4 }, colorDePiso(i), 0.7));
+  // el mármol del lobby: pulido, con una capa de barniz que devuelve las luces del atrio
+  piso(LOBBY, 20, -10, baldosas, 300, { roughness: 0.18, metalness: 0.02, clearcoat: 0.85, clearcoatRoughness: 0.1, envMapIntensity: 1 }, PALETA.marmolGrafito, 0.22);
+  piso(PAPELERIA, 20, -10, parquet, 160, { roughness: 0.4 }, "#ffffff", 0.7);
   return { liberar: () => texturas.forEach((t) => t.dispose()) };
 }
 
@@ -86,9 +95,10 @@ const ALTURA = { norte: 170, sur: 40, oeste: 110, este: 110 } as const;
  */
 export function crearMuros(raiz: THREE.Group, alturaCompleta: number): { corte: THREE.Group; completo: THREE.Group; liberar: () => void } {
   const yeso = texturaYeso(PALETA.pared);
-  const matPared = new THREE.MeshStandardMaterial({ map: yeso, roughness: 0.9 });
+  // el yeso no es un color liso: tiene el grano de la mezcla, y la luz lo tiene que rasgar
+  const matPared = new THREE.MeshPhysicalMaterial({ map: yeso, roughness: 0.94, normalMap: relieveDe(yeso, 1.3), normalScale: new THREE.Vector2(0.45, 0.45) });
   const piedra = texturaPiedra();
-  const matPiedra = new THREE.MeshStandardMaterial({ map: piedra, color: "#33363f", roughness: 0.88 });
+  const matPiedra = new THREE.MeshPhysicalMaterial({ map: piedra, color: "#6a6f80", roughness: 0.82, normalMap: relieveDe(piedra, 2), normalScale: new THREE.Vector2(0.8, 0.8) });
   const matZocalo = plastico(PALETA.zocalo, { roughness: 0.42 });
   // vidrio de verdad: casi sin color, con el brillo del entorno y una capa de barniz que refleja las luces
   const matVidrio = new THREE.MeshPhysicalMaterial({

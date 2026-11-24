@@ -5,6 +5,7 @@ import { APARIENCIAS, PALETA } from "../oficina/paleta";
 import { plastico } from "./bloques3d";
 import { mezclarHex } from "./identidad";
 import { conRepeticion, texturaCaraReal, texturaMadera } from "./materiales";
+import { cajaRedonda, geoRedonda, manchaDeContacto, pulido, tela } from "./realismo";
 import { texturaPantalla } from "./texturas";
 
 const PANTALON = "#2c3042";
@@ -42,7 +43,7 @@ export function crearMunyeco(indice: number, dePie = false): Munyeco {
   const grupo = new THREE.Group();
   const piezas: Pieza[] = [];
 
-  const pieza = (geo: THREE.BufferGeometry, color: string, x: number, y: number, z: number, padre: THREE.Object3D = grupo, rugosidad = 0.62) => {
+  const pieza = (geo: THREE.BufferGeometry, color: string, x: number, y: number, z: number, padre: THREE.Object3D = grupo, rugosidad = 0.7) => {
     const normal = new THREE.MeshStandardMaterial({ color, roughness: rugosidad });
     const apagado = new THREE.MeshStandardMaterial({ color: mezclarHex(color, GRIS_APAGADO, 0.55), roughness: rugosidad });
     const malla = new THREE.Mesh(geo, normal);
@@ -138,8 +139,8 @@ export type Escritorio = { grupo: THREE.Group; pantallas: THREE.Texture[] };
 export function crearEscritorio(e: Rect): Escritorio {
   const grupo = new THREE.Group();
   const pantallas: THREE.Texture[] = [];
-  const caja = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number) => {
-    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  const caja = (w: number, h: number, d: number, mat: THREE.Material, x: number, y: number, z: number, redondeo = 0) => {
+    const m = redondeo > 0 ? cajaRedonda(w, h, d, redondeo, mat) : new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     m.position.set(x, y, z);
     m.castShadow = true;
     m.receiveShadow = true;
@@ -150,15 +151,16 @@ export function crearEscritorio(e: Rect): Escritorio {
   const cz = e.y + e.h / 2;
   const fondo = e.h - 8;
   const veta = texturaMadera("#bd8d55");
-  const tablero = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, e.w, fondo, 150), roughness: 0.42 });
-  const costado = new THREE.MeshStandardMaterial({ map: conRepeticion(veta, 90, 60, 150), color: "#c9a479", roughness: 0.55 });
+  // el tablero es madera barnizada: un poco de brillo en la veta, no un plástico opaco
+  const tablero = pulido("#ffffff", { map: conRepeticion(veta, e.w, fondo, 150), roughness: 0.34, clearcoat: 0.35, clearcoatRoughness: 0.3 });
+  const costado = new THREE.MeshPhysicalMaterial({ map: conRepeticion(veta, 90, 60, 150), color: "#c9a479", roughness: 0.5, clearcoat: 0.2, clearcoatRoughness: 0.4 });
   const metal = plastico("#9aa0ab", { roughness: 0.3, metalness: 0.6 });
-  caja(e.w + 8, 5, fondo, tablero, cx, 63.5, cz);
+  caja(e.w + 8, 5, fondo, tablero, cx, 63.5, cz, 4);
   // dos cajoneras con sus cajones y manijas
   const fondoCajonera = Math.min(82, fondo - 10);
   for (const lado of [-1, 1]) {
     const x = lado === -1 ? e.x + 34 : e.x + e.w - 34;
-    caja(62, 61, fondoCajonera, costado, x, 30.5, cz);
+    caja(62, 61, fondoCajonera, costado, x, 30.5, cz, 3);
     for (let i = 0; i < 3; i++) {
       caja(54, 17, 1.5, plastico("#b58e5e", { roughness: 0.5 }), x, 12 + i * 20, cz - fondoCajonera / 2 - 0.5);
       caja(18, 2.4, 2.4, metal, x, 12 + i * 20, cz - fondoCajonera / 2 - 2);
@@ -184,7 +186,7 @@ export function crearEscritorio(e: Rect): Escritorio {
     };
     parte(new THREE.CylinderGeometry(15, 17, 2.5, 24), marco, 0, 67.2, 0);
     parte(new THREE.BoxGeometry(5, 26, 4), marco, 0, 81, -1);
-    parte(new THREE.BoxGeometry(76, 46, 3.4), marco, 0, 108, 0);
+    parte(geoRedonda(76, 46, 3.4, 2), marco, 0, 108, 0);
     const tex = texturaPantalla(i === 0 ? PALETA.monitorPantalla : PALETA.monitorPantalla2);
     tex.repeat.set(1, 0.18);
     pantallas.push(tex);
@@ -204,13 +206,15 @@ export function crearEscritorio(e: Rect): Escritorio {
   taza.position.set(e.x + e.w - 78, 70.5, e.y + 24);
   taza.castShadow = true;
   grupo.add(taza);
+  // sin esto el escritorio parece flotar sobre el piso
+  manchaDeContacto(grupo, cx, cz, e.w + 90, fondo + 80, 0.55);
   return { grupo, pantallas };
 }
 
 /** Silla de oficina: asiento y respaldo de tela, apoyabrazos, columna y base de cinco patas con ruedas. Mira hacia +z. */
 export function crearSilla(): THREE.Group {
   const g = new THREE.Group();
-  const tela = new THREE.MeshStandardMaterial({ color: "#2a2e3a", roughness: 0.92 });
+  const tejido = tela("#2a2e3a");
   const plasticoNegro = plastico("#15171f", { roughness: 0.45 });
   const parte = (geo: THREE.BufferGeometry, mat: THREE.Material, x: number, y: number, z: number) => {
     const m = new THREE.Mesh(geo, mat);
@@ -220,8 +224,8 @@ export function crearSilla(): THREE.Group {
     g.add(m);
     return m;
   };
-  parte(new THREE.BoxGeometry(46, 8, 44), tela, 0, 42, 4).geometry.translate(0, 0, 0);
-  const respaldo = parte(new THREE.BoxGeometry(44, 52, 7), tela, 0, 76, -20);
+  parte(geoRedonda(46, 8, 44, 3.5), tejido, 0, 42, 4);
+  const respaldo = parte(geoRedonda(44, 52, 8, 1.2), tejido, 0, 76, -20);
   respaldo.rotation.x = -0.12;
   for (const lado of [-1, 1]) {
     parte(new THREE.BoxGeometry(4, 3, 26), plasticoNegro, lado * 26, 62, 2);
@@ -235,6 +239,7 @@ export function crearSilla(): THREE.Group {
     pata.rotation.y = ang;
     parte(new THREE.SphereGeometry(3, 10, 8), plasticoNegro, Math.sin(ang) * 22, 3, 4 + Math.cos(ang) * 22);
   }
+  manchaDeContacto(g, 0, 4, 76, 72, 0.5);
   return g;
 }
 
@@ -257,6 +262,7 @@ export function crearPlanta(): THREE.Group {
     h.castShadow = true;
     g.add(h);
   }
+  manchaDeContacto(g, 0, 0, 62, 62, 0.5);
   return g;
 }
 
@@ -292,9 +298,10 @@ export function crearMesaRedonda(rx: number, ry: number): THREE.Group {
     g.add(base);
     const pantalla = new THREE.Mesh(new THREE.BoxGeometry(48, 30, 3), plastico(PALETA.monitorPantalla, { emissive: PALETA.monitorPantalla, emissiveIntensity: 0.35 }));
     pantalla.position.set(dx, 82, dz - 14);
-    pantalla.rotation.x = -0.25;
-    g.add(pantalla);
+      pantalla.rotation.x = -0.25;
+      g.add(pantalla);
   }
+  manchaDeContacto(g, 0, 0, rx * 2 + 60, ry * 2 + 60, 0.45);
   return g;
 }
 

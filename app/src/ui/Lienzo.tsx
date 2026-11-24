@@ -18,8 +18,11 @@ import {
 import { ALTO_BARRA } from "./BarraSuperior";
 import { ALTO_DOCK } from "./Dock";
 
-/** Pedido de llevar la cámara a una sala. `vez` cambia en cada pedido, así se puede repetir el mismo. */
-export type Enfoque = { indice: number; vez: number };
+/**
+ * Pedido de llevar la cámara a una sala. `vez` cambia en cada pedido, así se puede repetir el mismo.
+ * `zona` es opcional: en vez de meterse en la sala, encuadra ese pedazo del plano (lo usa el modo demo).
+ */
+export type Enfoque = { indice: number; vez: number; zona?: { x: number; y: number; w: number; h: number }; /** Cuánto dura el viaje de la cámara, en milisegundos (por defecto, el de siempre). Si se pasa, el viaje además hace un pequeño arco. */ duracion?: number };
 
 type Props = { agentes: readonly EstadoAgente[]; brief: UbicacionBrief; alElegir: (e: Elemento) => void; enfoque: Enfoque | null };
 

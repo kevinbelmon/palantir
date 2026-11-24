@@ -2,6 +2,7 @@ import * as THREE from "three";
 import { parpadeo, PERSONAS_AMBIENTE, poseDe, respiracion, type PersonaAmbiente, type Pose } from "../oficina";
 import { plastico } from "./bloques3d";
 import { ANCLAS, crearMunyeco, type Munyeco } from "./figuras";
+import { manchaDeContacto } from "./realismo";
 
 /** Cómo mueve el cuerpo una persona según lo que hace. Funciona igual para los agentes sentados, los colegas y la gente de pie. */
 export type Gesto = "quieto" | "teclea" | "charla" | "escribe" | "lee" | "consulta" | "camina" | "habla-sentado";
@@ -159,7 +160,10 @@ export function crearGente(raiz: THREE.Group): Gente {
     const taza = p.modo === "quieta" && p.actividad === "charla" ? crearTaza() : null;
     if (taza) m.manoD.add(taza);
     raiz.add(m.grupo);
-    return { p, m, taza, pose: poseDe(p, 0) };
+    // la sombra va suelta en el piso (no cuelga del cuerpo, si no sube y baja al caminar)
+    const pose0 = poseDe(p, 0);
+    const sombra = manchaDeContacto(raiz, pose0.x, pose0.z, 70, 58, 0.45);
+    return { p, m, taza, pose: pose0, sombra };
   });
 
   function actualizar(t: number) {
@@ -167,6 +171,7 @@ export function crearGente(raiz: THREE.Group): Gente {
       g.pose = poseDe(g.p, t);
       g.m.grupo.position.set(g.pose.x, 0, g.pose.z);
       g.m.grupo.rotation.y = g.pose.giro;
+      g.sombra.position.set(g.pose.x, 0.9, g.pose.z);
       animarCuerpo(g.m, gestoDe(g.p, g.pose), t, g.p.modo === "quieta" ? g.p.fase : g.p.desfase, g.p.indice, g.p.modo === "camina");
       if (g.taza) g.taza.rotation.x = 0.5 - g.m.brazoD.rotation.x;
     }

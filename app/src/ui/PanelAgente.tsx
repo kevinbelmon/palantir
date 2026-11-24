@@ -26,6 +26,10 @@ type Props = {
   alTerminar?: () => void;
   /** Abre el documento que dejó el agente (solo si ya terminó). */
   alLeer?: () => void;
+  /** El agente está por escribir: se muestra «escribiendo…» con tres puntos. Lo usa el modo demo. */
+  escribiendo?: boolean;
+  /** Lo que ya está escrito en la caja, cuando el texto lo pone otro (el modo demo). */
+  borrador?: string;
 };
 
 /** Negritas (**así**) y código (`así`) de lo que escribe el agente; el resto va tal cual, con sus saltos de línea. */
@@ -70,12 +74,14 @@ function Hace({ lineas, cuenta, titulo }: { lineas?: readonly string[]; cuenta: 
 }
 
 /** El panel de la derecha: qué hace el agente que tocaste y, con un repo conectado, el chat donde te explica y te pregunta. */
-export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer, actividad, mensajes, ocupado = false, alEnviar, alTerminar }: Props) {
+export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, alLeer, actividad, mensajes, ocupado = false, alEnviar, alTerminar, escribiendo = false, borrador }: Props) {
   const agente = AGENTES[indice];
   const t = textosDe(agente.id);
   const anterior = indice > 0 ? textosDe(AGENTES[indice - 1].id).nombre : null;
   const hayChat = (mensajes?.length ?? 0) > 0 || (estado === "corriendo" && alEnviar !== undefined);
   const [respuesta, setRespuesta] = useState("");
+  /** Lo que se ve en la caja: lo que escribe la persona, o lo que escribe el guion de la demo. */
+  const enLaCaja = borrador ?? respuesta;
   const fin = useRef<HTMLDivElement>(null);
 
   // el chat baja solo hasta lo último que se dijo
@@ -142,6 +148,15 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
                 <Hace lineas={actividad} cuenta={t.globito} />
               </div>
             )}
+            {escribiendo && (
+              <div aria-label="El agente está escribiendo" style={{ alignSelf: "flex-start", padding: "12px 16px", background: "var(--superficie)" }}>
+                <span className="puntos-escribiendo" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </div>
+            )}
             <div ref={fin} />
           </div>
         )}
@@ -174,9 +189,9 @@ export function PanelAgente({ indice, estado, briefDejado, alOrdenar, alCerrar, 
         )}
         {estado === "corriendo" && alEnviar && (
           <>
-            <textarea aria-label="Tu respuesta" className="campo" rows={2} value={respuesta} disabled={ocupado} onChange={(e) => setRespuesta(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), enviar())} placeholder={ocupado ? "Esperá a que termine de trabajar…" : "Escribí tu respuesta…"} style={{ resize: "none" }} />
+            <textarea aria-label="Tu respuesta" className="campo" rows={2} value={enLaCaja} readOnly={borrador !== undefined} disabled={ocupado} onChange={(e) => setRespuesta(e.target.value)} onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), enviar())} placeholder={ocupado ? "Esperá a que termine de trabajar…" : "Escribí tu respuesta…"} style={{ resize: "none" }} />
             <div style={{ display: "flex", gap: 10 }}>
-              <button className="btn" style={{ flex: 1 }} disabled={ocupado || !respuesta.trim()} onClick={enviar}>
+              <button className="btn" style={{ flex: 1 }} disabled={ocupado || !enLaCaja.trim()} onClick={enviar}>
                 Enviar
               </button>
               {alTerminar && (

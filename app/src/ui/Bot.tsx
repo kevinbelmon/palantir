@@ -14,7 +14,7 @@ const leerMinimizado = (): boolean => {
 };
 
 /** La cara del bot: cuadrada y plana, como el resto de la interfaz. */
-function CaraDelBot({ tam = 44 }: { tam?: number }) {
+export function CaraDelBot({ tam = 44, hablando = false }: { tam?: number; hablando?: boolean }) {
   return (
     <svg viewBox="0 0 48 48" width={tam} height={tam} aria-hidden="true" style={{ flex: "none" }}>
       <rect x="23" y="2" width="2" height="8" fill="#f2f2f2" />
@@ -26,7 +26,9 @@ function CaraDelBot({ tam = 44 }: { tam?: number }) {
       <rect x="28" y="19" width="8" height="8" fill="#000" />
       <rect x="14" y="21" width="3" height="3" fill="#5b7cff" />
       <rect x="30" y="21" width="3" height="3" fill="#5b7cff" />
-      <rect x="15" y="32" width="18" height="3" fill="#000" />
+      <rect x="15" y="32" width="18" height="3" fill="#000">
+        {hablando && <animate attributeName="height" values="3;8;3;6;3" dur="0.5s" repeatCount="indefinite" />}
+      </rect>
     </svg>
   );
 }
@@ -38,13 +40,13 @@ const quien = (contexto: ContextoBot): string => {
   return a ? `Paso ${a.numero} de ${AGENTES.length} · ${a.comando}` : "";
 };
 
-type Props = { contexto: ContextoBot };
+type Props = { contexto: ContextoBot; /** Si se pasa, aparece el botón para ver el recorrido explicado. */ alRecorrido?: () => void };
 
 /**
  * El bot guía, en la esquina de arriba a la izquierda del mapa: explica de a una tarjeta qué es el paso, qué hace el agente,
  * qué tiene que hacer la persona, cómo sabe que terminó y qué hacer si se traba. Se puede achicar.
  */
-export function Bot({ contexto }: Props) {
+export function Bot({ contexto, alRecorrido }: Props) {
   const [minimizado, setMinimizado] = useState(leerMinimizado);
   const [pagina, setPagina] = useState(0);
   // si cambia el tema, se arranca de la primera tarjeta (se compara en el render, sin efectos)
@@ -108,6 +110,11 @@ export function Bot({ contexto }: Props) {
           {ultima ? "Ver de nuevo" : "Siguiente"}
         </button>
       </div>
+      {alRecorrido && (
+        <button className="btn btn-suave" onClick={alRecorrido} style={{ width: "100%" }}>
+          ▶ Ver el recorrido explicado
+        </button>
+      )}
     </aside>
   );
 }

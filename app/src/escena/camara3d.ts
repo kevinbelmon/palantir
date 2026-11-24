@@ -105,6 +105,14 @@ export function camara3dEnSala(sala: Sala, vista: VistaPantalla, superior = MARG
   return encuadrar(sala.area, vista, superior, inferior, 0.9);
 }
 
+/**
+ * La cámara que encuadra un pedazo cualquiera del plano. Sirve para mostrar una oficina con su pasillo
+ * y sus vecinas a la vista, en vez de meterse dentro del cuarto.
+ */
+export function camara3dEnZona(zona: Rect, vista: VistaPantalla, superior = MARGEN_SUPERIOR, inferior = MARGEN_INFERIOR, aire = 0.94): Camara3D {
+  return encuadrar(zona, vista, superior, inferior, aire);
+}
+
 /** Lo más cerca (se lee una sala chica) y lo más lejos (se ve todo y un poco más) que puede estar la cámara. */
 export function limitesDistancia(vista: VistaPantalla): { min: number; max: number } {
   const todo = camara3dInicial(vista).distancia;
@@ -130,14 +138,17 @@ export function zoom3d(c: Camara3D, factor: number, vista: VistaPantalla, px: nu
   return dentroDelMundo({ ...nueva, x: nueva.x + (antes.x - despues.x), z: nueva.z + (antes.z - despues.z) });
 }
 
-/** Un punto del viaje entre dos cámaras (`k` de 0 a 1), suave al salir y al llegar. */
-export function interpolar3d(a: Camara3D, b: Camara3D, k: number): Camara3D {
+/**
+ * Un punto del viaje entre dos cámaras (`k` de 0 a 1), suave al salir y al llegar. Con `arco` mayor que 0 la cámara se aleja
+ * a mitad de camino (`arco` es cuánto, en unidades de distancia) y vuelve a acercarse: así se ve de dónde sale y adónde llega.
+ */
+export function interpolar3d(a: Camara3D, b: Camara3D, k: number, arco = 0): Camara3D {
   const t = entre(k, 0, 1);
   const e = t * t * (3 - 2 * t);
   return {
     x: a.x + (b.x - a.x) * e,
     z: a.z + (b.z - a.z) * e,
-    distancia: a.distancia + (b.distancia - a.distancia) * e,
+    distancia: a.distancia + (b.distancia - a.distancia) * e + arco * Math.sin(Math.PI * e),
     inclinacion: a.inclinacion + (b.inclinacion - a.inclinacion) * e,
     giro: a.giro + (b.giro - a.giro) * e,
   };

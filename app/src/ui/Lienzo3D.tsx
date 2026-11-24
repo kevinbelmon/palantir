@@ -9,6 +9,7 @@ import {
   OJOS_EN_CASA,
   arrastrar3d,
   camara3dEnSala,
+  camara3dEnZona,
   camara3dInicial,
   construirMundo,
   crearPostproceso,
@@ -29,6 +30,7 @@ import {
   type ModoDeVista,
   type Mundo3D,
 } from "../escena";
+import { crearMedidorDeFps, EFECTOS_POR_NIVEL, NIVEL_MAXIMO, nivelSegunFps, PROPORCION_POR_NIVEL, SOMBRA_CADA_NIVEL } from "../escena/calidad";
 import { ALTO_BARRA } from "./BarraSuperior";
 import { ALTO_DOCK } from "./Dock";
 import type { Enfoque } from "./Lienzo";
@@ -40,6 +42,12 @@ type Props = {
   enfoque: Enfoque | null;
   /** Desde arriba, como una maqueta, o caminando por adentro. */
   modo?: ModoDeVista;
+  /** Cuánto espacio libre dejar abajo antes de encuadrar (por defecto, el alto del dock). */
+  margenInferior?: number;
+  /** Un lugar del plano para señalar con un marco amarillo (el recorrido explicado); `null` no señala nada. */
+  marca?: { x: number; y: number; w: number; h: number } | null;
+  /** Deja de dibujar (por ejemplo, mientras se ve la presentación de pantalla completa): la compu descansa. */
+  pausar?: boolean;
 };
 
 const DURACION_VIAJE_MS = 700;
@@ -61,14 +69,21 @@ const escribiendo = () => {
  * La oficina en 3D. Desde arriba: clic derecho para mover, rueda para acercar, clic para elegir.
  * Caminando: mouse para mirar, W A S D para moverse, E para hablar con quien tengas adelante.
  */
-export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }: Props) {
+export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba", margenInferior, marca = null, pausar = false }: Props) {
+  // en el modo demo el mapa termina arriba de la franja de la explicación, así que no hay que dejar
+  // el hueco del dock: el encuadre sale centrado en el espacio que de verdad se ve
+  const INFERIOR = margenInferior ?? ALTO_DOCK;
   const ref = useRef<HTMLCanvasElement>(null);
   const vista = useRef({ agentes, brief });
   const elegir = useRef(alElegir);
   const camara = useRef<Camara3D | null>(null);
-  const viaje = useRef<{ desde: Camara3D; hasta: Camara3D; inicio: number } | null>(null);
+  const viaje = useRef<{ desde: Camara3D; hasta: Camara3D; inicio: number; duracion?: number; arco?: number } | null>(null);
   const movida = useRef(false);
   const mundoRef = useRef<Mundo3D | null>(null);
+  const pausaRef = useRef(pausar);
+  useEffect(() => {
+    pausaRef.current = pausar;
+  }, [pausar]);
   const modoRef = useRef<ModoDeVista>(modo);
   const jugador = useRef<Jugador>(JUGADOR_INICIAL);
   const jugadorUsado = useRef(false);
@@ -85,13 +100,19 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const canvas = ref.current;
     if (!enfoque || !canvas) return;
     const tamano = { ancho: canvas.clientWidth, alto: canvas.clientHeight };
-    const hasta = camara3dEnSala(SALAS[enfoque.indice], tamano, ALTO_BARRA, ALTO_DOCK);
-    const desde = camara.current ?? camara3dInicial(tamano, ALTO_BARRA, ALTO_DOCK);
+    // con `zona` se encuadra un pedazo del plano (la oficina y su alrededor); sin `zona`, la sala entera
+    const hasta = enfoque.zona ? camara3dEnZona(enfoque.zona, tamano, ALTO_BARRA, INFERIOR) : camara3dEnSala(SALAS[enfoque.indice], tamano, ALTO_BARRA, INFERIOR);
+    const desde = camara.current ?? camara3dInicial(tamano, ALTO_BARRA, INFERIOR);
     movida.current = true;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       camara.current = hasta;
       viaje.current = null;
-    } else viaje.current = { desde, hasta, inicio: performance.now() };
+    } else {
+      // con duración propia (el recorrido explicado) el viaje es más lento y se aleja un poco a mitad de camino, tanto más cuanto más largo es
+      const salto = Math.hypot(hasta.x - desde.x, hasta.z - desde.z);
+      const arco = enfoque.duracion ? Math.min(0.45, salto / 2400) * Math.max(desde.distancia, hasta.distancia) : 0;
+      viaje.current = { desde, hasta, inicio: performance.now(), duracion: enfoque.duracion, arco };
+    }
   }, [enfoque]);
 
   useEffect(() => {
@@ -99,7 +120,11 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     if (!canvas) return;
     const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
+    // sombras suaves: el borde duro es lo que más delata una escena de bloques
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // el mapa de sombras es lo más caro de cada cuadro: se vuelve a dibujar cada tanto, no en todos (la gente se mueve despacio)
+    renderer.shadowMap.autoUpdate = false;
+    renderer.shadowMap.needsUpdate = true;
     // cine: curva de tonos filmica y reflejos de un interior, para que los materiales (mármol, madera, vidrio) brillen de verdad
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.95;
@@ -107,8 +132,23 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const entorno = generador.fromScene(new RoomEnvironment(), 0.04).texture;
     generador.dispose();
     const mundo = construirMundo();
+    // texturas bien nítidas aunque se las mire de costado (el piso con la cámara inclinada): filtrado anisotrópico al máximo
+    const nitidez = renderer.capabilities.getMaxAnisotropy();
+    const afinadas = new Set<THREE.Texture>();
+    mundo.escena.traverse((o) => {
+      const m = (o as THREE.Mesh).material as THREE.Material | THREE.Material[] | undefined;
+      for (const mat of Array.isArray(m) ? m : m ? [m] : []) {
+        const e = mat as THREE.MeshStandardMaterial;
+        for (const t of [e.map, e.normalMap, e.roughnessMap, e.emissiveMap, e.aoMap]) {
+          if (t && !afinadas.has(t)) {
+            afinadas.add(t);
+            t.anisotropy = nitidez;
+          }
+        }
+      }
+    });
     mundo.escena.environment = entorno;
-    mundo.escena.environmentIntensity = 0.45;
+    mundo.escena.environmentIntensity = 0.55;
     mundoRef.current = mundo;
     mundo.ponerModo(modoRef.current);
     const lente = new THREE.PerspectiveCamera((FOV_VERTICAL * 180) / Math.PI, 1, 20, 30000);
@@ -116,6 +156,12 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     const paredes = obstaculos();
     // oclusión, brillo, viñeta y grano: lo que hace que la casa se vea a cine y no a dibujo
     const post = crearPostproceso(renderer, mundo.escena, lente, canvas.clientWidth || 1, canvas.clientHeight || 1);
+
+    // calidad adaptable: si la compu no da abasto, se bajan los efectos y la resolución de a poco
+    let nivel = 0;
+    let conEfectos = EFECTOS_POR_NIVEL[0];
+    let cuadro = 0;
+    const medidor = crearMedidorDeFps();
 
     let raf = 0;
     const inicio = performance.now();
@@ -137,13 +183,13 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
 
     const ajustar = () => {
       const { ancho, alto } = tamano();
-      const proporcion = Math.min(window.devicePixelRatio || 1, 1.75);
+      const proporcion = Math.min(window.devicePixelRatio || 1, PROPORCION_POR_NIVEL[nivel]);
       renderer.setPixelRatio(proporcion);
       renderer.setSize(ancho, alto, false);
       post.ajustar(ancho, alto, proporcion);
       lente.aspect = ancho / Math.max(1, alto);
       lente.updateProjectionMatrix();
-      if (!movida.current) camara.current = camara3dInicial({ ancho, alto }, ALTO_BARRA, ALTO_DOCK);
+      if (!movida.current) camara.current = camara3dInicial({ ancho, alto }, ALTO_BARRA, INFERIOR);
     };
     ajustar();
     const observador = new ResizeObserver(ajustar);
@@ -254,12 +300,19 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     window.addEventListener("blur", alPerderFoco);
 
     const bucle = (ahora: number) => {
+      if (pausaRef.current) {
+        anterior = ahora;
+        medidor.reiniciar();
+        raf = requestAnimationFrame(bucle);
+        return;
+      }
       const dt = Math.min(0.1, (ahora - anterior) / 1000);
       anterior = ahora;
       const t = tamano();
       const modoActual = modoRef.current;
       if (modoDeLente !== modoActual) {
         modoDeLente = modoActual;
+        renderer.shadowMap.needsUpdate = true;
         lente.fov = modoActual === "persona" ? FOV_PERSONA : (FOV_VERTICAL * 180) / Math.PI;
         lente.near = modoActual === "persona" ? 4 : 20;
         lente.updateProjectionMatrix();
@@ -291,11 +344,11 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
           ultimoMensaje = "";
           setHud("");
         }
-        camara.current ??= camara3dInicial(t, ALTO_BARRA, ALTO_DOCK);
+        camara.current ??= camara3dInicial(t, ALTO_BARRA, INFERIOR);
         const v = viaje.current;
         if (v) {
-          const k = (ahora - v.inicio) / DURACION_VIAJE_MS;
-          camara.current = interpolar3d(v.desde, v.hasta, k);
+          const k = (ahora - v.inicio) / (v.duracion ?? DURACION_VIAJE_MS);
+          camara.current = interpolar3d(v.desde, v.hasta, k, v.arco);
           if (k >= 1) viaje.current = null;
         }
         const c = camara.current;
@@ -305,7 +358,20 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
         mundo.colocarJugador(jugadorUsado.current ? jugador.current : null);
       }
       mundo.actualizar(vista.current.agentes, vista.current.brief, tiempoVisible((ahora - inicio) / 1000, reducido));
-      post.render(mundo.escena, lente);
+      cuadro += 1;
+      if (cuadro % SOMBRA_CADA_NIVEL[nivel] === 0) renderer.shadowMap.needsUpdate = true;
+      if (conEfectos) post.render(mundo.escena, lente);
+      else renderer.render(mundo.escena, lente);
+      const fps = medidor.cuadro(ahora);
+      if (fps !== null) {
+        const nuevo = nivelSegunFps(nivel, fps);
+        if (nuevo !== nivel) {
+          nivel = nuevo;
+          conEfectos = EFECTOS_POR_NIVEL[nivel];
+          ajustar();
+          console.info(`[calidad] ${fps.toFixed(0)} cuadros por segundo: bajo al nivel ${nivel} de ${NIVEL_MAXIMO} (efectos: ${conEfectos ? "sí" : "no"}, resolución: ${PROPORCION_POR_NIVEL[nivel]})`);
+        }
+      }
       raf = requestAnimationFrame(bucle);
     };
     raf = requestAnimationFrame(bucle);
@@ -348,10 +414,15 @@ export function Lienzo3D({ agentes, brief, alElegir, enfoque, modo = "arriba" }:
     document.exitPointerLock?.();
     const tamano = { ancho: canvas.clientWidth, alto: canvas.clientHeight };
     const sala = salaDe(jugador.current);
-    const hasta = sala !== null ? camara3dEnSala(SALAS[sala], tamano, ALTO_BARRA, ALTO_DOCK) : camara3dInicial(tamano, ALTO_BARRA, ALTO_DOCK);
+    const hasta = sala !== null ? camara3dEnSala(SALAS[sala], tamano, ALTO_BARRA, INFERIOR) : camara3dInicial(tamano, ALTO_BARRA, INFERIOR);
     movida.current = true;
     viaje.current = { desde: camara.current ?? hasta, hasta, inicio: performance.now() };
   }, [modo]);
+
+  // el marco amarillo del recorrido explicado
+  useEffect(() => {
+    mundoRef.current?.marcar(marca);
+  }, [marca]);
 
   const sombra = "0 1px 3px rgba(0,0,0,0.9)";
   return (

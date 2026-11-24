@@ -4,12 +4,13 @@ import { PALETA } from "../oficina/paleta";
 import { plastico } from "./bloques3d";
 import { ARBOL_PATIO, BANCO_PATIO, CANTEROS_PATIO, RECEPCION } from "./distribucion";
 import { conRepeticion, texturaAlfombra, texturaCuadro, texturaGrava, texturaLamas } from "./materiales";
+import { cajaRedonda, manchaDeContacto, pulido } from "./realismo";
 import { alfombraDeSala, ALTO_DINTEL, ALTO_MARCO, COLORES_SALA, GROSOR_MARCO, marcoDePuerta, mezclarHex, relojDeSala, ventanaDeSala } from "./identidad";
 
 const centro = (r: Rect) => ({ x: r.x + r.w / 2, z: r.y + r.h / 2 });
 
-function caja(raiz: THREE.Object3D, w: number, h: number, d: number, material: THREE.Material, x: number, y: number, z: number, sombra = true): THREE.Mesh {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+function caja(raiz: THREE.Object3D, w: number, h: number, d: number, material: THREE.Material, x: number, y: number, z: number, sombra = true, redondeo = 0): THREE.Mesh {
+  const m = redondeo > 0 ? cajaRedonda(w, h, d, redondeo, material) : new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z);
   m.castShadow = sombra;
   m.receiveShadow = true;
@@ -122,16 +123,11 @@ export function decorarSala(raiz: THREE.Group, interior: THREE.Group, sala: Sala
     const brazo = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 34, 8), plastico(PALETA.acero));
     brazo.position.set(lx, 85, lz);
     raiz.add(brazo);
-    const pantalla = new THREE.Mesh(new THREE.ConeGeometry(14, 14, 20, 1, true), new THREE.MeshStandardMaterial({ color: acento, emissive: "#ffcf80", emissiveIntensity: 0.9, side: THREE.DoubleSide }));
+    // la lámpara está apagada: es un objeto, no una fuente de luz
+    const pantalla = new THREE.Mesh(new THREE.ConeGeometry(14, 14, 20, 1, true), new THREE.MeshStandardMaterial({ color: acento, side: THREE.DoubleSide }));
     pantalla.position.set(lx, 104, lz);
     raiz.add(pantalla);
   }
-  // un carril de luz cálido que cae sobre el escritorio (o sobre la mesa de reuniones), como en una casa de verdad
-  const mesa = sala.tipo === "vidrio" ? { x: a.x + a.w / 2, y: a.y + 760 } : { x: a.x + a.w / 2, y: sala.escritorio.y + sala.escritorio.h / 2 };
-  const luz = new THREE.SpotLight("#ffd7a0", 8500, 700, 0.46, 0.9, 1.3);
-  luz.position.set(mesa.x, 198, mesa.y - 190);
-  luz.target.position.set(mesa.x, 64, mesa.y - 10);
-  raiz.add(luz, luz.target);
 }
 
 /**
@@ -143,7 +139,8 @@ export function crearTecho(raiz: THREE.Group, altura: number, alturaAtrio: numbe
   const losa = new THREE.MeshStandardMaterial({ color: PALETA.techo, roughness: 0.95, side: THREE.DoubleSide });
   const base: Rect = { x: 60, y: 60, w: MUNDO.ancho - 120, h: MUNDO.alto - 120 };
   const zonas = restarRectes(base, [LOBBY, PATIO]);
-  const panel = new THREE.MeshStandardMaterial({ color: "#d8d2c2", emissive: PALETA.panelLuz, emissiveIntensity: 0.9 });
+  // los paneles del techo están apagados: son placas blancas, no fuentes de luz
+  const panel = new THREE.MeshStandardMaterial({ color: "#f0eeea", roughness: 0.85 });
 
   for (const r of zonas) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(r.w, r.h), losa);
@@ -194,22 +191,12 @@ export function crearTecho(raiz: THREE.Group, altura: number, alturaAtrio: numbe
   caja(grupo, agujero.w, 14, 8, montante, cx, alturaAtrio - 6, agujero.y + agujero.h);
 
   // luz indirecta alrededor del lucernario: la franja cálida que hace que el atrio no sea un agujero negro
-  const indirecta = new THREE.MeshStandardMaterial({ color: "#7a6a52", emissive: "#ffd9a4", emissiveIntensity: 0.7 });
+  const indirecta = new THREE.MeshStandardMaterial({ color: "#e2ded5", roughness: 0.8 });
   const marco = 22;
   caja(grupo, agujero.w + marco * 2, 6, marco, indirecta, cx, alturaAtrio - 12, agujero.y - marco / 2);
   caja(grupo, agujero.w + marco * 2, 6, marco, indirecta, cx, alturaAtrio - 12, agujero.y + agujero.h + marco / 2);
   caja(grupo, marco, 6, agujero.h, indirecta, agujero.x - marco / 2, alturaAtrio - 12, cz);
   caja(grupo, marco, 6, agujero.h, indirecta, agujero.x + agujero.w + marco / 2, alturaAtrio - 12, cz);
-
-  // la luz que entra por el lucernario
-  for (const dx of [-430, 430]) {
-    const luz = new THREE.PointLight("#e8f0ff", 26000, 1500, 2);
-    luz.position.set(cx + dx, alturaAtrio - 70, cz);
-    grupo.add(luz);
-  }
-  const calida = new THREE.PointLight("#ffd9a8", 16000, 1300, 2);
-  calida.position.set(cx, alturaAtrio - 130, cz);
-  grupo.add(calida);
 
   grupo.visible = false;
   raiz.add(grupo);
@@ -221,9 +208,10 @@ export function crearRecepcion(raiz: THREE.Group): void {
   const r = RECEPCION;
   const cx = r.x + r.w / 2;
   const cz = r.y + r.h / 2;
-  const piedra = new THREE.MeshStandardMaterial({ color: PALETA.piedraClara, roughness: 0.4, metalness: 0.06 });
-  caja(raiz, r.w, 62, r.h, piedra, cx, 31, cz);
-  caja(raiz, r.w + 16, 7, r.h + 10, plastico("#15171d", { roughness: 0.28 }), cx, 65.5, cz);
+  const piedra = pulido(PALETA.piedraClara, { roughness: 0.34, clearcoat: 0.45, clearcoatRoughness: 0.3 });
+  caja(raiz, r.w, 62, r.h, piedra, cx, 31, cz, true, 3);
+  caja(raiz, r.w + 16, 7, r.h + 10, plastico("#15171d", { roughness: 0.28 }), cx, 65.5, cz, true, 2);
+  manchaDeContacto(raiz, cx, cz, r.w + 80, r.h + 70, 0.5);
   // el monitor mira a la recepcionista, que está del lado de adentro (el sur)
   caja(raiz, 62, 34, 5, plastico(PALETA.monitorMarco), cx - 96, 88, r.y + r.h - 12);
   const pantalla = new THREE.Mesh(new THREE.PlaneGeometry(54, 26), new THREE.MeshBasicMaterial({ color: PALETA.monitorPantalla }));
@@ -238,7 +226,7 @@ export function crearRecepcion(raiz: THREE.Group): void {
     flor.position.set(cx + 110 + dx, dy, cz);
     raiz.add(flor);
   }
-  caja(raiz, r.w - 60, 2, 4, new THREE.MeshStandardMaterial({ color: "#ffe9c4", emissive: "#ffd9a0", emissiveIntensity: 0.6 }), cx, 58, r.y + r.h + 1.5, false);
+  caja(raiz, r.w - 60, 2, 4, new THREE.MeshStandardMaterial({ color: "#cfcdc7", roughness: 0.6 }), cx, 58, r.y + r.h + 1.5, false);
 }
 
 /** El patio seco: grava, un árbol en el medio y un banco de piedra. Se ve a través del vidrio del review. */
@@ -288,7 +276,7 @@ export function crearGaleria(interior: THREE.Group): void {
     const tex = texturaCuadro(COLORES_SALA[i], i + 3);
     const lienzo = new THREE.Mesh(
       new THREE.PlaneGeometry(170, 110),
-      new THREE.MeshStandardMaterial({ map: tex, emissive: "#ffffff", emissiveMap: tex, emissiveIntensity: 0.3, roughness: 0.85 }),
+      new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 }),
     );
     lienzo.position.set(x, 128, z + (arriba ? 2 : -2));
     lienzo.rotation.y = arriba ? 0 : Math.PI;
@@ -299,7 +287,7 @@ export function crearGaleria(interior: THREE.Group): void {
 
 /** Línea de luz al pie de las paredes: guía el recorrido mientras se camina por adentro. */
 export function crearLucesDePiso(interior: THREE.Group): void {
-  const tira = new THREE.MeshStandardMaterial({ color: "#4a4436", emissive: "#ffcf90", emissiveIntensity: 0.22 });
+  const tira = new THREE.MeshStandardMaterial({ color: "#cfcec8", roughness: 0.7 });
   const ancho = MUNDO.ancho - 320;
   caja(interior, ancho, 3, 4, tira, MUNDO.ancho / 2, 16, 812, false);
   caja(interior, ancho, 3, 4, tira, MUNDO.ancho / 2, 16, 1848, false);

@@ -2,6 +2,7 @@
 export {
   arrastrar3d,
   camara3dEnSala,
+  camara3dEnZona,
   camara3dInicial,
   FOV_VERTICAL,
   INCLINACION,

@@ -7,12 +7,13 @@ import { crearObjeto } from "./figuras";
 import { COLORES_SALA, mezclarHex, placaDePuerta, ventanaDeSala } from "./identidad";
 import { crearLamas } from "./oficinas";
 import { aleatorio, conRepeticion, texturaAgua, texturaAlfombra, texturaBaldosas, texturaCuadro, texturaPlaca } from "./materiales";
+import { cajaRedonda, manchaDeContacto, pulido, tela } from "./realismo";
 import { ALTURA_ATRIO } from "./persona";
 import { textosDe } from "../contenido";
 import { AGENTES } from "../flujo";
 
-function caja(padre: THREE.Object3D, w: number, h: number, d: number, material: THREE.Material, x: number, y: number, z: number, sombra = true): THREE.Mesh {
-  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+function caja(padre: THREE.Object3D, w: number, h: number, d: number, material: THREE.Material, x: number, y: number, z: number, sombra = true, redondeo = 0): THREE.Mesh {
+  const m = redondeo > 0 ? cajaRedonda(w, h, d, redondeo, material) : new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
   m.position.set(x, y, z);
   m.castShadow = sombra;
   m.receiveShadow = true;
@@ -20,21 +21,22 @@ function caja(padre: THREE.Object3D, w: number, h: number, d: number, material: 
   return m;
 }
 
-const tela = (color: string) => new THREE.MeshStandardMaterial({ color, roughness: 0.92 });
-const madera = (color = "#4a3322") => plastico(color, { roughness: 0.45 });
+const madera = (color = "#4a3322") => pulido(color, { roughness: 0.52, clearcoat: 0.3, clearcoatRoughness: 0.4 });
 
 /** Un sillón de tres cuerpos (o de uno): base, almohadones del asiento, respaldo y apoyabrazos. Mira hacia +z. */
 export function crearSofa(ancho: number, fondo: number, color: string): THREE.Group {
   const g = new THREE.Group();
   const t = tela(color);
-  const claro = tela(mezclarHex(color, "#ffffff", 0.1));
-  caja(g, ancho, 22, fondo, madera("#2c2118"), 0, 11 + 4, 0);
+  const claro = tela(mezclarHex(color, "#ffffff", 0.12));
+  caja(g, ancho, 22, fondo, madera("#2c2118"), 0, 11 + 4, 0, true, 3);
   const cuerpos = Math.max(1, Math.round(ancho / 50));
   const util = ancho - 28;
-  for (let i = 0; i < cuerpos; i++) caja(g, util / cuerpos - 2, 14, fondo - 16, claro, -util / 2 + (i + 0.5) * (util / cuerpos), 33, 6);
-  caja(g, ancho, 46, 16, t, 0, 49, -fondo / 2 + 8);
-  for (let i = 0; i < cuerpos; i++) caja(g, util / cuerpos - 4, 30, 9, claro, -util / 2 + (i + 0.5) * (util / cuerpos), 52, -fondo / 2 + 20).rotation.x = -0.14;
-  for (const lado of [-1, 1]) caja(g, 14, 36, fondo, t, lado * (ancho / 2 - 7), 40, 0);
+  // los almohadones se hunden un poco entre sí: el cuerpo de un sillón no es un bloque
+  for (let i = 0; i < cuerpos; i++) caja(g, util / cuerpos - 2, 15, fondo - 16, claro, -util / 2 + (i + 0.5) * (util / cuerpos), 33, 6, true, 5);
+  caja(g, ancho, 46, 16, t, 0, 49, -fondo / 2 + 8, true, 4);
+  for (let i = 0; i < cuerpos; i++) caja(g, util / cuerpos - 4, 30, 10, claro, -util / 2 + (i + 0.5) * (util / cuerpos), 52, -fondo / 2 + 20, true, 6).rotation.x = -0.14;
+  for (const lado of [-1, 1]) caja(g, 14, 36, fondo, t, lado * (ancho / 2 - 7), 40, 0, true, 5);
+  manchaDeContacto(g, 0, 0, ancho + 46, fondo + 44, 0.5);
   return g;
 }
 
@@ -59,7 +61,7 @@ function crearLamparaDePie(): THREE.Group {
   base.position.y = 1.5;
   const cana = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 128, 10), metal);
   cana.position.y = 65;
-  const pantalla = new THREE.Mesh(new THREE.CylinderGeometry(15, 21, 24, 24, 1, true), new THREE.MeshStandardMaterial({ color: "#f6e9cf", emissive: "#ffd9a0", emissiveIntensity: 0.8, side: THREE.DoubleSide, roughness: 0.9 }));
+  const pantalla = new THREE.Mesh(new THREE.CylinderGeometry(15, 21, 24, 24, 1, true), new THREE.MeshStandardMaterial({ color: "#e6ddca", side: THREE.DoubleSide, roughness: 0.9 }));
   pantalla.position.y = 138;
   g.add(base, cana, pantalla);
   return g;
@@ -126,8 +128,9 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
     alfombra.position.set(mesa.x + mesa.w / 2 + (i === 0 ? 14 : -14), 1, mesa.y + mesa.h / 2);
     alfombra.receiveShadow = true;
     raiz.add(alfombra);
-    caja(raiz, mesa.w, 4, mesa.h, plastico("#d7e6ee", { roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.8 }), mesa.x + mesa.w / 2, 38, mesa.y + mesa.h / 2);
+    caja(raiz, mesa.w, 4, mesa.h, plastico("#d7e6ee", { roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.8 }), mesa.x + mesa.w / 2, 38, mesa.y + mesa.h / 2, true, 2);
     for (const [dx, dz] of [[6, 6], [mesa.w - 6, 6], [6, mesa.h - 6], [mesa.w - 6, mesa.h - 6]] as const) caja(raiz, 5, 36, 5, madera(), mesa.x + dx, 18, mesa.y + dz, false);
+    manchaDeContacto(raiz, mesa.x + mesa.w / 2, mesa.y + mesa.h / 2, mesa.w + 46, mesa.h + 46, 0.38);
     const jarron = new THREE.Mesh(new THREE.CylinderGeometry(6, 9, 18, 16), plastico("#3d6f8c", { roughness: 0.2 }));
     jarron.position.set(mesa.x + mesa.w / 2, 49, mesa.y + mesa.h / 2);
     raiz.add(jarron);
@@ -156,8 +159,8 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
   }
 
   // araña de cristal: aro dorado con velas encendidas y una luz cálida
-  const dorado = plastico("#d9b866", { metalness: 0.25, roughness: 0.35, emissive: "#5a3f12", emissiveIntensity: 0.55 });
-  const llama = new THREE.MeshStandardMaterial({ color: "#fff4d6", emissive: "#ffd89a", emissiveIntensity: 1.6 });
+  const dorado = plastico("#d9b866", { metalness: 0.35, roughness: 0.3 });
+  const llama = new THREE.MeshStandardMaterial({ color: "#f4eee0", roughness: 0.8 });
   const altoAraña = ALTURA_ATRIO - 150;
   const aro = new THREE.Mesh(new THREE.TorusGeometry(74, 4, 12, 48), dorado);
   aro.rotation.x = Math.PI / 2;
@@ -178,9 +181,7 @@ export function decorarLobby(raiz: THREE.Group, interior: THREE.Group): { libera
     cristal.position.set(x, altoAraña - 10, z);
     interior.add(vela, fuego, cristal);
   }
-  const luz = new THREE.PointLight("#ffe2b8", 85000, 1250, 2);
-  luz.position.set(ARAÑA_LOBBY.x, altoAraña - 10, ARAÑA_LOBBY.z);
-  interior.add(luz);
+  // la araña está apagada: queda como pieza de la casa, sin luz propia
 
   // lamas de roble sobre las dos paredes laterales, por encima de los sillones
   crearLamas(interior, 380, 120, 773, 168, 1240, Math.PI / 2);
@@ -244,7 +245,7 @@ export function crearJardin(raiz: THREE.Group): { actualizar: (t: number) => voi
 
   // faroles a los dos lados del camino
   const hierro = plastico("#23262d", { metalness: 0.5, roughness: 0.4 });
-  const luzFarol = new THREE.MeshStandardMaterial({ color: "#fff3d0", emissive: "#ffd48a", emissiveIntensity: 1.2 });
+  const luzFarol = new THREE.MeshStandardMaterial({ color: "#e8e4d8", roughness: 0.7 });
   for (let k = 0; k < 5; k++) {
     for (const lado of [-1, 1]) {
       const x = centro + lado * 130;

@@ -8,7 +8,7 @@ export const PALETA = {
   alfombra: "#1e2440",
   pared: "#2b2e3a",
   zocalo: "#14151c",
-  // los materiales de la casa moderna
+  // los materiales de la casa moderna, en oscuro
   techo: "#1a1c22",
   piedra: "#2a2c33",
   piedraClara: "#3a3d46",

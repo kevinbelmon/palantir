@@ -213,6 +213,46 @@ textarea {
 *::-webkit-scrollbar-thumb:hover {
   background: #5a5a5a;
 }
+
+/* los tres puntos de «escribiendo…», en el chat del agente */
+.puntos-escribiendo {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  height: 12px;
+}
+.puntos-escribiendo i {
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: currentColor;
+  opacity: 0.35;
+  animation: punto 1.05s ease-in-out infinite;
+}
+.puntos-escribiendo i:nth-child(2) {
+  animation-delay: 0.14s;
+}
+.puntos-escribiendo i:nth-child(3) {
+  animation-delay: 0.28s;
+}
+@keyframes punto {
+  0%,
+  60%,
+  100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .puntos-escribiendo i {
+    animation: none;
+    opacity: 0.6;
+  }
+}
 *::-webkit-scrollbar-corner {
   background: #000000;
 }

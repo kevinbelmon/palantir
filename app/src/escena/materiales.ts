@@ -120,18 +120,19 @@ export function texturaYeso(color: string): THREE.CanvasTexture {
   const azar = aleatorio(31);
   ctx.fillStyle = color;
   ctx.fillRect(0, 0, T, T);
-  // manchas grandes y suaves: rompen el color liso cuando la pared ocupa media pantalla
-  for (let i = 0; i < 26; i++) {
+  // manchas grandes y suaves, claras y oscuras: en una pared blanca el grano tiene que notarse igual
+  for (let i = 0; i < 40; i++) {
     const x = azar() * T;
     const y = azar() * T;
     const r = 24 + azar() * 70;
+    const claro = azar() > 0.45;
     const mancha = ctx.createRadialGradient(x, y, 0, x, y, r);
-    mancha.addColorStop(0, `rgba(255,255,255,${0.012 + azar() * 0.022})`);
+    mancha.addColorStop(0, claro ? `rgba(255,255,255,${0.05 + azar() * 0.05})` : `rgba(120,116,110,${0.02 + azar() * 0.035})`);
     mancha.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = mancha;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
-  granulado(ctx, T, T, azar, 3500, 0.05);
+  granulado(ctx, T, T, azar, 4200, 0.06);
   return repetible(c);
 }
 
@@ -343,11 +344,11 @@ export function texturaGrava(): THREE.CanvasTexture {
   const T = 256;
   const { c, ctx } = lienzo(T, T);
   const azar = aleatorio(83);
-  ctx.fillStyle = "#2b2823";
+  ctx.fillStyle = "#c4c0b8";
   ctx.fillRect(0, 0, T, T);
   for (let i = 0; i < 1400; i++) {
     const r = 1.4 + azar() * 3.6;
-    const tono = 40 + Math.floor(azar() * 60);
+    const tono = 150 + Math.floor(azar() * 70);
     ctx.fillStyle = `rgb(${tono + 12}, ${tono + 9}, ${tono})`;
     ctx.beginPath();
     ctx.ellipse(azar() * T, azar() * T, r, r * (0.6 + azar() * 0.5), azar() * Math.PI, 0, Math.PI * 2);

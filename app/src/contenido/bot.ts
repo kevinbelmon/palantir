@@ -10,8 +10,8 @@ export type TarjetaBot = { titulo: string; texto: string };
 export type ContextoBot = { tipo: "intro" } | { tipo: "agente"; indice: number } | { tipo: "fin" };
 
 type ExplicacionAgente = {
-  /** Una comparación con algo de la vida diaria. */
-  comparacion: string;
+  /** El lugar que ocupa el paso dentro del modelo. */
+  rol: string;
   /** Qué hace el agente, en pasos cortos. */
   hace: string;
   /** Qué tiene que hacer la persona (y qué botón toca). */
@@ -24,8 +24,7 @@ type ExplicacionAgente = {
 
 const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
   refine: {
-    comparacion:
-      "Imaginá que le pedís una casa a un arquitecto. Antes de dibujar, él te pregunta cuántos cuartos querés, para cuántas personas y con qué dinero. Refine hace lo mismo con tu idea.",
+    rol: "Es el primer paso del modelo: nada se construye hasta que el pedido está claro.",
     hace: "Lee el brief que dejaste en la papelería. Marca lo que no se entiende o lo que falta. Después te hace una pregunta por vez, con ejemplos, hasta que no queda ninguna duda.",
     tuTarea:
       "Tocá al agente de la oficina 1 y apretá «Ordenar que corra /sdd-refine». Cuando te pregunte algo, contestá con tus palabras en la caja de abajo. No hace falta saber de programación.",
@@ -35,8 +34,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si no sabés una respuesta, escribí «No lo sé todavía». Es una respuesta válida y el agente la anota como pendiente. No inventes un dato para salir del paso.",
   },
   generate: {
-    comparacion:
-      "Es como armar el plano y la lista de materiales antes de construir. Así todos miran el mismo mapa y nadie improvisa sobre la marcha.",
+    rol: "Es el segundo paso: transforma el pedido en documentación que todo el equipo comparte como referencia.",
     hace: "Toma el pedido ya pulido y lo convierte en cuatro documentos cortos. Son las reglas del proyecto, las historias de usuario, el plan y la lista de tareas. Una historia de usuario cuenta algo que alguien va a poder hacer, como «agregar un producto a la lista».",
     tuTarea:
       "Tocá al agente de la oficina 2 y ordenale correr. Puede pedirte que confirmes un nombre o un dato corto. Contestá y esperá a que termine.",
@@ -46,8 +44,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si un documento te parece largo o raro, no pasa nada: es un borrador. Lo importante es que el plan coincida con lo que pediste. El siguiente agente lo revisa.",
   },
   validate: {
-    comparacion:
-      "Es como comparar la receta con la lista de invitados antes de cocinar: ¿alcanza para todos? Mejor enterarte ahora y no con la mesa servida.",
+    rol: "Es el control de calidad de la documentación: se corrige antes de construir, cuando es más barato.",
     hace: "Compara el pedido original con los documentos del plan. Anota lo que quedó sin cubrir y lo que quedó a medias.",
     tuTarea:
       "Tocá al agente de la oficina 3 y ordenale correr. Si encuentra huecos, te los muestra. Vos decidís cómo arreglarlos: el agente no cambia nada por su cuenta.",
@@ -57,8 +54,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si aparecen huecos, no es un fracaso: para eso existe este paso. Elegí cómo resolver cada uno y pasá al siguiente agente, que deja anotada tu decisión.",
   },
   log: {
-    comparacion:
-      "Es el cuaderno de decisiones del proyecto, como el libro de actas de un edificio. Dentro de seis meses nadie tiene que adivinar por qué se hizo algo.",
+    rol: "Funciona como el registro oficial del proyecto: cada decisión queda anotada con su motivo y su responsable.",
     hace: "Te hace seis preguntas, una por vez: qué cambió, qué otras opciones había, por qué se descartaron, por qué se eligió esta, qué documentos cambiaron y quién decidió. Con tus respuestas arma el registro.",
     tuTarea:
       "Tocá al agente de la oficina 4 y ordenale correr. Contestá cada pregunta con sinceridad y en pocas palabras. Al final poné tu nombre o tu rol como la persona que decidió.",
@@ -67,8 +63,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si no evaluaste otras opciones, respondé «ninguna evaluada»: es una respuesta válida. Si no hubo ninguna decisión que anotar, decíselo al agente.",
   },
   implement: {
-    comparacion:
-      "Es la obra. Primero se escribe cómo se va a probar cada cosa y después se construye hasta que las pruebas pasan. Como probar el freno del auto antes de salir a la ruta.",
+    rol: "Es la etapa de construcción: se avanza tarea por tarea y cada una se prueba antes de pasar a la siguiente.",
     hace: "Sigue la lista de tareas una por una. Escribe la prueba, escribe el programa y repite hasta que todo funciona. Va tildando cada tarea que termina.",
     tuTarea:
       "Tocá al agente de la oficina 5 y ordenale correr. Este es el paso más largo, así que esperá. Mirá su globito para saber qué está haciendo y contestale solo si te pregunta algo.",
@@ -78,8 +73,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si tarda mucho, es normal. Si dice que algo falló, pedile que te lo explique con palabras simples. No des el paso por listo mientras haya pruebas que fallan.",
   },
   e2e: {
-    comparacion:
-      "Es como probar un auto manejándolo de verdad, y no solo mirando el motor. Alguien usa la aplicación de punta a punta, como lo haría una persona cualquiera.",
+    rol: "Complementa las pruebas anteriores: verifica la aplicación completa, funcionando, como la usaría una persona.",
     hace: "Abre la aplicación que se construyó y hace los recorridos principales, por ejemplo entrar, cargar algo y guardarlo. Saca una captura de pantalla en cada paso, como prueba.",
     tuTarea:
       "Tocá al agente de la oficina 6 y ordenale correr. Puede pedirte que dejes la aplicación abierta o que le cuentes cómo se entra. Contestale con lo que sepas.",
@@ -89,8 +83,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si todavía no hay ninguna aplicación para abrir, volvé al paso 5. Este paso necesita algo ya construido y funcionando.",
   },
   checklist: {
-    comparacion:
-      "Es la lista que mirás antes de aceptar una obra: ¿la puerta cierra bien?, ¿se ve prolija? Hay cosas que solo una persona puede juzgar.",
+    rol: "Cubre lo que ninguna prueba automática puede medir: claridad, diseño y comodidad de uso.",
     hace: "Arma una lista corta de cosas para mirar a mano, como «¿se entiende este botón?» o «¿se lee bien este texto?».",
     tuTarea:
       "Este paso es tuyo. Abrí la aplicación, mirá cada punto de la lista y tildá lo que está bien. Anotá lo que no te convence.",
@@ -99,8 +92,7 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
       "Si dudás de un punto, no lo tildes. Es mejor dejar una duda anotada que decir que está bien sin estar seguro.",
   },
   review: {
-    comparacion:
-      "Es la inspección final antes de entregar las llaves. Se compara todo lo que pediste con todo lo que se entregó.",
+    rol: "Es la verificación final: confirma que lo entregado coincide con lo pedido, con toda la evidencia a la vista.",
     hace: "Repasa el pedido, el plan, las pruebas, el recorrido y tu lista. Después revisa que lo que se ve coincida con lo prometido.",
     tuTarea: "Tocá al agente de la oficina 8 y ordenale correr. Leé el veredicto final. Si todo está bien, el trabajo queda cerrado.",
     terminado:
@@ -111,9 +103,9 @@ const EXPLICACIONES: Record<AgenteId, ExplicacionAgente> = {
 };
 
 const INTRO: readonly TarjetaBot[] = [
-  { titulo: `Hola, soy ${NOMBRE_BOT}`, texto: "Soy tu guía. Me quedo en esta esquina para explicarte cada paso con palabras simples. No hace falta saber de programación." },
+  { titulo: `Soy ${NOMBRE_BOT}, tu asistente`, texto: "Me quedo en esta esquina para explicarte cada paso del modelo. No hace falta conocimiento técnico previo." },
   { titulo: "¿Qué es este lugar?", texto: "Es una oficina con ocho agentes. Cada uno hace un trabajo, uno después del otro, para convertir una idea en una aplicación hecha y probada." },
-  { titulo: "¿Qué es un brief?", texto: "Es tu idea escrita en pocas líneas. Por ejemplo: «una aplicación para llevar la lista de compras de la casa»." },
+  { titulo: "¿Qué es un brief?", texto: "Es el documento inicial del proyecto: la idea escrita en pocas líneas. Por ejemplo, «una aplicación para dividir los gastos de un viaje entre amigos»." },
   { titulo: "Tu primer paso", texto: "Andá a la papelería, a la izquierda del lobby, y tocá la mesa para dejar el brief. Después se habilita el primer agente." },
   { titulo: "Cómo moverte", texto: "En «Caminar por adentro» usás las teclas W, A, S, D y el mouse, y apretás E para hablar con un agente. En «Ver desde arriba» tocás con el mouse. Tocá un paso de la lista de la izquierda y te lo explico." },
 ];
@@ -132,7 +124,7 @@ export function tarjetasBot(contexto: ContextoBot): readonly TarjetaBot[] {
   const t = TEXTOS_AGENTES[agente.id];
   const e = EXPLICACIONES[agente.id];
   return [
-    { titulo: `¿Qué es ${t.nombre}?`, texto: `${t.queHace} ${e.comparacion}` },
+    { titulo: `¿Qué es ${t.nombre}?`, texto: `${t.queHace} ${e.rol}` },
     { titulo: "¿Qué hace el agente?", texto: e.hace },
     { titulo: "¿Qué hacés vos?", texto: e.tuTarea },
     { titulo: "¿Cómo sé que terminó?", texto: e.terminado },

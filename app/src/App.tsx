@@ -20,9 +20,14 @@ import { BotonRepo, PanelRepo } from "./ui/PanelRepo";
 import { ANCHO_PASOS, PasoAPaso } from "./ui/PasoAPaso";
 import { PantallaFinal } from "./ui/PantallaFinal";
 import { VisorDocumento } from "./ui/VisorDocumento";
+import { ALTO_ZAC, RecorridoCapa } from "./ui/Recorrido";
+import { useRecorrido } from "./ui/recorridoReloj";
 
 /** La oficina en 3D; si el navegador no puede mostrar 3D, el mapa plano de siempre. */
 const HAY_3D = soportaWebGL();
+
+/** Durante el recorrido explicado nadie toca el mapa: el que manda es Zac. */
+const NO_HACE_NADA = () => {};
 
 const CLAVE_CANCION = "sdd-juego-cancion";
 
@@ -49,6 +54,11 @@ export default function App() {
   const real = local.briefSubido;
   const [ocupado, setOcupado] = useState(false);
 
+  // con el recorrido explicado, Zac lleva su propia vista (cámara, marca y quién trabaja) y la partida real queda quieta
+  const tour = useRecorrido();
+  const enTour = tour.activo;
+  const estadoVista = enTour ? tour.actual.estado : estado;
+
   // al abrir el juego, si el programa local ya tiene un repo (el último que se usó), se retoma donde se dejó
   useEffect(() => {
     let vivo = true;
@@ -67,12 +77,12 @@ export default function App() {
 
   // cada cambio del avance se guarda por repo, para que el juego se acuerde en qué paso está
   useEffect(() => {
-    if (!local.modeloInstalado) return;
+    if (!local.modeloInstalado || enTour) return;
     const t = setTimeout(() => {
       cliente.guardarProgreso(estado).catch(() => {});
     }, 400);
     return () => clearTimeout(t);
-  }, [estado, local.modeloInstalado, cliente]);
+  }, [estado, local.modeloInstalado, cliente, enTour]);
 
   // al conectar otro repo: se retoma su avance guardado, o se empieza de cero
   const alCambiarLocal = (e: EstadoLocal) => {
@@ -125,7 +135,7 @@ export default function App() {
   };
 
   // a la derecha se muestra una sola cosa a la vez; lo más reciente que se abrió tiene prioridad
-  const columna = estado.fin ? "final" : estado.documentoAbierto !== null ? "documento" : repoAbierto ? "repo" : archivosAbierto ? "archivos" : seleccion !== null ? "agente" : null;
+  const columna = enTour ? null : estado.fin ? "final" : estado.documentoAbierto !== null ? "documento" : repoAbierto ? "repo" : archivosAbierto ? "archivos" : seleccion !== null ? "agente" : null;
 
   const alElegir = (el: Elemento) => {
     if (el.tipo === "papeleria") despachar({ tipo: "dejarBrief" });
@@ -185,25 +195,27 @@ export default function App() {
 
   return (
     <main style={{ height: "100%", position: "relative" }}>
-      <div style={{ position: "absolute", inset: 0, left: ANCHO_PASOS, right: columna !== null ? ANCHO_PANEL : 0 }}>
+      <div style={{ position: "absolute", inset: 0, left: enTour ? 0 : ANCHO_PASOS, right: enTour ? 0 : columna !== null ? ANCHO_PANEL : 0 }}>
         {HAY_3D ? (
-          <Lienzo3D agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} modo={modo} />
+          <Lienzo3D agentes={estadoVista.agentes} brief={ubicacionBrief(estadoVista)} alElegir={enTour ? NO_HACE_NADA : alElegir} enfoque={enTour ? tour.enfoque : enfoque} modo={enTour ? "arriba" : modo} margenInferior={enTour ? ALTO_ZAC : undefined} marca={enTour ? tour.actual.marca : null} pausar={tour.presentacion} />
         ) : (
-          <Lienzo agentes={estado.agentes} brief={ubicacionBrief(estado)} alElegir={alElegir} enfoque={enfoque} />
+          <Lienzo agentes={estadoVista.agentes} brief={ubicacionBrief(estadoVista)} alElegir={enTour ? NO_HACE_NADA : alElegir} enfoque={enTour ? tour.enfoque : enfoque} />
         )}
       </div>
-      <PasoAPaso
-        estado={estado}
-        abierto={pasoAbierto}
-        alElegir={(i) => {
-          setPasoAbierto(pasoAbierto === i ? null : i);
-          setEnfoque({ indice: i, vez: Date.now() });
-        }}
-      />
-      <BarraSuperior estado={estado} />
-      <Guia mensaje={seleccion === null ? mensajeGuia(estado) : ""} />
-      <Bot contexto={contextoDelBot(estado, seleccion ?? pasoAbierto)} />
-      {columna === "agente" && seleccion !== null && (
+      {!enTour && (
+        <PasoAPaso
+          estado={estado}
+          abierto={pasoAbierto}
+          alElegir={(i) => {
+            setPasoAbierto(pasoAbierto === i ? null : i);
+            setEnfoque({ indice: i, vez: Date.now() });
+          }}
+        />
+      )}
+      {!enTour && <BarraSuperior estado={estado} />}
+      <Guia mensaje={enTour || seleccion !== null ? "" : mensajeGuia(estado)} />
+      {!enTour && <Bot contexto={contextoDelBot(estado, seleccion ?? pasoAbierto)} alRecorrido={tour.empezar} />}
+      {!enTour && columna === "agente" && seleccion !== null && (
         <PanelAgente
           indice={seleccion}
           estado={estado.agentes[seleccion]}
@@ -218,21 +230,22 @@ export default function App() {
           alTerminar={real ? () => despachar({ tipo: "terminarCorrida", indice: seleccion }) : undefined}
         />
       )}
-      {columna === "documento" && estado.documentoAbierto !== null && (
+      {!enTour && columna === "documento" && estado.documentoAbierto !== null && (
         <VisorDocumento indice={estado.documentoAbierto} alCerrar={() => despachar({ tipo: "cerrarDocumento" })} real={real ? (local.salidas[String(estado.documentoAbierto)] ?? "") : undefined} />
       )}
-      {columna === "final" && (
+      {!enTour && columna === "final" && (
         <PantallaFinal
           alReiniciar={() => {
+            if (enTour) return;
             setSeleccion(null);
             despachar({ tipo: "reiniciar" });
           }}
         />
       )}
-      <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} canciones={CANCIONES} actual={cancion} alElegir={elegirCancion} />
-      {HAY_3D && <BotonVista modo={modo} alCambiar={() => setModo(modo === "arriba" ? "persona" : "arriba")} />}
-      {local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
-      <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />
+      {!enTour && <BotonMusica silenciada={silenciada} alAlternar={alternarMusica} canciones={CANCIONES} actual={cancion} alElegir={elegirCancion} />}
+      {HAY_3D && !enTour && <BotonVista modo={modo} alCambiar={() => setModo(modo === "arriba" ? "persona" : "arriba")} />}
+      {!enTour && local.modeloInstalado && <BotonArchivos alAbrir={() => setArchivosAbierto(true)} />}
+      {!enTour && <BotonRepo conectado={local.briefSubido} alAbrir={() => setRepoAbierto(true)} />}
       {columna === "archivos" && <Archivos cliente={cliente} alCerrar={() => setArchivosAbierto(false)} />}
       {columna === "repo" && <PanelRepo estado={local} cliente={cliente} alCambiar={alCambiarLocal} alCerrar={() => setRepoAbierto(false)} />}
       {aviso && (
@@ -243,19 +256,22 @@ export default function App() {
           </button>
         </div>
       )}
-      <Dock
-        estado={estado}
-        alElegir={(i) => {
-          setSeleccion(i);
-          setEnfoque({ indice: i, vez: Date.now() });
-        }}
-        alNuevo={() => {
-          setSeleccion(null);
-          setEnfoque(null);
-          setPasoAbierto(null);
-          despachar({ tipo: "reiniciar" });
-        }}
-      />
+      {!enTour && (
+        <Dock
+          estado={estado}
+          alElegir={(i) => {
+            setSeleccion(i);
+            setEnfoque({ indice: i, vez: Date.now() });
+          }}
+          alNuevo={() => {
+            setSeleccion(null);
+            setEnfoque(null);
+            setPasoAbierto(null);
+            despachar({ tipo: "reiniciar" });
+          }}
+        />
+      )}
+      <RecorridoCapa tour={tour} />
     </main>
   );
 }
